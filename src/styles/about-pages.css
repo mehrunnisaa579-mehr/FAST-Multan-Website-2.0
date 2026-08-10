@@ -1,0 +1,17 @@
+/* About pages custom styles */
+
+.about-page-content {
+  color: #444444;
+  font-size: 16px;
+  line-height: 1.75;
+  font-weight: 400;
+  text-align: left;
+}
+
+.about-page-content p {
+  margin-bottom: 18px;
+}
+
+.about-page-content p:last-child {
+  margin-bottom: 0;
+}

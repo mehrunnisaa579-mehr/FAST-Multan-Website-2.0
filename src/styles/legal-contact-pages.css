@@ -1,0 +1,93 @@
+/* Styles for Legal & Contact pages */
+
+.legal-contact-bg {
+  background-color: #ffffff;
+  width: 100%;
+}
+
+.legal-contact-wrapper {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 60px 24px 90px;
+}
+
+@media (max-width: 768px) {
+  .legal-contact-wrapper {
+    padding: 35px 20px 60px;
+  }
+}
+
+.legal-content-column {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.legal-content-column h1 {
+  text-align: center;
+  margin-top: 12px;
+  margin-bottom: 16px;
+}
+
+.legal-content-column h2 {
+  text-align: center;
+  margin-top: 34px;
+  margin-bottom: 16px;
+}
+
+.legal-content-column h3 {
+  text-align: center;
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+
+.legal-content-column p {
+  text-align: center;
+  margin-bottom: 18px;
+  line-height: 1.75;
+}
+
+.legal-content-column ul,
+.legal-content-column ol {
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  list-style-type: none;
+  padding: 0;
+}
+
+.legal-content-column li {
+  text-align: center;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.map-placeholder-box {
+  width: 100%;
+  height: 330px;
+  background-color: #E9ECEF;
+  border: 1px solid #D5D5D5;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.form-input-field {
+  width: 100%;
+  border: 1px solid #D5D5D5;
+  background-color: #ffffff;
+  font-size: 14px;
+  padding: 12px 14px;
+  border-radius: 4px;
+  color: #222222;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.form-input-field:focus {
+  border-color: #0093DD;
+}

@@ -1,0 +1,49 @@
+/* Styles for News pages */
+
+.news-page-bg {
+  background-color: #ffffff;
+  width: 100%;
+}
+
+.news-content-wrapper {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 55px 24px 80px;
+}
+
+@media (max-width: 768px) {
+  .news-content-wrapper {
+    padding: 35px 20px 60px;
+  }
+}
+
+.news-card-box {
+  background-color: #ffffff;
+  padding: 28px;
+  margin-bottom: 28px;
+  border-radius: 4px;
+  border: 1px solid #EAEAEA;
+}
+
+.news-sidebar-box {
+  background-color: #ffffff;
+  padding: 20px;
+  margin-bottom: 22px;
+  border-radius: 4px;
+  border: 1px solid #EAEAEA;
+}
+
+.news-read-more {
+  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333333;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+
+.news-read-more:hover {
+  color: #0C71C3;
+}

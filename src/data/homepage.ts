@@ -23,9 +23,8 @@ export const homepageContent = {
     message: "PLACEHOLDER: A warm introductory message from the campus director will go here, describing the university's mission, values, and commitment to students. Replace this with the real message before launch.",
   },
   ourSchools: [
-    { icon: "", name: "FAST School of Management" },
-    { icon: "", name: "FAST School of Computing" },
-    { icon: "", name: "FAST School of Engineering" },
+    { icon: "", name: "FAST School of Computing", href: "/departments/computing" },
+    { icon: "", name: "FAST School of Management", href: "/departments/management" },
   ],
   whyChooseUs: [
     { icon: "", title: "Faculty", description: "PLACEHOLDER: Description about qualified faculty and academic excellence." },

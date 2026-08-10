@@ -1,21 +1,44 @@
 import { useRef, useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { homepageContent } from '../../data/homepage';
+import { cmsService } from '../../services/cmsService';
 
 export default function PhotoGallery() {
-  const images = homepageContent.galleryImages;
+  const [heading, setHeading] = useState('Photo Gallery');
+  const [subtitle, setSubtitle] = useState('A glimpse into campus life');
+  const [images, setImages] = useState<any[]>(homepageContent.galleryImages);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
 
+  useEffect(() => {
+    const fetchGalleryData = async () => {
+      const data = await cmsService.getSetting<any>('homepage_full_content', null);
+      if (data) {
+        if (data.galleryHeading) setHeading(data.galleryHeading);
+        if (data.gallerySubtitle) setSubtitle(data.gallerySubtitle);
+      }
+      const cmsGallery = await cmsService.getGalleryItems();
+      if (cmsGallery && cmsGallery.length > 0) {
+        setImages(
+          cmsGallery.map((item: any) => ({
+            image: item.image_url,
+            caption: item.caption || 'Campus Photo',
+          }))
+        );
+      }
+    };
+    fetchGalleryData();
+  }, []);
+
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
-      const scrollAmount = scrollRef.current.clientWidth > 640 ? 276 : scrollRef.current.clientWidth * 0.7; // card width + gap
+      const scrollAmount = scrollRef.current.clientWidth > 640 ? 276 : scrollRef.current.clientWidth * 0.7;
       const offset = direction === 'left' ? -scrollAmount : scrollAmount;
       scrollRef.current.scrollBy({ left: offset, behavior: 'smooth' });
     }
   };
 
-  // Keyboard navigation when lightbox is open
   useEffect(() => {
     if (activeImageIndex === null) return;
 
@@ -40,7 +63,8 @@ export default function PhotoGallery() {
   }, [activeImageIndex, images.length]);
 
   const activeImage = activeImageIndex !== null ? images[activeImageIndex] : null;
-  const hasLightboxImage = activeImage ? !!activeImage.image : false;
+  const hasLightboxImage = activeImage ? !!(activeImage.image || activeImage.image_url) : false;
+  const lightboxSrc = activeImage?.image || activeImage?.image_url || '';
 
   const handlePrevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -62,11 +86,11 @@ export default function PhotoGallery() {
     <section className="py-[60px] w-full bg-[#F7F9FC] select-none">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px]">
         {/* Section Heading & Subheading */}
-        <h2 className="text-[28px] font-bold text-[#16498C] text-center mb-2">
-          Photo Gallery
+        <h2 className="text-[28px] font-bold text-[#0C71C3] text-center mb-2">
+          {heading}
         </h2>
         <p className="text-[15px] text-[#666666] text-center mb-[40px] font-medium">
-          A glimpse into campus life
+          {subtitle}
         </p>
 
         {/* Gallery Wrapper with Arrows */}
@@ -78,7 +102,8 @@ export default function PhotoGallery() {
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {images.map((item, index) => {
-              const hasImage = !!item.image;
+              const imgSrc = item.image || item.image_url;
+              const hasImage = !!imgSrc;
               return (
                 <div 
                   key={index}
@@ -87,7 +112,7 @@ export default function PhotoGallery() {
                 >
                   {hasImage ? (
                     <img 
-                      src={item.image} 
+                      src={imgSrc} 
                       alt={item.caption} 
                       className="w-full h-full object-cover select-none"
                     />
@@ -162,7 +187,7 @@ export default function PhotoGallery() {
           >
             {hasLightboxImage ? (
               <img 
-                src={activeImage.image} 
+                src={lightboxSrc} 
                 alt={activeImage.caption} 
                 className="max-w-[80vw] max-h-[80vh] object-contain rounded-[4px] shadow-2xl"
               />

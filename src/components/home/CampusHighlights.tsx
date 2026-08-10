@@ -1,32 +1,82 @@
+import { useEffect, useState } from 'react';
 import { homepageContent } from '../../data/homepage';
+import { cmsService } from '../../services/cmsService';
 
 export default function CampusHighlights() {
-  const highlights = homepageContent.campusHighlights;
+  const [heading, setHeading] = useState('Campus Highlights');
+  const [subtitle, setSubtitle] = useState('A glimpse into life at FAST-NUCES Multan Campus');
+  const [highlights, setHighlights] = useState<any[]>(homepageContent.campusHighlights);
+  const [isVisible, setIsVisible] = useState<boolean>(true);
+  const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
+  const [isVideoFile, setIsVideoFile] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchHighlightsData = async () => {
+      const data = await cmsService.getSetting<any>('homepage_full_content', null);
+      if (data) {
+        if (data.highlightsHeading) setHeading(data.highlightsHeading);
+        if (data.highlightsSubtitle) setSubtitle(data.highlightsSubtitle);
+        if (data.showHighlightsSection !== undefined) setIsVisible(data.showHighlightsSection);
+        if (Array.isArray(data.highlightItems) && data.highlightItems.length > 0) {
+          const visibleItems = data.highlightItems.filter((i: any) => i.visible !== false);
+          if (visibleItems.length > 0) {
+            setHighlights(visibleItems);
+          }
+        }
+      }
+    };
+    fetchHighlightsData();
+  }, []);
+
+  const getEmbedUrl = (url: string) => {
+    if (!url) return '';
+    if (url.includes('youtube.com/watch?v=')) {
+      const id = url.split('watch?v=')[1]?.split('&')[0];
+      return `https://www.youtube.com/embed/${id}?autoplay=1`;
+    }
+    if (url.includes('youtu.be/')) {
+      const id = url.split('youtu.be/')[1]?.split('?')[0];
+      return `https://www.youtube.com/embed/${id}?autoplay=1`;
+    }
+    return url;
+  };
+
+  if (!isVisible) return null;
 
   return (
     <section className="py-[60px] w-full bg-white select-none">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px]">
         {/* Section Heading & Subheading */}
-        <h2 className="text-[28px] font-bold text-[#16498C] text-center mb-2">
-          Campus Highlights
+        <h2 className="text-[28px] font-bold text-[#0C71C3] text-center mb-2">
+          {heading}
         </h2>
         <p className="text-[15px] text-[#666666] text-center mb-[40px] font-medium">
-          A glimpse into life at FAST-NUCES Multan Campus
+          {subtitle}
         </p>
 
         {/* 2 cards side by side */}
         <div className="flex flex-col md:flex-row gap-[24px] justify-center items-center max-w-[1000px] mx-auto w-full">
           {highlights.map((item, index) => {
-            const hasThumb = !!item.thumbnail;
+            const hasThumb = !!(item.thumbnail || item.thumbnailUrl);
+            const thumbSrc = item.thumbnailUrl || item.thumbnail;
+            const targetUrl = item.videoUrl || item.youtubeUrl || '';
+            const isUpload = item.videoType === 'upload' || (targetUrl.endsWith('.mp4') || targetUrl.endsWith('.webm'));
+
             return (
               <div 
                 key={index}
+                onClick={() => {
+                  if (targetUrl) {
+                    setIsVideoFile(isUpload);
+                    setActiveVideoUrl(isUpload ? targetUrl : getEmbedUrl(targetUrl));
+                  }
+                }}
                 className="flex-1 w-full aspect-[16/9] rounded-[8px] overflow-hidden relative cursor-pointer select-none group bg-[#D9D9D9] shadow-sm"
               >
                 {/* Thumbnail Image / Placeholder */}
                 {hasThumb ? (
                   <img 
-                    src={item.thumbnail} 
+                    src={thumbSrc} 
                     alt={item.title} 
                     className="w-full h-full object-cover" 
                   />
@@ -43,8 +93,7 @@ export default function CampusHighlights() {
 
                 {/* Centered red circular Play Button */}
                 <div className="absolute inset-0 flex items-center justify-center z-20">
-                  <div className="w-[60px] h-[60px] rounded-full bg-[#FF0000] flex items-center justify-center transition-transform duration-200 group-hover:scale-1.1 shadow-lg">
-                    {/* SVG Triangle Play Icon */}
+                  <div className="w-[60px] h-[60px] rounded-full bg-[#FF0000] flex items-center justify-center transition-transform duration-200 group-hover:scale-110 shadow-lg">
                     <svg className="w-5 h-5 fill-current text-white ml-[4px]" viewBox="0 0 24 24">
                       <polygon points="6 3 20 12 6 21 6 3" />
                     </svg>
@@ -65,6 +114,35 @@ export default function CampusHighlights() {
           })}
         </div>
       </div>
+
+      {/* Video Modal Player (YouTube or Direct Video File) */}
+      {activeVideoUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setActiveVideoUrl(null)}
+        >
+          <div className="w-full max-w-[900px] aspect-[16/9] bg-black rounded-lg overflow-hidden relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setActiveVideoUrl(null)}
+              className="absolute top-3 right-3 z-50 text-white font-bold bg-black/50 hover:bg-black w-8 h-8 rounded-full flex items-center justify-center cursor-pointer"
+            >
+              ✕
+            </button>
+            {isVideoFile ? (
+              <video src={activeVideoUrl} controls autoPlay className="w-full h-full object-contain" />
+            ) : (
+              <iframe
+                src={activeVideoUrl}
+                className="w-full h-full"
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+                title="Campus Highlight Video"
+              />
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

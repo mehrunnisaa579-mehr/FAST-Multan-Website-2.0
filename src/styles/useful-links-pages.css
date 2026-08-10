@@ -1,0 +1,35 @@
+/* Styles for Useful Links pages */
+
+.useful-links-bg {
+  background-color: #ffffff;
+  width: 100%;
+}
+
+.useful-links-wrapper {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 60px 24px 85px;
+}
+
+@media (max-width: 768px) {
+  .useful-links-wrapper {
+    padding: 35px 20px 60px;
+  }
+}
+
+.pdf-preview-box {
+  width: 100%;
+  max-width: 440px;
+  aspect-ratio: 3 / 4;
+  background-color: #D9D9D9;
+  border: 1px solid #CCCCCC;
+  border-radius: 4px;
+  margin: 0 auto 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}

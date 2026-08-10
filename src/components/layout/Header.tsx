@@ -18,7 +18,7 @@ export default function Header() {
 
           {/* Text block */}
           <div className="flex flex-col gap-[2px] text-left">
-            <span className="text-[11px] sm:text-[15px] font-bold text-[#16498C] tracking-[0.3px] uppercase leading-none">
+            <span className="text-[11px] sm:text-[15px] font-bold text-[#0C71C3] tracking-[0.3px] uppercase leading-none">
               NATIONAL UNIVERSITY
             </span>
             <span className="text-[7px] sm:text-[9px] font-medium text-[#666666] tracking-[0.2px] uppercase leading-none">

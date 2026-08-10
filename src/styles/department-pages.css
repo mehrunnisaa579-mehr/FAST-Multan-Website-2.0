@@ -1,0 +1,37 @@
+/* Styles for Department pages */
+
+.dept-page-container {
+  width: 100%;
+  background-color: #ffffff;
+}
+
+.dept-divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 50px 0;
+  width: 100%;
+}
+
+.dept-divider-line {
+  width: 100%;
+  height: 1px;
+  background-color: rgba(12, 113, 195, 0.3);
+}
+
+.dept-divider-dot {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #0C71C3;
+  background-color: #ffffff;
+}
+
+.dept-section-heading {
+  color: #0C71C3;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+}
