@@ -1,41 +1,96 @@
+import { useEffect, useState } from 'react';
 import AboutPageHero from '../../components/about/AboutPageHero';
+import { cmsService } from '../../services/cmsService';
+import { FileText, Download } from 'lucide-react';
 import '../../styles/useful-links-pages.css';
 
 export default function BrandIdentityGuidelinePage() {
-  return (
-    <div className="useful-links-bg">
-      {/* Shared Hero */}
-      <AboutPageHero title="NUCES Brand Identity Guideline" />
+  const [heroTitle, setHeroTitle] = useState('NUCES Brand Identity Guideline');
+  const [heroImage, setHeroImage] = useState('');
+  const [heading, setHeading] = useState('NUCES Brand Identity Guideline');
+  const [brandPdfUrl, setBrandPdfUrl] = useState('');
+  const [brandPdfFileName, setBrandPdfFileName] = useState('');
+  const [logoResourceUrl, setLogoResourceUrl] = useState('');
+  const [logoBtnLabel, setLogoBtnLabel] = useState('Download Logo Variations');
+  const [guidebookBtnLabel, setGuidebookBtnLabel] = useState('Download Guide Book');
 
-      {/* Main Content Area */}
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await cmsService.getSetting<any>('useful_links_content', null);
+      if (data) {
+        if (data.brandHeroTitle) setHeroTitle(data.brandHeroTitle);
+        if (data.brandHeroImage) setHeroImage(data.brandHeroImage);
+        if (data.brandHeading) setHeading(data.brandHeading);
+        if (data.brandPdfUrl) setBrandPdfUrl(data.brandPdfUrl);
+        if (data.brandPdfFileName) setBrandPdfFileName(data.brandPdfFileName);
+        if (data.logoResourceUrl) setLogoResourceUrl(data.logoResourceUrl);
+        if (data.logoBtnLabel) setLogoBtnLabel(data.logoBtnLabel);
+        if (data.guidebookBtnLabel2) setGuidebookBtnLabel(data.guidebookBtnLabel2);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleDownloadLogos = () => {
+    if (logoResourceUrl) {
+      window.open(logoResourceUrl, '_blank');
+    } else {
+      alert('Logo variations package (ZIP/PDF) will be uploaded by the campus administrator.');
+    }
+  };
+
+  const handleDownloadBrandPdf = () => {
+    if (brandPdfUrl) {
+      window.open(brandPdfUrl, '_blank');
+    } else {
+      alert('NUCES Brand Identity Guideline PDF document will be uploaded by the campus administrator.');
+    }
+  };
+
+  return (
+    <div className="w-full bg-white text-left">
+      <AboutPageHero title={heroTitle} backgroundImage={heroImage} />
+
       <div className="useful-links-wrapper text-center">
-        {/* Centered Heading */}
         <h1 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] mb-[28px] text-center">
-          NUCES Brand Identity Guideline
+          {heading}
         </h1>
 
-        {/* Centered Document / PDF Preview Placeholder */}
-        <div className="pdf-preview-box">
-          <span className="text-[13px] font-semibold text-[#666666] tracking-wide uppercase">
-            PLACEHOLDER: NUCES BRAND IDENTITY GUIDELINE PDF PREVIEW
-          </span>
+        {/* PDF Preview Box */}
+        <div className="pdf-preview-box flex flex-col items-center justify-center p-6 bg-white border border-[#E5E7EB] rounded-md shadow-xs">
+          {brandPdfUrl ? (
+            <div className="w-full space-y-4">
+              <div className="flex items-center justify-center gap-3 text-[#0093DD]">
+                <FileText className="w-8 h-8" />
+                <span className="text-base font-bold text-[#1F2937]">{brandPdfFileName || 'NUCES Brand Identity Guideline.pdf'}</span>
+              </div>
+              <iframe src={brandPdfUrl} title="NUCES Brand Identity Guideline PDF" className="w-full h-[450px] border border-[#E5E7EB] rounded-md" />
+            </div>
+          ) : (
+            <span className="text-[13px] font-semibold text-[#666666] tracking-wide uppercase">
+              PLACEHOLDER: NUCES BRAND IDENTITY GUIDELINE PDF PREVIEW
+            </span>
+          )}
         </div>
 
-        {/* Two Buttons (Side-by-side on desktop, stacked on mobile) */}
+        {/* Two Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-[16px] mt-[24px]">
           <button
             type="button"
-            onClick={(e) => e.preventDefault()}
-            className="w-full sm:w-auto bg-[#0093DD] hover:bg-[#0C71C3] text-white text-[15px] font-semibold py-[12px] px-[24px] rounded-[4px] transition-colors cursor-pointer border-none outline-none"
+            onClick={handleDownloadLogos}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 download-doc-btn text-white text-[15px] font-semibold py-[12px] px-[24px] rounded-[4px] cursor-pointer border-none outline-none shadow-xs"
           >
-            Download Logo Variations
+            <Download className="w-4 h-4" />
+            <span>{logoBtnLabel}</span>
           </button>
+
           <button
             type="button"
-            onClick={(e) => e.preventDefault()}
-            className="w-full sm:w-auto bg-[#0093DD] hover:bg-[#0C71C3] text-white text-[15px] font-semibold py-[12px] px-[24px] rounded-[4px] transition-colors cursor-pointer border-none outline-none"
+            onClick={handleDownloadBrandPdf}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 download-doc-btn text-white text-[15px] font-semibold py-[12px] px-[24px] rounded-[4px] cursor-pointer border-none outline-none shadow-xs"
           >
-            Download Guide Book
+            <Download className="w-4 h-4" />
+            <span>{guidebookBtnLabel}</span>
           </button>
         </div>
       </div>

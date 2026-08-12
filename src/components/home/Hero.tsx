@@ -39,7 +39,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative w-full h-[320px] sm:h-[500px] select-none overflow-hidden bg-black">
+    <section className="relative w-full h-[320px] sm:h-[500px] overflow-hidden bg-black">
       {/* Slides */}
       {slides.map((slide, index) => {
         const isActive = index === currentSlide;

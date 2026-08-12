@@ -14,6 +14,16 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+}
+
 html,
 body,
 #root {
@@ -22,6 +32,51 @@ body,
   width: 100%;
   user-select: text;
   -webkit-user-select: text;
+}
+
+/* Ensure all text content elements enable normal browser selection */
+p, h1, h2, h3, h4, h5, h6, span, li, td, th, a, blockquote, article, section, div.dept-page-container, div.society-page-bg, div.edc-page-bg, div.news-page-bg {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Shared Document / Download Button Navy Blue Hover Style */
+.download-doc-btn {
+  background-color: #0093DD;
+  color: #FFFFFF;
+  transition: background-color 0.25s ease, color 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.download-doc-btn:hover {
+  background-color: #0B2E59;
+  color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(11, 46, 89, 0.22);
+}
+
+.download-doc-btn:focus-visible {
+  outline: 2px solid #0093DD;
+  outline-offset: 2px;
+}
+
+/* ─── Premium Card Hover Lift Effect ─── */
+.card-hover-lift {
+  transition: transform 250ms ease, box-shadow 250ms ease !important;
+  will-change: transform;
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-6px) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.08) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-hover-lift {
+    transition: none !important;
+  }
+  .card-hover-lift:hover {
+    transform: none !important;
+  }
 }
 
 body {

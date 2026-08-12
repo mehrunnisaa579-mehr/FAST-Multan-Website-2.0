@@ -75,7 +75,7 @@ export default function UpcomingEvents() {
   }, []);
 
   return (
-    <section className="py-[60px] w-full bg-[#F7F9FC] select-none">
+    <section className="py-[60px] w-full bg-[#F7F9FC]">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px]">
         {/* Section Heading & Subheading */}
         <h2 className="text-[28px] font-bold text-[#0C71C3] text-center mb-2">
@@ -92,7 +92,7 @@ export default function UpcomingEvents() {
             return (
               <div 
                 key={event.id || index}
-                className="flex-1 w-full bg-white rounded-[8px] overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex flex-col text-left cursor-pointer transition-shadow hover:shadow-md"
+                className="flex-1 w-full bg-white rounded-[8px] overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.08)] flex flex-col text-left cursor-pointer card-hover-lift"
               >
                 {/* 1. MEDIA AREA (Image or EVENT IMAGE placeholder + Date Badge Overlay ONLY) */}
                 <div className="relative h-[160px] w-full flex-shrink-0 bg-[#D9D9D9]">

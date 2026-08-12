@@ -1,14 +1,34 @@
+import { useEffect, useState } from 'react';
 import { Phone } from 'lucide-react';
+import { cmsService } from '../../services/cmsService';
 
 export default function TopBar() {
+  const [phoneNumber, setPhoneNumber] = useState('+92 61 111 128 128');
+
+  useEffect(() => {
+    const fetchTopBarData = async () => {
+      const data = await cmsService.getSetting<any>('header_footer_content', null);
+      if (data && data.phone) {
+        setPhoneNumber(data.phone);
+      }
+    };
+    fetchTopBarData();
+  }, []);
+
+  const telUrl = `tel:${phoneNumber.replace(/[^0-9+]/g, '')}`;
+
   return (
     <div className="w-full h-[34px] sm:h-[38px] bg-[#0093DD] text-white flex items-center select-none box-sizing-border">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px] flex justify-between items-center h-full box-border">
-        {/* Left Side: Call Us info */}
-        <div className="flex items-center gap-[6px] text-[11px] sm:text-[13px] font-semibold text-white">
+        {/* Left Side: Call Us info (Click to Call) */}
+        <a
+          href={telUrl}
+          className="flex items-center gap-[6px] text-[11px] sm:text-[13px] font-semibold text-white hover:text-white/90 hover:underline transition-colors cursor-pointer no-underline"
+          title="Click to call"
+        >
           <Phone className="w-[12px] h-[12px] sm:w-[14px] sm:h-[14px]" strokeWidth={2.5} />
-          <span>Call Us +92 61 111 128 128</span>
-        </div>
+          <span>Call Us {phoneNumber}</span>
+        </a>
 
         {/* Right Side: Social Media Icons (Facebook, Instagram, LinkedIn, YouTube) */}
         <div className="flex items-center gap-[12px] sm:gap-[18px]">

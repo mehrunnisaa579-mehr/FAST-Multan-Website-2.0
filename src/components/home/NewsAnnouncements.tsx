@@ -19,18 +19,23 @@ export default function NewsAnnouncements() {
         if (data.newsCount) count = Number(data.newsCount);
         if (data.showNewsSection !== undefined) setIsVisible(data.showNewsSection);
       }
+
       const cmsNews = await cmsService.getNews();
       if (cmsNews && cmsNews.length > 0) {
-        setNews(cmsNews.slice(0, count));
+        const visible = cmsNews.filter((n: any) => n.published !== false && n.is_visible !== false);
+        if (visible.length > 0) {
+          setNews(visible.slice(0, count));
+        }
       }
     };
+
     fetchNewsData();
   }, []);
 
   if (!isVisible) return null;
 
   return (
-    <section className="py-[60px] w-full bg-white select-none">
+    <section className="py-[60px] w-full bg-white">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px]">
         {/* Section Heading & Subheading */}
         <h2 className="text-[28px] font-bold text-[#0C71C3] text-center mb-2">
@@ -49,9 +54,9 @@ export default function NewsAnnouncements() {
 
             return (
               <Link
-                key={index}
+                key={item.id || index}
                 to="/news"
-                className="flex-1 w-full bg-white border border-[#EAEAEA] rounded-[8px] p-[20px] text-left flex flex-col justify-between group cursor-pointer transition-shadow hover:shadow-sm no-underline block"
+                className="flex-1 w-full bg-white border border-[#EAEAEA] rounded-[8px] p-[20px] text-left flex flex-col justify-between group cursor-pointer card-hover-lift no-underline block"
               >
                 <div>
                   <h3 className="text-[16px] font-bold text-[#0C71C3] mb-[8px] group-hover:text-[#0093DD] transition-colors leading-snug">

@@ -5,6 +5,7 @@ import '../../styles/about-pages.css';
 
 export default function DisabilityAccessibilityPage() {
   const [title, setTitle] = useState('Disability & Accessibility Policy');
+  const [heroImage, setHeroImage] = useState('');
   const [policyText, setPolicyText] = useState('');
 
   useEffect(() => {
@@ -12,6 +13,7 @@ export default function DisabilityAccessibilityPage() {
       const data = await cmsService.getSetting<any>('useful_links_content', null);
       if (data) {
         if (data.disabilityTitle) setTitle(data.disabilityTitle);
+        if (data.disabilityHeroImage) setHeroImage(data.disabilityHeroImage);
         if (data.disabilityText) setPolicyText(data.disabilityText);
       }
     };
@@ -19,10 +21,10 @@ export default function DisabilityAccessibilityPage() {
   }, []);
 
   return (
-    <div className="w-full bg-white select-none">
-      <AboutPageHero title={title} />
+    <div className="w-full bg-white text-left">
+      <AboutPageHero title={title} backgroundImage={heroImage} />
 
-      <div className="w-full max-w-[1180px] mx-auto px-[20px] min-[700px]:px-[24px] py-[40px] min-[700px]:py-[50px] min-[1100px]:pt-[65px] min-[1100px]:pb-[85px] text-[#444444] text-[16px] leading-[1.75] font-normal text-left space-y-[18px]">
+      <div className="w-full max-w-[1180px] mx-auto px-[20px] min-[700px]:px-[24px] py-[40px] min-[700px]:py-[50px] min-[1100px]:pt-[65px] min-[1100px]:pb-[85px] text-[#444444] text-[16px] leading-[1.75] font-normal space-y-[18px]">
         {policyText ? (
           policyText.split('\n\n').map((para, idx) => <p key={idx}>{para}</p>)
         ) : (

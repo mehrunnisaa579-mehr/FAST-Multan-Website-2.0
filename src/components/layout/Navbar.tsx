@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { navigationData } from '../../data/navigation';
 import type { NavItem, NavSubItem } from '../../data/navigation';
+import { useDynamicNavigation } from '../../hooks/useDynamicNavigation';
 
 function DesktopSubItem({
   subItem,
@@ -86,6 +87,7 @@ function DesktopSubItem({
 }
 
 export function DesktopNavbar() {
+  const navItems = useDynamicNavigation();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const location = useLocation();
 
@@ -130,7 +132,7 @@ export function DesktopNavbar() {
       role="navigation"
       aria-label="Primary Desktop Navigation"
     >
-      {navigationData.map((item) => {
+      {navItems.map((item) => {
         const hasSubmenu = !!item.items;
         const active = isActive(item);
 
@@ -325,6 +327,7 @@ interface MobileNavbarProps {
 }
 
 export function MobileNavbar({ isOpen, onClose }: MobileNavbarProps) {
+  const navItems = useDynamicNavigation();
   const [openMobileSubmenu, setOpenMobileSubmenu] = useState<string | null>(null);
   const location = useLocation();
 
@@ -343,7 +346,7 @@ export function MobileNavbar({ isOpen, onClose }: MobileNavbarProps) {
         role="navigation"
         aria-label="Primary Mobile Navigation"
       >
-        {navigationData.map((item) => {
+        {navItems.map((item) => {
           const hasSubmenu = !!item.items;
           const isSubmenuOpen = openMobileSubmenu === item.label;
 

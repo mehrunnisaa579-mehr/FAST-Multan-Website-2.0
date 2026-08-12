@@ -21,8 +21,19 @@ import {
   ArrowUp,
   ArrowDown,
   Video,
+  Eye,
+  EyeOff,
+  Edit2,
 } from 'lucide-react';
 import { homepageContent } from '../../data/homepage';
+
+interface GalleryItem {
+  id: string;
+  image_url: string;
+  caption: string;
+  display_order: number;
+  is_visible: boolean;
+}
 
 export default function AdminHomePageEditor() {
   // Accordion state (News & Announcements section removed per Part 1)
@@ -34,6 +45,7 @@ export default function AdminHomePageEditor() {
     gallery: false,
     events: false,
     highlights: false,
+    news: false,
   });
 
   // Safe defaults
@@ -90,6 +102,15 @@ export default function AdminHomePageEditor() {
 
   const [galleryHeading, setGalleryHeading] = useState('Campus Gallery');
   const [gallerySubtitle, setGallerySubtitle] = useState('Moments from FAST-NUCES Multan');
+  const [galleryRow1Count, setGalleryRow1Count] = useState<number>(6);
+  const [galleryRow2Count, setGalleryRow2Count] = useState<number>(6);
+  const [galleryRow3Count, setGalleryRow3Count] = useState<number>(6);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [galleryModalOpen, setGalleryModalOpen] = useState(false);
+  const [editingGalleryItem, setEditingGalleryItem] = useState<Partial<GalleryItem> | null>(null);
+  const [galleryDeleteTarget, setGalleryDeleteTarget] = useState<GalleryItem | null>(null);
+  const [galleryImageUploading, setGalleryImageUploading] = useState(false);
+  const [savingGallery, setSavingGallery] = useState(false);
 
   const [eventsHeading, setEventsHeading] = useState('Upcoming Events');
   const [eventsSubtitle, setEventsSubtitle] = useState("Have a look at what's coming up");
@@ -98,6 +119,10 @@ export default function AdminHomePageEditor() {
   const [highlightsSubtitle, setHighlightsSubtitle] = useState('Video tours, student experiences and campus achievements');
   const [showHighlightsSection, setShowHighlightsSection] = useState<boolean>(true);
   const [highlightItems, setHighlightItems] = useState<any[]>(defaultHighlightItems);
+
+  const [newsHeading, setNewsHeading] = useState('News and Announcements');
+  const [newsSubtitle, setNewsSubtitle] = useState('Stay updated with the latest news, announcements, and achievements from FAST-NUCES Multan Campus.');
+  const [showNewsSection, setShowNewsSection] = useState<boolean>(true);
 
   // UI state
   const [savingSection, setSavingSection] = useState<string | null>(null);
@@ -125,6 +150,9 @@ export default function AdminHomePageEditor() {
 
         if (data.galleryHeading) setGalleryHeading(data.galleryHeading);
         if (data.gallerySubtitle) setGallerySubtitle(data.gallerySubtitle);
+        if (data.galleryRow1Count) setGalleryRow1Count(data.galleryRow1Count);
+        if (data.galleryRow2Count) setGalleryRow2Count(data.galleryRow2Count);
+        if (data.galleryRow3Count) setGalleryRow3Count(data.galleryRow3Count);
 
         if (data.eventsHeading) setEventsHeading(data.eventsHeading);
         if (data.eventsSubtitle) setEventsSubtitle(data.eventsSubtitle);
@@ -133,6 +161,16 @@ export default function AdminHomePageEditor() {
         if (data.highlightsSubtitle) setHighlightsSubtitle(data.highlightsSubtitle);
         if (data.showHighlightsSection !== undefined) setShowHighlightsSection(data.showHighlightsSection);
         if (Array.isArray(data.highlightItems) && data.highlightItems.length > 0) setHighlightItems(data.highlightItems);
+
+        if (data.newsHeading) setNewsHeading(data.newsHeading);
+        if (data.newsSubtitle) setNewsSubtitle(data.newsSubtitle);
+        if (data.showNewsSection !== undefined) setShowNewsSection(data.showNewsSection);
+      }
+
+      // Load homepage photo gallery items from dedicated key
+      const galleryData = await cmsService.getSetting<GalleryItem[]>('homepage_photo_gallery_list', []);
+      if (Array.isArray(galleryData) && galleryData.length > 0) {
+        setGalleryItems(galleryData.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)));
       }
     };
     loadFullHomepageData();
@@ -170,12 +208,18 @@ export default function AdminHomePageEditor() {
       whyUsItems,
       galleryHeading,
       gallerySubtitle,
+      galleryRow1Count,
+      galleryRow2Count,
+      galleryRow3Count,
       eventsHeading,
       eventsSubtitle,
       highlightsHeading,
       highlightsSubtitle,
       showHighlightsSection,
       highlightItems,
+      newsHeading,
+      newsSubtitle,
+      showNewsSection,
     };
 
     const res = await cmsService.saveSetting('homepage_full_content', payload, 'Full Homepage Content Settings');
@@ -200,6 +244,139 @@ export default function AdminHomePageEditor() {
       alert(`Upload failed: ${res.error}`);
     }
   };
+
+  const handleHeroMediaUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    mediaType: string,
+    callback: (url: string) => void
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isVideo = file.type.startsWith('video/') || file.name.endsWith('.mp4') || file.name.endsWith('.webm');
+    const isImage = file.type.startsWith('image/');
+
+    if (mediaType === 'video' && !isVideo) {
+      alert('Invalid file format. Please select an MP4 or WebM video file for video background slides.');
+      e.target.value = '';
+      return;
+    }
+    if (mediaType === 'image' && !isImage) {
+      alert('Invalid file format. Please select an image file (JPG, PNG, WebP) for image background slides.');
+      e.target.value = '';
+      return;
+    }
+
+    const res = await cmsService.uploadMedia(file);
+    if (res.success && res.publicUrl) {
+      callback(res.publicUrl);
+    } else {
+      alert(`Upload failed: ${res.error}`);
+    }
+    e.target.value = '';
+  };
+
+  // ── HOMEPAGE PHOTO GALLERY CRUD HELPERS ─────────────────────────────────────
+
+  const persistGalleryItems = async (items: GalleryItem[]) => {
+    const ordered = items.map((item, idx) => ({ ...item, display_order: idx + 1 }));
+    setGalleryItems(ordered);
+    const res = await cmsService.saveSetting('homepage_photo_gallery_list', ordered, 'Homepage Photo Gallery Items');
+    return res;
+  };
+
+  const handleGalleryAddOpen = () => {
+    setEditingGalleryItem({
+      id: '',
+      image_url: '',
+      caption: '',
+      display_order: galleryItems.length + 1,
+      is_visible: true,
+    });
+    setGalleryModalOpen(true);
+  };
+
+  const handleGalleryEditOpen = (item: GalleryItem) => {
+    setEditingGalleryItem({ ...item });
+    setGalleryModalOpen(true);
+  };
+
+  const handleGalleryImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setGalleryImageUploading(true);
+    const res = await cmsService.uploadMedia(file);
+    setGalleryImageUploading(false);
+    if (res.success && res.publicUrl) {
+      setEditingGalleryItem((prev) => ({ ...prev, image_url: res.publicUrl }));
+    } else {
+      alert(`Image upload failed: ${res.error}`);
+    }
+    e.target.value = '';
+  };
+
+  const handleGallerySaveItem = async () => {
+    if (!editingGalleryItem) return;
+    setSavingGallery(true);
+    const isNew = !editingGalleryItem.id;
+    const finalItem: GalleryItem = {
+      id: editingGalleryItem.id || `gal-${Date.now()}`,
+      image_url: editingGalleryItem.image_url || '',
+      caption: editingGalleryItem.caption || 'Campus Photo',
+      display_order: editingGalleryItem.display_order || galleryItems.length + 1,
+      is_visible: editingGalleryItem.is_visible !== false,
+    };
+    let updatedList: GalleryItem[];
+    if (isNew) {
+      updatedList = [...galleryItems, finalItem];
+    } else {
+      updatedList = galleryItems.map((item) => (item.id === finalItem.id ? finalItem : item));
+    }
+    const res = await persistGalleryItems(updatedList);
+    setSavingGallery(false);
+    if (res.success) {
+      setGalleryModalOpen(false);
+      setEditingGalleryItem(null);
+      setMessage({ type: 'success', text: isNew ? 'Gallery item added successfully.' : 'Gallery item updated.' });
+      setTimeout(() => setMessage(null), 4000);
+    } else {
+      setMessage({ type: 'error', text: res.error || 'Failed to save gallery item.' });
+    }
+  };
+
+  const handleGalleryDeleteConfirm = async () => {
+    if (!galleryDeleteTarget) return;
+    setSavingGallery(true);
+    const updatedList = galleryItems.filter((item) => item.id !== galleryDeleteTarget.id);
+    const res = await persistGalleryItems(updatedList);
+    setSavingGallery(false);
+    setGalleryDeleteTarget(null);
+    if (res.success) {
+      setMessage({ type: 'success', text: 'Gallery item deleted.' });
+      setTimeout(() => setMessage(null), 4000);
+    } else {
+      setMessage({ type: 'error', text: res.error || 'Failed to delete gallery item.' });
+    }
+  };
+
+  const handleGalleryToggleVisibility = async (id: string) => {
+    const updatedList = galleryItems.map((item) =>
+      item.id === id ? { ...item, is_visible: !item.is_visible } : item
+    );
+    await persistGalleryItems(updatedList);
+  };
+
+  const handleGalleryMove = async (index: number, direction: 'up' | 'down') => {
+    const newList = [...galleryItems];
+    const targetIdx = direction === 'up' ? index - 1 : index + 1;
+    if (targetIdx < 0 || targetIdx >= newList.length) return;
+    const temp = newList[index];
+    newList[index] = newList[targetIdx];
+    newList[targetIdx] = temp;
+    await persistGalleryItems(newList);
+  };
+
+
 
   const confirmDelete = () => {
     if (!deleteTarget) return;
@@ -299,23 +476,50 @@ export default function AdminHomePageEditor() {
                     </select>
                   </AdminFormGroup>
 
-                  <AdminFormGroup label="Media Upload">
+                  <AdminFormGroup label={`Media Upload (${slide.mediaType === 'video' ? 'MP4 / WebM' : 'Image'})`}>
                     <div className="flex gap-2">
-                      <AdminInput value={slide.mediaUrl || ''} onChange={(e) => {
-                        const updated = [...heroSlides];
-                        updated[idx].mediaUrl = e.target.value;
-                        setHeroSlides(updated);
-                      }} placeholder="Media URL..." />
-
-                      <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
-                        <Upload className="w-4 h-4" />
-                        <span>Upload</span>
-                        <input type="file" accept={slide.mediaType === 'video' ? 'video/*' : 'image/*'} className="hidden" onChange={(e) => handleFileUpload(e, (url) => {
+                      <AdminInput
+                        value={slide.mediaUrl || ''}
+                        onChange={(e) => {
                           const updated = [...heroSlides];
-                          updated[idx].mediaUrl = url;
+                          updated[idx].mediaUrl = e.target.value;
                           setHeroSlides(updated);
-                        })} />
+                        }}
+                        placeholder={slide.mediaType === 'video' ? 'Video URL (.mp4 / .webm)...' : 'Image URL...'}
+                      />
+
+                      <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 shadow-xs">
+                        <Upload className="w-4 h-4" />
+                        <span>Upload {slide.mediaType === 'video' ? 'Video' : 'Image'}</span>
+                        <input
+                          type="file"
+                          accept={slide.mediaType === 'video' ? 'video/mp4,video/webm' : 'image/*'}
+                          className="hidden"
+                          onChange={(e) =>
+                            handleHeroMediaUpload(e, slide.mediaType || 'image', (url) => {
+                              const updated = [...heroSlides];
+                              updated[idx].mediaUrl = url;
+                              setHeroSlides(updated);
+                            })
+                          }
+                        />
                       </label>
+                    </div>
+
+                    {/* Media Preview Box */}
+                    <div className="mt-3 w-full max-w-[360px] h-[150px] bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center relative shadow-xs">
+                      {slide.mediaUrl ? (
+                        slide.mediaType === 'video' ? (
+                          <video controls src={slide.mediaUrl} className="w-full h-full object-cover" />
+                        ) : (
+                          <img src={slide.mediaUrl} alt="Slide Preview" className="w-full h-full object-cover" />
+                        )
+                      ) : (
+                        <div className="flex flex-col items-center gap-1 text-[#9CA3AF]">
+                          <ImageIcon className="w-6 h-6" />
+                          <span className="text-[11px] font-semibold uppercase">No Media Uploaded Yet</span>
+                        </div>
+                      )}
                     </div>
                   </AdminFormGroup>
                 </div>
@@ -598,7 +802,7 @@ export default function AdminHomePageEditor() {
         )}
       </AdminCard>
 
-      {/* 5. PHOTO GALLERY HEADINGS ACCORDION */}
+      {/* 5. PHOTO GALLERY ACCORDION — FULL CRUD */}
       <AdminCard className="p-0 overflow-hidden">
         <button
           type="button"
@@ -606,32 +810,262 @@ export default function AdminHomePageEditor() {
           className="w-full px-6 py-5 bg-[#F9FAFB] hover:bg-[#F3F4F6] flex items-center justify-between transition-colors border-b border-[#E5E7EB] text-left cursor-pointer"
         >
           <div>
-            <h3 className="text-lg font-bold text-[#1F2937]">5. Photo Gallery Headings</h3>
-            <p className="text-xs text-[#6B7280]">Update section heading and subtitle for homepage Photo Gallery.</p>
+            <h3 className="text-lg font-bold text-[#1F2937]">5. Photo Gallery</h3>
+            <p className="text-xs text-[#6B7280]">Manage homepage Photo Gallery images, captions, order, and visibility.</p>
           </div>
           {openAccordions.gallery ? <ChevronDown className="w-5 h-5 text-[#6B7280]" /> : <ChevronRight className="w-5 h-5 text-[#6B7280]" />}
         </button>
 
         {openAccordions.gallery && (
-          <div className="p-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <AdminFormGroup label="Section Heading">
-                <AdminInput value={galleryHeading} onChange={(e) => setGalleryHeading(e.target.value)} />
-              </AdminFormGroup>
+          <div className="p-6 space-y-6">
+            {/* Gallery Layout Settings */}
+            <div className="p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg space-y-3">
+              <h4 className="text-xs font-bold text-[#1F2937] uppercase tracking-wide">Gallery Layout (Images Per Row)</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <AdminFormGroup label="Row 1 Images">
+                  <select
+                    value={galleryRow1Count}
+                    onChange={(e) => setGalleryRow1Count(parseInt(e.target.value, 10))}
+                    className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-md text-sm text-[#1F2937]"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                      <option key={n} value={n}>{n} image{n > 1 ? 's' : ''}</option>
+                    ))}
+                  </select>
+                </AdminFormGroup>
 
-              <AdminFormGroup label="Section Subtitle">
-                <AdminInput value={gallerySubtitle} onChange={(e) => setGallerySubtitle(e.target.value)} />
-              </AdminFormGroup>
+                <AdminFormGroup label="Row 2 Images">
+                  <select
+                    value={galleryRow2Count}
+                    onChange={(e) => setGalleryRow2Count(parseInt(e.target.value, 10))}
+                    className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-md text-sm text-[#1F2937]"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                      <option key={n} value={n}>{n} image{n > 1 ? 's' : ''}</option>
+                    ))}
+                  </select>
+                </AdminFormGroup>
+
+                <AdminFormGroup label="Row 3 Images">
+                  <select
+                    value={galleryRow3Count}
+                    onChange={(e) => setGalleryRow3Count(parseInt(e.target.value, 10))}
+                    className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-md text-sm text-[#1F2937]"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                      <option key={n} value={n}>{n} image{n > 1 ? 's' : ''}</option>
+                    ))}
+                  </select>
+                </AdminFormGroup>
+              </div>
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end">
               <AdminButton variant="primary" onClick={() => handleSaveSection('gallery')} loading={savingSection === 'gallery'} icon={<Save className="w-4 h-4" />}>
-                Save Gallery Headings
+                Save Gallery Layout & Headings
               </AdminButton>
+            </div>
+
+            {/* Gallery Items List */}
+            <div className="border-t border-[#E5E7EB] pt-5">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h4 className="text-sm font-bold text-[#1F2937]">Gallery Images</h4>
+                  <p className="text-xs text-[#6B7280] mt-0.5">{galleryItems.length} image{galleryItems.length !== 1 ? 's' : ''} in homepage gallery</p>
+                </div>
+                <AdminButton variant="primary" onClick={handleGalleryAddOpen} icon={<Plus className="w-4 h-4" />}>
+                  Add Gallery Image
+                </AdminButton>
+              </div>
+
+              {galleryItems.length === 0 ? (
+                <div className="bg-[#F9FAFB] border border-dashed border-[#D1D5DB] rounded-lg p-10 text-center">
+                  <ImageIcon className="w-8 h-8 text-[#9CA3AF] mx-auto mb-2" />
+                  <p className="text-sm font-semibold text-[#374151] mb-1">No gallery images yet</p>
+                  <p className="text-xs text-[#6B7280] mb-4">Add photos to show them in the Homepage Photo Gallery carousel.</p>
+                  <AdminButton variant="primary" onClick={handleGalleryAddOpen} icon={<Plus className="w-4 h-4" />}>
+                    Add First Image
+                  </AdminButton>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {galleryItems.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      className={`flex items-center gap-4 p-3 rounded-lg border ${item.is_visible ? 'border-[#E5E7EB] bg-white' : 'border-[#E5E7EB] bg-[#F9FAFB] opacity-60'}`}
+                    >
+                      {/* Thumbnail */}
+                      <div className="w-[72px] h-[54px] flex-shrink-0 rounded-md overflow-hidden bg-[#F3F4F6] border border-[#E5E7EB]">
+                        {item.image_url ? (
+                          <img src={item.image_url} alt={item.caption} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <ImageIcon className="w-5 h-5 text-[#9CA3AF]" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Caption + Order badge */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[#1F2937] truncate">{item.caption || 'Untitled'}</p>
+                        <p className="text-xs text-[#6B7280] mt-0.5">Position #{idx + 1} · {item.is_visible ? 'Visible' : 'Hidden'}</p>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <button
+                          type="button"
+                          title="Move Up"
+                          disabled={idx === 0}
+                          onClick={() => handleGalleryMove(idx, 'up')}
+                          className="p-1.5 text-[#6B7280] hover:text-[#1F2937] hover:bg-[#F3F4F6] rounded-md disabled:opacity-30 cursor-pointer"
+                        >
+                          <ArrowUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          title="Move Down"
+                          disabled={idx === galleryItems.length - 1}
+                          onClick={() => handleGalleryMove(idx, 'down')}
+                          className="p-1.5 text-[#6B7280] hover:text-[#1F2937] hover:bg-[#F3F4F6] rounded-md disabled:opacity-30 cursor-pointer"
+                        >
+                          <ArrowDown className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          title={item.is_visible ? 'Hide' : 'Show'}
+                          onClick={() => handleGalleryToggleVisibility(item.id)}
+                          className="p-1.5 text-[#6B7280] hover:text-[#1F2937] hover:bg-[#F3F4F6] rounded-md cursor-pointer"
+                        >
+                          {item.is_visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                        </button>
+                        <button
+                          type="button"
+                          title="Edit"
+                          onClick={() => handleGalleryEditOpen(item)}
+                          className="p-1.5 text-[#6B7280] hover:text-[#0C71C3] hover:bg-[#EFF6FF] rounded-md cursor-pointer"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          title="Delete"
+                          onClick={() => setGalleryDeleteTarget(item)}
+                          className="p-1.5 text-[#6B7280] hover:text-red-600 hover:bg-red-50 rounded-md cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
       </AdminCard>
+
+      {/* GALLERY ADD/EDIT MODAL */}
+      <AdminModal
+        isOpen={galleryModalOpen}
+        onClose={() => { setGalleryModalOpen(false); setEditingGalleryItem(null); }}
+        title={editingGalleryItem?.id ? 'Edit Gallery Image' : 'Add Gallery Image'}
+        maxWidth="md"
+        footer={
+          <>
+            <AdminButton variant="secondary" onClick={() => { setGalleryModalOpen(false); setEditingGalleryItem(null); }}>
+              Cancel
+            </AdminButton>
+            <AdminButton variant="primary" onClick={handleGallerySaveItem} loading={savingGallery || galleryImageUploading}>
+              {editingGalleryItem?.id ? 'Update Image' : 'Add to Gallery'}
+            </AdminButton>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          {/* Image Upload / Preview */}
+          <AdminFormGroup label="Gallery Photo">
+            <div className="space-y-2">
+              {/* Preview */}
+              <div className="w-full h-[160px] bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center">
+                {editingGalleryItem?.image_url ? (
+                  <img src={editingGalleryItem.image_url} alt="Gallery preview" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex flex-col items-center gap-1 text-[#9CA3AF]">
+                    <ImageIcon className="w-6 h-6" />
+                    <span className="text-[11px] font-semibold uppercase">No Image Yet</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Upload & Remove buttons */}
+              <div className="flex gap-2">
+                <label className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer">
+                  {galleryImageUploading ? (
+                    <span>Uploading…</span>
+                  ) : (
+                    <>
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{editingGalleryItem?.image_url ? 'Replace Image' : 'Upload Image'}</span>
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={galleryImageUploading}
+                    onChange={handleGalleryImageUpload}
+                  />
+                </label>
+                {editingGalleryItem?.image_url && (
+                  <button
+                    type="button"
+                    onClick={() => setEditingGalleryItem((prev) => ({ ...prev, image_url: '' }))}
+                    className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-md border border-red-200 cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+
+              {/* Manual URL fallback */}
+              <AdminInput
+                value={editingGalleryItem?.image_url || ''}
+                onChange={(e) => setEditingGalleryItem((prev) => ({ ...prev, image_url: e.target.value }))}
+                placeholder="Or paste image URL directly…"
+              />
+            </div>
+          </AdminFormGroup>
+
+          {/* Caption */}
+          <AdminFormGroup label="Caption / Title">
+            <AdminInput
+              value={editingGalleryItem?.caption || ''}
+              onChange={(e) => setEditingGalleryItem((prev) => ({ ...prev, caption: e.target.value }))}
+              placeholder="e.g. Campus Life, Convocation 2026…"
+            />
+          </AdminFormGroup>
+
+          {/* Visible toggle */}
+          <AdminToggle
+            label="Visible on Homepage Gallery"
+            checked={editingGalleryItem?.is_visible !== false}
+            onChange={(checked) => setEditingGalleryItem((prev) => ({ ...prev, is_visible: checked }))}
+            description="When enabled, this photo will appear in the Homepage photo gallery carousel."
+          />
+        </div>
+      </AdminModal>
+
+      {/* GALLERY DELETE CONFIRM MODAL */}
+      <DeleteConfirmModal
+        isOpen={!!galleryDeleteTarget}
+        onClose={() => setGalleryDeleteTarget(null)}
+        onConfirm={handleGalleryDeleteConfirm}
+        itemTitle={galleryDeleteTarget?.caption}
+        loading={savingGallery}
+      />
+
+
 
       {/* 6. UPCOMING EVENTS ACCORDION */}
       <AdminCard className="p-0 overflow-hidden">
@@ -642,13 +1076,13 @@ export default function AdminHomePageEditor() {
         >
           <div>
             <h3 className="text-lg font-bold text-[#1F2937]">6. Upcoming Events Section</h3>
-            <p className="text-xs text-[#6B7280]">Update section heading and subtitle (uses Manage Events records).</p>
+            <p className="text-xs text-[#6B7280]">Update section heading, subtitle, and manage upcoming events schedule.</p>
           </div>
           {openAccordions.events ? <ChevronDown className="w-5 h-5 text-[#6B7280]" /> : <ChevronRight className="w-5 h-5 text-[#6B7280]" />}
         </button>
 
         {openAccordions.events && (
-          <div className="p-6 space-y-4">
+          <div className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <AdminFormGroup label="Section Heading">
                 <AdminInput value={eventsHeading} onChange={(e) => setEventsHeading(e.target.value)} />
@@ -657,6 +1091,19 @@ export default function AdminHomePageEditor() {
               <AdminFormGroup label="Section Subtitle">
                 <AdminInput value={eventsSubtitle} onChange={(e) => setEventsSubtitle(e.target.value)} />
               </AdminFormGroup>
+            </div>
+
+            <div className="p-4 border border-[#E5E7EB] rounded-lg bg-[#F9FAFB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h4 className="text-sm font-bold text-[#1F2937]">Manage Events Schedule</h4>
+                <p className="text-xs text-[#6B7280]">Add, edit and manage the upcoming events displayed on the homepage.</p>
+              </div>
+              <a
+                href="/admin-panel5463/events"
+                className="px-4 py-2.5 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-bold uppercase tracking-wider rounded-md shadow-xs transition-colors no-underline flex-shrink-0"
+              >
+                Open Events CMS
+              </a>
             </div>
 
             <div className="flex justify-end pt-2">
@@ -799,27 +1246,22 @@ export default function AdminHomePageEditor() {
                     </AdminFormGroup>
                   </div>
 
-                  <AdminFormGroup label="Thumbnail Image Upload">
+                  <AdminFormGroup label="Video Preview">
                     <div className="flex items-center gap-4">
-                      <div className="w-24 h-14 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
-                        {item.thumbnailUrl ? (
-                          <img src={item.thumbnailUrl} alt={item.title} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-[10px] text-[#9CA3AF]">THUMBNAIL</span>
-                        )}
+                      <div className="w-24 h-16 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
+                        {(() => {
+                          if (item.thumbnailUrl) return <img src={item.thumbnailUrl} alt={item.title} className="w-full h-full object-cover" />;
+                          const vUrl = item.videoUrl || '';
+                          const isDirect = vUrl.endsWith('.mp4') || vUrl.endsWith('.webm');
+                          if (isDirect && vUrl) return <video src={vUrl} muted playsInline preload="metadata" className="w-full h-full object-cover" />;
+                          const ytm = vUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^?&#]+)/);
+                          if (ytm) return <img src={`https://img.youtube.com/vi/${ytm[1]}/hqdefault.jpg`} alt="Preview" className="w-full h-full object-cover" />;
+                          return <span className="text-[10px] text-[#9CA3AF]">AUTO</span>;
+                        })()}
                       </div>
-
-                      <div className="flex gap-2">
-                        <label className="px-3 py-1.5 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1 shadow-xs">
-                          <Upload className="w-3.5 h-3.5" />
-                          <span>{item.thumbnailUrl ? 'Replace Thumbnail' : 'Upload Thumbnail'}</span>
-                          <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => {
-                            const updated = [...highlightItems];
-                            updated[idx].thumbnailUrl = url;
-                            setHighlightItems(updated);
-                          })} />
-                        </label>
-
+                      <div className="flex-1">
+                        <p className="text-xs font-semibold text-[#374151]">Auto-generated from video</p>
+                        <p className="text-[11px] text-[#6B7280]">Preview uses the video's first frame or YouTube thumbnail.</p>
                         {item.thumbnailUrl && (
                           <button
                             type="button"
@@ -828,9 +1270,9 @@ export default function AdminHomePageEditor() {
                               updated[idx].thumbnailUrl = '';
                               setHighlightItems(updated);
                             }}
-                            className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200 cursor-pointer"
+                            className="mt-1 px-2 py-0.5 bg-red-50 text-[#DC2626] text-[10px] font-semibold rounded border border-red-200 cursor-pointer"
                           >
-                            Remove
+                            Clear Custom Thumbnail
                           </button>
                         )}
                       </div>
@@ -846,6 +1288,61 @@ export default function AdminHomePageEditor() {
               </AdminButton>
               <AdminButton variant="primary" onClick={() => handleSaveSection('highlights')} loading={savingSection === 'highlights'} icon={<Save className="w-4 h-4" />}>
                 Save Highlights Section
+              </AdminButton>
+            </div>
+          </div>
+        )}
+      </AdminCard>
+
+      {/* 8. NEWS & ANNOUNCEMENTS ACCORDION */}
+      <AdminCard className="p-0 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => toggleAccordion('news')}
+          className="w-full px-6 py-5 bg-[#F9FAFB] hover:bg-[#F3F4F6] flex items-center justify-between transition-colors border-b border-[#E5E7EB] text-left cursor-pointer"
+        >
+          <div>
+            <h3 className="text-lg font-bold text-[#1F2937]">8. News & Announcements Section</h3>
+            <p className="text-xs text-[#6B7280]">Manage section headings, homepage visibility, and announcements published on the homepage.</p>
+          </div>
+          {openAccordions.news ? <ChevronDown className="w-5 h-5 text-[#6B7280]" /> : <ChevronRight className="w-5 h-5 text-[#6B7280]" />}
+        </button>
+
+        {openAccordions.news && (
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <AdminFormGroup label="Section Heading">
+                <AdminInput value={newsHeading} onChange={(e) => setNewsHeading(e.target.value)} placeholder="News and Announcements" />
+              </AdminFormGroup>
+
+              <AdminFormGroup label="Section Subtitle">
+                <AdminInput value={newsSubtitle} onChange={(e) => setNewsSubtitle(e.target.value)} placeholder="Stay updated with the latest news..." />
+              </AdminFormGroup>
+            </div>
+
+            <AdminToggle
+              label="Visible on Homepage"
+              checked={showNewsSection}
+              onChange={(checked) => setShowNewsSection(checked)}
+              description="Show or hide the News & Announcements section on the main homepage."
+            />
+
+            <div className="p-4 border border-[#E5E7EB] rounded-lg bg-[#F9FAFB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h4 className="text-sm font-bold text-[#1F2937]">Publish & Edit News Articles</h4>
+                <p className="text-xs text-[#6B7280]">Add new announcements, edit title/excerpt/images, or publish/unpublish homepage news.</p>
+              </div>
+              <a
+                href="/admin-panel5463/news"
+                className="px-4 py-2.5 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-bold uppercase tracking-wider rounded-md shadow-xs transition-colors no-underline flex-shrink-0"
+              >
+                Open News & Announcements CMS
+              </a>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <AdminButton variant="primary" onClick={() => handleSaveSection('news')} loading={savingSection === 'news'} icon={<Save className="w-4 h-4" />}>
+                Save News & Announcements Section
               </AdminButton>
             </div>
           </div>

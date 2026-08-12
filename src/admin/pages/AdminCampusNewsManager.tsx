@@ -72,10 +72,11 @@ export default function AdminCampusNewsManager() {
       if (Array.isArray(settingsData.categories) && settingsData.categories.length > 0) setCategories(settingsData.categories);
     }
 
-    const { data: dbNews } = await supabase.from('news').select('*').order('display_order', { ascending: true });
+    const { data: dbNews } = await supabase.from('news').select('*');
     if (dbNews && dbNews.length > 0) {
+      const sorted = [...dbNews].sort((a: any, b: any) => (a.display_order ?? 1) - (b.display_order ?? 1));
       setArticles(
-        dbNews.map((n: any) => ({
+        sorted.map((n: any) => ({
           id: n.id,
           title: n.title,
           excerpt: n.excerpt || '',

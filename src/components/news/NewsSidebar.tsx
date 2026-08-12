@@ -1,22 +1,51 @@
-import React, { useState } from 'react';
-import { Search } from 'lucide-react';
-import { recentNewsData, categoriesData, archivesData } from '../../data/news';
+import React, { useState, useEffect } from 'react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Search, X } from 'lucide-react';
+import { recentNewsData, categoriesData, archivesData, createSlug } from '../../data/news';
 
 interface NewsSidebarProps {
   articles?: any[];
 }
 
 export default function NewsSidebar({ articles }: NewsSidebarProps) {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const activeSearch = searchParams.get('search') || '';
+  const [searchTerm, setSearchTerm] = useState(activeSearch);
+
+  useEffect(() => {
+    setSearchTerm(activeSearch);
+  }, [activeSearch]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    const query = searchTerm.trim();
+    if (query) {
+      navigate(`/news?search=${encodeURIComponent(query)}`);
+    } else {
+      navigate('/news');
+    }
   };
 
-  // 1. Auto-generate Recent News from latest articles
+  const handleClear = () => {
+    setSearchTerm('');
+    navigate('/news');
+  };
+
+  // 1. Auto-generate Recent News from latest articles with slugs
   const recentItems = articles && articles.length > 0
-    ? articles.slice(0, 4).map((a) => ({ title: a.title, date: a.date }))
-    : recentNewsData;
+    ? articles.slice(0, 4).map((a) => ({
+        id: a.id,
+        title: a.title,
+        date: a.date,
+        slug: a.slug || createSlug(a.title, a.id),
+      }))
+    : recentNewsData.map((item, idx) => ({
+        id: `recent-${idx}`,
+        title: item.title,
+        date: item.date,
+        slug: createSlug(item.title, `recent-${idx}`),
+      }));
 
   // 2. Categories list
   const categoriesList = Array.from(
@@ -45,13 +74,31 @@ export default function NewsSidebar({ articles }: NewsSidebarProps) {
       {/* 1. SEARCH */}
       <div className="bg-white p-[20px] mb-[22px] border border-[#EAEAEA] rounded-[4px]">
         <form onSubmit={handleSearch} className="flex items-center w-full">
-          <input
-            type="text"
-            placeholder="Search Here"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 h-[48px] px-[14px] text-[14px] bg-[#F5F5F5] border border-[#E0E0E0] border-r-0 rounded-l-[4px] outline-none text-[#333333] focus:bg-white focus:border-[#0093DD] transition-colors"
-          />
+          <div className="relative flex-1 flex items-center">
+            <input
+              type="text"
+              placeholder="Search Here"
+              value={searchTerm}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearchTerm(val);
+                if (!val.trim() && activeSearch) {
+                  navigate('/news');
+                }
+              }}
+              className="w-full h-[48px] pl-[14px] pr-[36px] text-[14px] bg-[#F5F5F5] border border-[#E0E0E0] border-r-0 rounded-l-[4px] outline-none text-[#333333] focus:bg-white focus:border-[#0093DD] transition-colors"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={handleClear}
+                aria-label="Clear search"
+                className="absolute right-[8px] text-[#888888] hover:text-[#333333] p-1 border-none bg-transparent cursor-pointer flex items-center justify-center"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
           <button
             type="submit"
             aria-label="Search"
@@ -62,21 +109,20 @@ export default function NewsSidebar({ articles }: NewsSidebarProps) {
         </form>
       </div>
 
-      {/* 2. RECENT NEWS (Auto-generated from Campus News articles) */}
+      {/* 2. RECENT NEWS (Links directly to news detail page) */}
       <div className="bg-white p-[20px] mb-[22px] border border-[#EAEAEA] rounded-[4px]">
         <h3 className="text-[16px] font-bold text-[#333333] mb-[16px] uppercase border-b border-[#EAEAEA] pb-[8px]">
           RECENT NEWS
         </h3>
         <div className="flex flex-col gap-[14px]">
-          {recentItems.map((item, idx) => (
-            <div key={idx} className="flex flex-col text-left">
-              <a
-                href="#"
-                onClick={(e) => e.preventDefault()}
-                className="text-[14px] font-semibold text-[#333333] hover:text-[#0C71C3] transition-colors leading-snug"
+          {recentItems.map((item) => (
+            <div key={item.id || item.slug} className="flex flex-col text-left">
+              <Link
+                to={`/news/${item.slug}`}
+                className="text-[14px] font-semibold text-[#333333] hover:text-[#0C71C3] transition-colors leading-snug no-underline"
               >
                 {item.title}
-              </a>
+              </Link>
               <span className="text-[12px] text-[#888888] mt-[2px]">{item.date}</span>
             </div>
           ))}
@@ -91,19 +137,18 @@ export default function NewsSidebar({ articles }: NewsSidebarProps) {
         <ul className="flex flex-col">
           {categoriesList.map((category, idx) => (
             <li key={idx} className="border-b border-[#F0F0F0] py-[8px] last:border-b-0">
-              <a
-                href="#"
-                onClick={(e) => e.preventDefault()}
-                className="text-[14px] text-[#555555] hover:text-[#0093DD] transition-colors block"
+              <Link
+                to={`/news?search=${encodeURIComponent(String(category))}`}
+                className="text-[14px] text-[#555555] hover:text-[#0093DD] transition-colors block no-underline"
               >
                 {category}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>
       </div>
 
-      {/* 4. ARCHIVES (Auto-generated from Publish Dates) */}
+      {/* 4. ARCHIVES */}
       <div className="bg-white p-[20px] mb-[22px] border border-[#EAEAEA] rounded-[4px]">
         <h3 className="text-[16px] font-bold text-[#333333] mb-[16px] uppercase border-b border-[#EAEAEA] pb-[8px]">
           ARCHIVES
@@ -111,13 +156,12 @@ export default function NewsSidebar({ articles }: NewsSidebarProps) {
         <ul className="flex flex-col">
           {archivesList.map((archive, idx) => (
             <li key={idx} className="border-b border-[#F0F0F0] py-[8px] last:border-b-0">
-              <a
-                href="#"
-                onClick={(e) => e.preventDefault()}
-                className="text-[14px] text-[#555555] hover:text-[#0093DD] transition-colors block"
+              <Link
+                to={`/news?search=${encodeURIComponent(String(archive))}`}
+                className="text-[14px] text-[#555555] hover:text-[#0093DD] transition-colors block no-underline"
               >
                 {archive}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>

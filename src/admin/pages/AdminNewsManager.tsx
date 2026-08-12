@@ -20,6 +20,8 @@ interface NewsItem {
   category: string;
   published: boolean;
   published_at?: string;
+  author?: string;
+  display_order?: number;
 }
 
 export default function AdminNewsManager() {

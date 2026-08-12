@@ -36,6 +36,7 @@ export const navigationData: NavItem[] = [
         items: [
           {
             label: 'Department Of Computer Science',
+            href: '/departments/computing/computer-science',
             items: [
               { label: 'Programs', href: '/departments/computing/computer-science/programs' },
               { label: 'Faculty', href: '/departments/computing/computer-science/faculty' },
@@ -44,6 +45,7 @@ export const navigationData: NavItem[] = [
           },
           {
             label: 'Department Of Software Engineering',
+            href: '/departments/computing/software-engineering',
             items: [
               { label: 'Programs', href: '/departments/computing/software-engineering/programs' },
               { label: 'Faculty', href: '/departments/computing/software-engineering/faculty' },
@@ -51,6 +53,7 @@ export const navigationData: NavItem[] = [
           },
           {
             label: 'Department Of AI',
+            href: '/departments/computing/ai-data-science',
             items: [
               { label: 'Programs', href: '/departments/computing/ai-data-science/programs' },
               { label: 'Faculty', href: '/departments/computing/ai-data-science/faculty' },
@@ -87,7 +90,7 @@ export const navigationData: NavItem[] = [
   {
     label: 'SERVICES',
     items: [
-      { label: 'Complaint Management System', href: '#' },
+      { label: 'Complaint Management System', href: '/services/complaint-management' },
       { label: 'FAST-NU Library', href: 'https://nu.insigniails.com/Library/Home', isExternal: true },
       { label: 'Gatepass Application', href: '/services/gatepass-application' },
       { label: 'FLEX', href: 'https://flexstudent.nu.edu.pk/Login', isExternal: true },

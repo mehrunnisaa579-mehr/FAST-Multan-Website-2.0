@@ -1,12 +1,21 @@
 export interface NewsItem {
   id: string;
+  slug?: string;
   title: string;
   excerpt: string;
+  content?: string;
+  category?: string;
   date: string;
   author?: string;
   commentsCount?: string;
   image?: string;
 }
+
+export const createSlug = (title: string, fallbackId: string = 'article'): string => {
+  if (!title) return fallbackId;
+  const clean = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  return clean || fallbackId;
+};
 
 export const newsPageOneData: NewsItem[] = [
   {

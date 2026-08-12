@@ -1,147 +1,323 @@
 import React, { useState, useEffect } from 'react';
 import AdminPageHeader from '../components/ui/AdminPageHeader';
 import AdminCard from '../components/ui/AdminCard';
+import AdminSection from '../components/ui/AdminSection';
 import AdminButton from '../components/ui/AdminButton';
 import AdminFormGroup from '../components/ui/AdminFormGroup';
 import AdminInput from '../components/ui/AdminInput';
+import AdminTextarea from '../components/ui/AdminTextarea';
+import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
 import { cmsService } from '../../services/cmsService';
 import { supabase } from '../../lib/supabase';
-import { Plus, Trash2, CheckCircle2, AlertCircle, Upload, Image as ImageIcon } from 'lucide-react';
+import { galleryItems as defaultInitialGallery } from '../../data/gallery';
+import {
+  Save,
+  Plus,
+  Trash2,
+  CheckCircle2,
+  AlertCircle,
+  Upload,
+  ArrowUp,
+  ArrowDown,
+  Edit2,
+  Eye,
+  EyeOff,
+  Video,
+  Image as ImageIcon,
+  Play,
+  ArrowLeft,
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-interface GalleryItem {
-  id: string;
-  image_url: string;
-  caption: string;
-  row_number: number;
-  display_order: number;
-  published: boolean;
+function YoutubeIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.56 49.56 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
+      <polygon points="10 15 15 12 10 9 10 15" fill="currentColor" />
+    </svg>
+  );
 }
 
+export interface GalleryCMSItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  thumbnail_url?: string;
+  thumbnail?: string;
+  video_type: 'uploaded' | 'youtube';
+  video_url: string;
+  display_order: number;
+  is_visible: boolean;
+}
+
+const initialDefaultList: GalleryCMSItem[] = defaultInitialGallery.map((item, idx) => ({
+  id: item.id || `gal-${idx + 1}`,
+  title: item.title,
+  subtitle: item.subtitle,
+  thumbnail_url: '',
+  thumbnail: item.thumbnail,
+  video_type: 'youtube',
+  video_url: item.videoUrl || '',
+  display_order: idx + 1,
+  is_visible: true,
+}));
+
 export default function AdminGalleryManager() {
-  const [selectedRow, setSelectedRow] = useState<number>(1);
-  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [items, setItems] = useState<GalleryCMSItem[]>(initialDefaultList);
   const [loading, setLoading] = useState(true);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newCaption, setNewCaption] = useState('');
-  const [newImageUrl, setNewImageUrl] = useState('');
-  const [targetRow, setTargetRow] = useState<number>(1);
-  const [isSaving, setIsSaving] = useState(false);
+  // Hero settings state
+  const [heroTitle, setHeroTitle] = useState('Gallery');
+  const [heroImageUrl, setHeroImageUrl] = useState('');
+  const [uploadingHero, setUploadingHero] = useState(false);
 
-  const [deleteTarget, setDeleteTarget] = useState<GalleryItem | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  // Modals state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<Partial<GalleryCMSItem> | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<GalleryCMSItem | null>(null);
+
+  const [saving, setSaving] = useState(false);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const fetchGallery = async () => {
+  const fetchGalleryData = async () => {
     setLoading(true);
-    const data = await cmsService.getGalleryItems();
-    setGalleryItems(data);
+
+    // 0. Load hero settings
+    const heroSettings = await cmsService.getSetting<any>('campus_gallery_settings', null);
+    if (heroSettings) {
+      if (heroSettings.heroTitle !== undefined) setHeroTitle(heroSettings.heroTitle);
+      if (heroSettings.heroImageUrl || heroSettings.heroImage) {
+        setHeroImageUrl(heroSettings.heroImageUrl || heroSettings.heroImage);
+      }
+    }
+
+    // 1. Try loading from site_settings key campus_gallery_list
+    const savedSetting = await cmsService.getSetting<GalleryCMSItem[]>('campus_gallery_list', []);
+    if (savedSetting && Array.isArray(savedSetting) && savedSetting.length > 0) {
+      setItems(savedSetting);
+    } else {
+      // 2. Try loading from Supabase gallery_items
+      const dbItems = await cmsService.getGalleryItems();
+      if (dbItems && dbItems.length > 0) {
+        const loaded: GalleryCMSItem[] = dbItems.map((g: any, idx: number) => ({
+          id: g.id || `gal-${idx + 1}`,
+          title: g.caption || g.title || `Campus Video #${idx + 1}`,
+          subtitle: g.subtitle || 'FAST-NUCES Multan Campus',
+          thumbnail_url: g.image_url || g.thumbnail_url || '',
+          video_type: g.video_type || (g.video_url?.includes('youtube') ? 'youtube' : 'uploaded'),
+          video_url: g.video_url || '',
+          display_order: g.display_order || idx + 1,
+          is_visible: g.published ?? true,
+        }));
+        setItems(loaded);
+      } else {
+        setItems(initialDefaultList);
+      }
+    }
+
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchGallery();
+    fetchGalleryData();
   }, []);
 
-  const filteredItems = galleryItems.filter((item) => item.row_number === selectedRow);
-
-  const handleOpenAdd = (row: number) => {
-    setTargetRow(row);
-    setNewCaption('');
-    setNewImageUrl('');
-    setIsModalOpen(true);
-  };
-
-  const handleSave = async () => {
-    if (!newImageUrl.trim()) {
-      alert('Please upload an image or provide an image URL.');
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const payload = {
-        image_url: newImageUrl.trim(),
-        caption: newCaption || '',
-        row_number: targetRow,
-        display_order: filteredItems.length + 1,
-        published: true,
-        updated_at: new Date().toISOString(),
-      };
-
-      const { error } = await supabase.from('gallery_items').insert([payload]);
-      if (error) throw error;
-
-      setIsModalOpen(false);
-      setMessage({ type: 'success', text: 'Image added to photo gallery.' });
-      setTimeout(() => setMessage(null), 4000);
-      fetchGallery();
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err?.message || 'Failed to add image.' });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    setIsDeleting(true);
-    try {
-      const { error } = await supabase.from('gallery_items').delete().eq('id', deleteTarget.id);
-      if (error) throw error;
-
-      setDeleteTarget(null);
-      setMessage({ type: 'success', text: 'Image removed from gallery.' });
-      setTimeout(() => setMessage(null), 4000);
-      fetchGallery();
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err?.message || 'Failed to delete image.' });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHeroFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setUploadingHero(true);
     const res = await cmsService.uploadMedia(file);
+    setUploadingHero(false);
+
     if (res.success && res.publicUrl) {
-      setNewImageUrl(res.publicUrl);
+      setHeroImageUrl(res.publicUrl);
     } else {
-      alert(`Upload failed: ${res.error}`);
+      alert(`Hero image upload failed: ${res.error || 'Unknown error'}`);
     }
   };
 
-  return (
-    <div className="space-y-6 text-left max-w-[1300px]">
-      <AdminPageHeader
-        title="Manage Photo Gallery"
-        subtitle="Manage images for the 3 horizontal carousel rows on the About page photo gallery."
-        action={
-          <AdminButton variant="primary" onClick={() => handleOpenAdd(selectedRow)} icon={<Plus className="w-4 h-4" />}>
-            Add Image to Row {selectedRow}
-          </AdminButton>
-        }
-      />
+  const handleRemoveHeroImage = () => {
+    setHeroImageUrl('');
+  };
 
-      {/* Row Tabs */}
-      <div className="flex gap-3 border-b border-[#E5E7EB] pb-3">
-        {[1, 2, 3].map((rowNum) => (
-          <button
-            key={rowNum}
-            type="button"
-            onClick={() => setSelectedRow(rowNum)}
-            className={`px-5 py-2.5 text-xs font-bold rounded-md transition-colors cursor-pointer ${
-              selectedRow === rowNum
-                ? 'bg-[#0093DD] text-white shadow-xs'
-                : 'bg-white text-[#374151] border border-[#E5E7EB] hover:bg-[#F9FAFB]'
-            }`}
-          >
-            Gallery Row {rowNum}
-          </button>
-        ))}
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, setUrlFn: (url: string) => void) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingMedia(true);
+    const res = await cmsService.uploadMedia(file);
+    if (res.success && res.publicUrl) {
+      setUrlFn(res.publicUrl);
+    } else {
+      alert(`Upload failed: ${res.error}`);
+    }
+    setUploadingMedia(false);
+  };
+
+  const handleOpenAdd = () => {
+    setEditingItem({
+      id: `gal-${Date.now()}`,
+      title: 'Campus Video Highlight',
+      subtitle: 'FAST-NUCES Multan Campus',
+      thumbnail_url: '',
+      video_type: 'youtube',
+      video_url: '',
+      display_order: items.length + 1,
+      is_visible: true,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (item: GalleryCMSItem) => {
+    setEditingItem({ ...item });
+    setIsModalOpen(true);
+  };
+
+  const handleSaveModal = () => {
+    if (!editingItem?.title?.trim()) {
+      alert('Please enter a Title for this gallery item.');
+      return;
+    }
+
+    const finalItem: GalleryCMSItem = {
+      id: editingItem.id || `gal-${Date.now()}`,
+      title: editingItem.title.trim(),
+      subtitle: editingItem.subtitle?.trim() || 'FAST-NUCES Multan Campus',
+      thumbnail_url: editingItem.thumbnail_url || '',
+      video_type: editingItem.video_type || 'youtube',
+      video_url: editingItem.video_url || '',
+      display_order: editingItem.display_order || items.length + 1,
+      is_visible: editingItem.is_visible ?? true,
+    };
+
+    const updated = [...items];
+    const idx = updated.findIndex((i) => i.id === finalItem.id);
+    if (idx >= 0) {
+      updated[idx] = finalItem;
+    } else {
+      updated.push(finalItem);
+    }
+
+    setItems(updated);
+    setIsModalOpen(false);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+
+    const updated = items.filter((i) => i.id !== deleteTarget.id);
+    setItems(updated);
+
+    try {
+      await supabase.from('gallery_items').delete().eq('id', deleteTarget.id);
+    } catch {
+      // Ignore fallback
+    }
+
+    setDeleteTarget(null);
+  };
+
+  const handleMove = (index: number, direction: 'up' | 'down') => {
+    const newList = [...items];
+    const targetIdx = direction === 'up' ? index - 1 : index + 1;
+    if (targetIdx < 0 || targetIdx >= newList.length) return;
+    const temp = newList[index];
+    newList[index] = newList[targetIdx];
+    newList[targetIdx] = temp;
+    newList.forEach((item, idx) => {
+      item.display_order = idx + 1;
+    });
+    setItems(newList);
+  };
+
+  const handleToggleVisibility = (id: string) => {
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, is_visible: !item.is_visible } : item))
+    );
+  };
+
+  const handleSaveAll = async () => {
+    setSaving(true);
+    setMessage(null);
+
+    const normalized = items.map((item, idx) => ({
+      ...item,
+      display_order: idx + 1,
+    }));
+
+    // 1. Save Hero Settings
+    const heroRes = await cmsService.saveSetting(
+      'campus_gallery_settings',
+      {
+        heroTitle: heroTitle.trim() || 'Gallery',
+        heroImageUrl,
+        heroImage: heroImageUrl,
+        updated_at: new Date().toISOString(),
+      },
+      'Campus Gallery Hero Settings'
+    );
+
+    // 2. Save Gallery Items setting
+    const settingRes = await cmsService.saveSetting(
+      'campus_gallery_list',
+      normalized,
+      'Campus Photo Gallery Content'
+    );
+
+    // 3. Sync to Supabase gallery_items table
+    try {
+      const dbPayloads = normalized.map((i) => ({
+        id: i.id.startsWith('gal-') ? undefined : i.id,
+        caption: i.title,
+        image_url: i.thumbnail_url || '',
+        row_number: 1,
+        display_order: i.display_order,
+        published: i.is_visible,
+        updated_at: new Date().toISOString(),
+      }));
+
+      await supabase.from('gallery_items').upsert(dbPayloads);
+    } catch {
+      // settingRes handles local persistence
+    }
+
+    if (settingRes.success && heroRes.success) {
+      setMessage({ type: 'success', text: 'Campus Photo Gallery and Hero Settings saved successfully.' });
+      setTimeout(() => setMessage(null), 4000);
+    } else {
+      setMessage({ type: 'error', text: settingRes.error || heroRes.error || 'Failed to save changes.' });
+    }
+
+    setSaving(false);
+  };
+
+  return (
+    <div className="space-y-6 text-left max-w-[1250px]">
+      <div className="flex items-center gap-4 mb-2">
+        <Link
+          to="/admin-panel5463/campus"
+          className="p-2 bg-white border border-[#E5E7EB] rounded-md text-[#4B5563] hover:text-[#0093DD] transition-colors"
+          title="Back to Manage Campus"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <AdminPageHeader
+          title="Manage Photo Gallery"
+          subtitle="Manage campus gallery videos, hero banner media, thumbnails, titles, and display order for /campus/gallery."
+          action={
+            <div className="flex items-center gap-3">
+              <AdminButton variant="primary" onClick={handleOpenAdd} icon={<Plus className="w-4 h-4" />}>
+                Add Gallery Item
+              </AdminButton>
+              <AdminButton variant="primary" onClick={handleSaveAll} loading={saving || uploadingHero} icon={<Save className="w-4 h-4" />}>
+                Save All Changes
+              </AdminButton>
+            </div>
+          }
+        />
       </div>
 
       {message && (
@@ -161,105 +337,316 @@ export default function AdminGalleryManager() {
         </div>
       )}
 
-      {loading ? (
-        <div className="bg-white border border-[#E5E7EB] rounded-lg p-12 text-center text-sm text-[#6B7280]">
-          Loading gallery images...
-        </div>
-      ) : filteredItems.length === 0 ? (
-        <div className="bg-white border border-[#E5E7EB] rounded-lg p-12 text-center">
-          <p className="text-sm font-medium text-[#1F2937] mb-2">No custom images uploaded for Row {selectedRow} yet.</p>
-          <p className="text-xs text-[#6B7280] mb-6">
-            The public website is currently displaying standard campus activity images for Row {selectedRow}. Upload an image to customize!
-          </p>
-          <AdminButton variant="primary" onClick={() => handleOpenAdd(selectedRow)} icon={<Plus className="w-4 h-4" />}>
-            Upload Image to Row {selectedRow}
-          </AdminButton>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {filteredItems.map((item) => (
-            <AdminCard key={item.id} className="p-3 flex flex-col justify-between group">
-              <div>
-                <div className="aspect-[4/3] rounded-md bg-[#F3F4F6] overflow-hidden mb-2 border border-[#E5E7EB]">
-                  <img src={item.image_url} alt={item.caption || 'Gallery Image'} className="w-full h-full object-cover" />
-                </div>
-                <p className="text-xs font-semibold text-[#1F2937] truncate">{item.caption || 'Campus Photo'}</p>
+      {/* Gallery Hero Settings Section */}
+      <AdminSection
+        title="Gallery Hero Settings"
+        description="Manage the title and background hero image for the public Campus Gallery page (/campus/gallery)."
+      >
+        <AdminCard className="space-y-4">
+          <AdminFormGroup label="Hero Title">
+            <AdminInput
+              value={heroTitle}
+              onChange={(e) => setHeroTitle(e.target.value)}
+              placeholder="Gallery"
+            />
+          </AdminFormGroup>
+
+          <AdminFormGroup label="Hero Background Image">
+            <div className="flex items-center gap-4">
+              <div className="w-32 h-16 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
+                {heroImageUrl ? (
+                  <img src={heroImageUrl} alt="Gallery Hero Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <ImageIcon className="w-6 h-6 text-[#9CA3AF]" />
+                )}
               </div>
 
-              <div className="pt-2 mt-2 border-t border-[#F3F4F6] flex justify-end">
-                <AdminButton variant="danger" onClick={() => setDeleteTarget(item)} icon={<Trash2 className="w-3.5 h-3.5" />}>
+              <div className="flex gap-2">
+                <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs transition-colors">
+                  <Upload className="w-4 h-4" />
+                  <span>{uploadingHero ? 'Uploading...' : heroImageUrl ? 'Replace Hero Image' : 'Upload Hero Image'}</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleHeroFileUpload} disabled={uploadingHero} />
+                </label>
+
+                {heroImageUrl && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveHeroImage}
+                    className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200 cursor-pointer transition-colors"
+                  >
+                    Remove Hero Image
+                  </button>
+                )}
+              </div>
+            </div>
+          </AdminFormGroup>
+        </AdminCard>
+      </AdminSection>
+
+      {/* Gallery Items Grid */}
+      <AdminSection
+        title="Public Gallery Video Cards (/campus/gallery)"
+        description="Every item renders with a thumbnail preview, title, caption, red play button, and video modal on the public site."
+      >
+        <div className="space-y-3">
+          {items.map((item, idx) => (
+            <AdminCard key={item.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-14 rounded-md bg-[#F3F4F6] border border-[#E5E7EB] overflow-hidden flex items-center justify-center flex-shrink-0 relative group">
+                  {(() => {
+                    if (item.thumbnail_url) return <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover" />;
+                    const vUrl = item.video_url || '';
+                    const isDirect = vUrl.endsWith('.mp4') || vUrl.endsWith('.webm');
+                    if (isDirect && vUrl) return <video src={vUrl} muted playsInline preload="metadata" className="w-full h-full object-cover" />;
+                    const ytm = vUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^?&#]+)/);
+                    if (ytm) return <img src={`https://img.youtube.com/vi/${ytm[1]}/hqdefault.jpg`} alt={item.title} className="w-full h-full object-cover" />;
+                    return (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 p-1 text-center">
+                        <ImageIcon className="w-4 h-4 text-[#9CA3AF]" />
+                        <span className="text-[9px] font-bold text-[#6B7280] uppercase">VIDEO</span>
+                      </div>
+                    );
+                  })()}
+                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                    <div className="w-6 h-6 rounded-full bg-red-600 flex items-center justify-center">
+                      <Play className="w-3 h-3 text-white fill-white ml-0.5" />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-bold text-[#0093DD] bg-[#F0F9FF] px-2 py-0.5 rounded">
+                      Order #{idx + 1}
+                    </span>
+                    <span className="text-xs font-semibold text-[#4B5563] bg-gray-100 px-2 py-0.5 rounded flex items-center gap-1">
+                      {item.video_type === 'youtube' ? <YoutubeIcon className="w-3 h-3 text-red-500" /> : <Video className="w-3 h-3 text-blue-500" />}
+                      {item.video_type === 'youtube' ? 'YouTube' : 'Uploaded Video'}
+                    </span>
+                    {!item.is_visible && (
+                      <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                        Hidden
+                      </span>
+                    )}
+                  </div>
+                  <h4 className="text-base font-bold text-[#1F2937]">{item.title}</h4>
+                  <p className="text-xs text-[#6B7280]">{item.subtitle}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-end sm:self-center">
+                <button
+                  type="button"
+                  onClick={() => handleToggleVisibility(item.id)}
+                  className={`p-2 border rounded-md cursor-pointer transition-colors ${
+                    item.is_visible
+                      ? 'text-[#0093DD] bg-[#F0F9FF] border-[#B9E6FE]'
+                      : 'text-[#9CA3AF] bg-[#F9FAFB] border-[#E5E7EB]'
+                  }`}
+                  title={item.is_visible ? 'Visible (Click to Hide)' : 'Hidden (Click to Show)'}
+                >
+                  {item.is_visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleMove(idx, 'up')}
+                  disabled={idx === 0}
+                  className="p-2 text-[#6B7280] hover:text-[#1F2937] disabled:opacity-30 border border-[#E5E7EB] rounded-md bg-white cursor-pointer"
+                  title="Move Up"
+                >
+                  <ArrowUp className="w-4 h-4" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleMove(idx, 'down')}
+                  disabled={idx === items.length - 1}
+                  className="p-2 text-[#6B7280] hover:text-[#1F2937] disabled:opacity-30 border border-[#E5E7EB] rounded-md bg-white cursor-pointer"
+                  title="Move Down"
+                >
+                  <ArrowDown className="w-4 h-4" />
+                </button>
+
+                <AdminButton variant="secondary" onClick={() => handleOpenEdit(item)} icon={<Edit2 className="w-4 h-4" />}>
+                  Edit
+                </AdminButton>
+
+                <AdminButton variant="danger" onClick={() => setDeleteTarget(item)} icon={<Trash2 className="w-4 h-4" />}>
                   Delete
                 </AdminButton>
               </div>
             </AdminCard>
           ))}
         </div>
-      )}
+      </AdminSection>
 
-      {/* Add Image Modal */}
+      {/* Add / Edit Gallery Item Modal */}
       <AdminModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={`Add Image to Gallery Row ${targetRow}`}
-        maxWidth="md"
+        title={editingItem?.id && items.some((i) => i.id === editingItem.id) ? 'Edit Gallery Video Item' : 'Add New Gallery Video Item'}
+        maxWidth="lg"
         footer={
           <>
             <AdminButton variant="secondary" onClick={() => setIsModalOpen(false)}>
               Cancel
             </AdminButton>
-            <AdminButton variant="primary" onClick={handleSave} loading={isSaving}>
-              Upload & Add Image
+            <AdminButton variant="primary" onClick={handleSaveModal} loading={uploadingMedia}>
+              Save Gallery Item
             </AdminButton>
           </>
         }
       >
-        <div className="space-y-4">
-          <AdminFormGroup label="Select Target Carousel Row">
-            <select
-              value={targetRow}
-              onChange={(e) => setTargetRow(Number(e.target.value))}
-              className="w-full px-3.5 py-2.5 bg-white border border-[#E5E7EB] rounded-md text-sm text-[#1F2937]"
-            >
-              <option value={1}>Gallery Row 1 (Top Carousel)</option>
-              <option value={2}>Gallery Row 2 (Middle Carousel)</option>
-              <option value={3}>Gallery Row 3 (Bottom Carousel)</option>
-            </select>
+        <div className="space-y-4 text-left max-h-[70vh] overflow-y-auto pr-1">
+          <AdminFormGroup label="Video Card Title" required>
+            <AdminInput
+              value={editingItem?.title || ''}
+              onChange={(e) => setEditingItem((prev) => ({ ...prev, title: e.target.value }))}
+              placeholder="e.g. Campus Event Highlight 2026"
+            />
           </AdminFormGroup>
 
-          <AdminFormGroup label="Image File or URL" required>
-            <div className="flex gap-2 items-center">
+          <AdminFormGroup label="Subtitle / Location Caption">
+            <AdminInput
+              value={editingItem?.subtitle || ''}
+              onChange={(e) => setEditingItem((prev) => ({ ...prev, subtitle: e.target.value }))}
+              placeholder="e.g. FAST-NUCES Multan Campus"
+            />
+          </AdminFormGroup>
+
+          <AdminFormGroup label="Video Preview">
+            <div className="flex items-center gap-4">
+              <div className="w-28 h-20 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
+                {(() => {
+                  if (editingItem?.thumbnail_url) return <img src={editingItem.thumbnail_url} alt="Thumbnail Preview" className="w-full h-full object-cover" />;
+                  const vUrl = editingItem?.video_url || '';
+                  const isDirect = vUrl.endsWith('.mp4') || vUrl.endsWith('.webm');
+                  if (isDirect && vUrl) return <video src={vUrl} muted playsInline preload="metadata" className="w-full h-full object-cover" />;
+                  const ytm = vUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^?&#]+)/);
+                  if (ytm) return <img src={`https://img.youtube.com/vi/${ytm[1]}/hqdefault.jpg`} alt="Preview" className="w-full h-full object-cover" />;
+                  return (
+                    <div className="text-center p-2">
+                      <ImageIcon className="w-5 h-5 text-[#9CA3AF] mx-auto" />
+                      <span className="text-[10px] font-bold text-[#6B7280]">AUTO-PREVIEW</span>
+                    </div>
+                  );
+                })()}
+              </div>
+              <div className="text-xs text-[#6B7280] leading-relaxed">
+                <p className="font-semibold text-[#374151] mb-0.5">Auto-generated from video</p>
+                <p>The video's first frame or YouTube thumbnail is used as the preview. No separate image upload needed.</p>
+                {editingItem?.thumbnail_url && (
+                  <button
+                    type="button"
+                    onClick={() => setEditingItem((prev) => ({ ...prev, thumbnail_url: '' }))}
+                    className="mt-1 px-2 py-1 bg-red-50 text-[#DC2626] text-[10px] font-semibold rounded border border-red-200 cursor-pointer"
+                  >
+                    Clear Custom Thumbnail
+                  </button>
+                )}
+              </div>
+            </div>
+          </AdminFormGroup>
+
+          {/* Media Type Selector */}
+          <AdminFormGroup label="Media Type">
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setEditingItem((prev) => ({ ...prev, video_type: 'uploaded' }))}
+                className={`p-3 rounded-md border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors ${
+                  editingItem?.video_type === 'uploaded'
+                    ? 'bg-[#0093DD] text-white border-[#0093DD]'
+                    : 'bg-white text-[#374151] border-[#E5E7EB] hover:bg-gray-50'
+                }`}
+              >
+                <Video className="w-4 h-4" />
+                <span>Uploaded Video File (MP4/WEBM)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setEditingItem((prev) => ({ ...prev, video_type: 'youtube' }))}
+                className={`p-3 rounded-md border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors ${
+                  editingItem?.video_type === 'youtube'
+                    ? 'bg-[#0093DD] text-white border-[#0093DD]'
+                    : 'bg-white text-[#374151] border-[#E5E7EB] hover:bg-gray-50'
+                }`}
+              >
+                <YoutubeIcon className="w-4 h-4" />
+                <span>YouTube Video Link</span>
+              </button>
+            </div>
+          </AdminFormGroup>
+
+          {/* Video Input depending on Media Type */}
+          {editingItem?.video_type === 'uploaded' ? (
+            <AdminFormGroup label="Upload Video File (MP4 / WEBM)">
+              <div className="flex items-center gap-3">
+                <AdminInput
+                  value={editingItem?.video_url || ''}
+                  onChange={(e) => setEditingItem((prev) => ({ ...prev, video_url: e.target.value }))}
+                  placeholder="Uploaded video public URL..."
+                />
+                <label className="px-3.5 py-2.5 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 shadow-xs">
+                  <Upload className="w-4 h-4" />
+                  <span>Upload Video</span>
+                  <input
+                    type="file"
+                    accept="video/mp4,video/webm"
+                    className="hidden"
+                    onChange={(e) => handleFileUpload(e, (url) => setEditingItem((prev) => ({ ...prev, video_url: url })))}
+                  />
+                </label>
+              </div>
+            </AdminFormGroup>
+          ) : (
+            <AdminFormGroup label="YouTube Video URL">
               <AdminInput
-                value={newImageUrl}
-                onChange={(e) => setNewImageUrl(e.target.value)}
-                placeholder="Upload file or paste image URL https://..."
+                value={editingItem?.video_url || ''}
+                onChange={(e) => setEditingItem((prev) => ({ ...prev, video_url: e.target.value }))}
+                placeholder="https://www.youtube.com/watch?v=..."
               />
-              <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
-                <Upload className="w-4 h-4" />
-                <span>Upload</span>
-                <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
-              </label>
-            </div>
-          </AdminFormGroup>
-
-          {newImageUrl && (
-            <div className="w-full aspect-[16/9] rounded-md overflow-hidden bg-[#F3F4F6] border border-[#E5E7EB]">
-              <img src={newImageUrl} alt="Preview" className="w-full h-full object-cover" />
-            </div>
+            </AdminFormGroup>
           )}
 
-          <AdminFormGroup label="Image Caption (Optional)">
-            <AdminInput value={newCaption} onChange={(e) => setNewCaption(e.target.value)} placeholder="e.g. Orientation Ceremony 2026" />
-          </AdminFormGroup>
+          <AdminToggle
+            label="Visible on Website"
+            checked={editingItem?.is_visible ?? true}
+            onChange={(checked) => setEditingItem((prev) => ({ ...prev, is_visible: checked }))}
+          />
         </div>
       </AdminModal>
 
-      <DeleteConfirmModal
+      {/* Delete Confirmation Modal */}
+      <AdminModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDelete}
-        itemTitle={deleteTarget?.caption || 'Gallery Image'}
-        loading={isDeleting}
-      />
+        title="Delete this gallery item?"
+        maxWidth="sm"
+        footer={
+          <>
+            <AdminButton variant="secondary" onClick={() => setDeleteTarget(null)}>
+              Cancel
+            </AdminButton>
+            <AdminButton variant="danger" onClick={handleDeleteConfirm}>
+              Delete Gallery Item
+            </AdminButton>
+          </>
+        }
+      >
+        <div className="py-2 text-left space-y-3">
+          <p className="text-sm text-[#4B5563] leading-relaxed">
+            This will remove the gallery video card from the public website gallery. This action cannot be undone.
+          </p>
+          {deleteTarget && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md text-xs font-bold text-red-800">
+              Target Item: {deleteTarget.title}
+            </div>
+          )}
+        </div>
+      </AdminModal>
     </div>
   );
 }

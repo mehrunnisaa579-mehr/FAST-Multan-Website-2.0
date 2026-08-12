@@ -1,43 +1,73 @@
+import { useEffect, useState } from 'react';
 import AboutPageHero from '../../components/about/AboutPageHero';
-import { conferenceSpeakers } from '../../data/edc';
+import { conferenceSpeakers as defaultSpeakers } from '../../data/edc';
+import { cmsService } from '../../services/cmsService';
+import CmsImage from '../../components/ui/CmsImage';
 import '../../styles/edc-pages.css';
 
 export default function ConferenceSpeakersPage() {
+  const [heroTitle, setHeroTitle] = useState('Conference Speakers');
+  const [heroImage, setHeroImage] = useState('');
+  const [speakers, setSpeakers] = useState<any[]>(defaultSpeakers);
+
+  useEffect(() => {
+    const fetchSpeakers = async () => {
+      const data = await cmsService.getSetting<any>('edc_speakers_list', null);
+      if (data) {
+        if (data.heroTitle) setHeroTitle(data.heroTitle);
+        setHeroImage(data.heroImage || '');
+        if (data.speakers && Array.isArray(data.speakers) && data.speakers.length > 0) {
+          setSpeakers(data.speakers.filter((s: any) => s.is_visible ?? true));
+        }
+      }
+    };
+    fetchSpeakers();
+  }, []);
+
   return (
     <div className="edc-page-bg">
-      {/* Shared Hero */}
-      <AboutPageHero title="Conference Speakers" />
+      <AboutPageHero title={heroTitle} backgroundImage={heroImage} />
 
-      {/* Main Content Area */}
       <div className="edc-content-wrapper text-left space-y-[45px]">
-        {conferenceSpeakers.map((speaker) => (
-          <div
-            key={speaker.id}
-            className="flex flex-col sm:flex-row gap-[24px] items-start border-b border-[#EAEAEA] pb-[40px] last:border-b-0 last:pb-0"
-          >
-            {/* Speaker Photo Placeholder */}
-            <div className="w-full sm:w-[190px] h-[220px] bg-[#D9D9D9] border border-[#CCCCCC] rounded-[4px] flex items-center justify-center p-[16px] flex-shrink-0">
-              <span className="text-[12px] font-semibold text-[#666666] tracking-wide uppercase text-center">
-                PLACEHOLDER: SPEAKER PHOTO
-              </span>
-            </div>
+        {speakers.map((speaker, sIdx) => {
+          const bioParagraphs = Array.isArray(speaker.bio)
+            ? speaker.bio
+            : (speaker.bio || '').split('\n\n');
 
-            {/* Speaker Details */}
-            <div className="flex-1">
-              <h2 className="text-[21px] font-bold text-[#0C71C3] mb-[4px]">
-                {speaker.name}
-              </h2>
-              <p className="text-[14px] font-semibold text-[#666666] mb-[12px]">
-                {speaker.title}
-              </p>
-              <div className="space-y-[10px] text-[15px] leading-[1.7] text-[#444444]">
-                {speaker.bio.map((paragraph, idx) => (
-                  <p key={idx}>{paragraph}</p>
-                ))}
+          const photoSrc = speaker.photo_url || speaker.photo || speaker.image;
+
+          return (
+            <div
+              key={speaker.id || sIdx}
+              className="flex flex-col sm:flex-row gap-[24px] items-start border-b border-[#EAEAEA] pb-[40px] last:border-b-0 last:pb-0 card-hover-lift rounded-[8px] p-[16px]"
+            >
+              {/* Speaker Photo */}
+              <div className={`w-full sm:w-[190px] h-[220px] rounded-[4px] flex items-center justify-center flex-shrink-0 overflow-hidden${photoSrc ? '' : ' bg-[#D9D9D9] border border-[#CCCCCC] p-[4px]'}`}>
+                <CmsImage
+                  src={photoSrc}
+                  alt={speaker.name}
+                  fallbackLabel="SPEAKER PHOTO"
+                  fit="cover"
+                />
+              </div>
+
+              {/* Speaker Details */}
+              <div className="flex-1">
+                <h2 className="text-[21px] font-bold text-[#0C71C3] mb-[4px]">
+                  {speaker.name}
+                </h2>
+                <p className="text-[14px] font-semibold text-[#666666] mb-[12px]">
+                  {speaker.title} {speaker.organization ? `— ${speaker.organization}` : ''}
+                </p>
+                <div className="space-y-[10px] text-[15px] leading-[1.7] text-[#444444]">
+                  {bioParagraphs.map((paragraph: string, idx: number) => (
+                    <p key={idx}>{paragraph}</p>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

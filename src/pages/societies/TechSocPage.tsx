@@ -54,11 +54,11 @@ export default function TechSocPage() {
   return (
     <div className="society-page-bg">
       <AboutPageHero title={defaultData.heroTitle} />
-      <div className="society-content-wrapper text-center">
-        <h1 className="text-[26px] sm:text-[30px] font-bold text-[#0C71C3] mb-[16px]">
+      <div className="society-content-wrapper text-center flex flex-col items-center">
+        <h1 className="text-[26px] sm:text-[32px] font-bold text-[#0C71C3] mb-[24px] text-center max-w-[850px] mx-auto leading-tight">
           {defaultData.headingTitle}
         </h1>
-        <p className="text-[16px] leading-[1.75] text-[#444444] max-w-[850px] mx-auto mb-[50px] text-center">
+        <p className="text-[16px] leading-[1.8] text-[#444444] max-w-[850px] w-full mx-auto mb-[56px] text-center whitespace-pre-line">
           {intro}
         </p>
         <SocietyLeadership leadership={leadership} />

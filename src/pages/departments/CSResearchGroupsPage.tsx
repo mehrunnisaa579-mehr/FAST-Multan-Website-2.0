@@ -1,12 +1,34 @@
+import { useEffect, useState } from 'react';
 import AboutPageHero from '../../components/about/AboutPageHero';
 import { csResearchAreas, csResearchTeam } from '../../data/departments';
+import { cmsService } from '../../services/cmsService';
 import '../../styles/department-pages.css';
 
 export default function CSResearchGroupsPage() {
+  const [cmsContent, setCmsContent] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchCmsData = async () => {
+      const data = await cmsService.getSetting<any>('department_cs_content', null);
+      if (data) {
+        setCmsContent(data);
+      }
+    };
+    fetchCmsData();
+  }, []);
+
+  const heroTitle = cmsContent?.heroTitle ? `${cmsContent.heroTitle} - Research` : 'Research Groups';
+  const heroImage = cmsContent?.heroImageUrl || '';
+  const researchHeading = cmsContent?.researchHeading || 'Research Areas';
+  const researchList =
+    cmsContent?.researchList && Array.isArray(cmsContent.researchList) && cmsContent.researchList.length > 0
+      ? cmsContent.researchList.filter((r: any) => r.is_visible !== false)
+      : csResearchAreas;
+
   return (
     <div className="department-page-bg">
       {/* Shared Hero */}
-      <AboutPageHero title="Research Groups" />
+      <AboutPageHero title={heroTitle} backgroundImage={heroImage} />
 
       {/* Main Content Area */}
       <div className="department-content-wrapper text-left">
@@ -20,17 +42,17 @@ export default function CSResearchGroupsPage() {
             {/* Goal Text */}
             <div className="flex-1 space-y-[12px] text-[15px] leading-[1.75] text-[#444444]">
               <p>
-                PLACEHOLDER: The primary research goal of the Department of Computer Science at FAST-NUCES Multan Campus is to advance state-of-the-art knowledge and foster innovation in key computing domains.
+                The primary research goal of the Department of Computer Science at FAST-NUCES Multan Campus is to advance state-of-the-art knowledge and foster innovation in key computing domains.
               </p>
               <p>
-                PLACEHOLDER: Our research groups focus on solving complex real-world problems through interdisciplinary collaboration, industry partnerships, and high-impact scholarly publications.
+                Our research groups focus on solving complex real-world problems through interdisciplinary collaboration, industry partnerships, and high-impact scholarly publications.
               </p>
             </div>
 
             {/* Research Graphic Placeholder */}
             <div className="w-full md:w-[300px] h-[200px] bg-[#D9D9D9] border border-[#CCCCCC] rounded-[4px] flex items-center justify-center p-[16px] flex-shrink-0">
               <span className="text-[12px] font-semibold text-[#666666] tracking-wide uppercase text-center">
-                PLACEHOLDER: RESEARCH GRAPHIC
+                RESEARCH GRAPHIC
               </span>
             </div>
           </div>
@@ -39,12 +61,12 @@ export default function CSResearchGroupsPage() {
         {/* 2. Research Areas Section */}
         <div className="mb-[50px]">
           <h2 className="text-[20px] min-[700px]:text-[22px] font-bold text-[#0C71C3] uppercase mb-[20px]">
-            Research Areas
+            {researchHeading}
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[20px]">
-            {csResearchAreas.map((area, idx) => (
-              <div key={idx} className="bg-white p-[20px] border border-[#EAEAEA] rounded-[4px] shadow-sm">
+          <div className="dept-card-row flex flex-wrap justify-center gap-[20px]">
+            {researchList.map((area: any, idx: number) => (
+              <div key={area.id || idx} className="w-full max-w-[340px] bg-white p-[20px] border border-[#EAEAEA] rounded-[4px] shadow-sm card-hover-lift">
                 <h3 className="text-[16px] font-bold text-[#333333] mb-[8px]">
                   {area.title}
                 </h3>
@@ -66,7 +88,7 @@ export default function CSResearchGroupsPage() {
             {csResearchTeam.map((member) => (
               <div
                 key={member.id}
-                className="flex flex-col sm:flex-row gap-[20px] items-start p-[20px] bg-white border border-[#EAEAEA] rounded-[4px] shadow-sm"
+                className="flex flex-col sm:flex-row gap-[20px] items-start p-[20px] bg-white border border-[#EAEAEA] rounded-[4px] shadow-sm card-hover-lift"
               >
                 {/* Researcher Portrait Placeholder */}
                 <div className="w-full sm:w-[140px] h-[175px] bg-[#D9D9D9] border border-[#CCCCCC] rounded-[4px] flex items-center justify-center p-[12px] flex-shrink-0">

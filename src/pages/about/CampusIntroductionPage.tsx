@@ -6,24 +6,33 @@ import '../../styles/about-pages.css';
 
 export default function CampusIntroductionPage() {
   const [title, setTitle] = useState('Campus Introduction');
+  const [heroImageUrl, setHeroImageUrl] = useState('');
   const [introText, setIntroText] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
 
   useEffect(() => {
     const fetchIntroData = async () => {
-      const data = await cmsService.getSetting<any>('about_pages_content', null);
+      const data = await cmsService.getSetting<any>('about_campus_intro_content', null);
+      const legacyData = await cmsService.getSetting<any>('about_pages_content', null);
+
       if (data) {
-        if (data.introTitle) setTitle(data.introTitle);
+        if (data.heroTitle) setTitle(data.heroTitle);
+        if (data.heroImageUrl) setHeroImageUrl(data.heroImageUrl);
         if (data.introText) setIntroText(data.introText);
         if (data.introPhotoUrl) setPhotoUrl(data.introPhotoUrl);
+      } else if (legacyData) {
+        if (legacyData.introTitle) setTitle(legacyData.introTitle);
+        if (legacyData.introText) setIntroText(legacyData.introText);
+        if (legacyData.introPhotoUrl) setPhotoUrl(legacyData.introPhotoUrl);
       }
     };
+
     fetchIntroData();
   }, []);
 
   return (
-    <div className="w-full bg-white select-none">
-      <AboutPageHero title={title} />
+    <div className="w-full bg-white">
+      <AboutPageHero title={title} backgroundImage={heroImageUrl} />
 
       <div className="w-full max-w-[1180px] mx-auto px-[20px] min-[700px]:px-[24px] py-[40px] min-[700px]:py-[50px] min-[1100px]:pt-[65px] min-[1100px]:pb-[70px] text-[#444444] text-[16px] leading-[1.75] font-normal text-left space-y-[18px]">
         {photoUrl && (
@@ -33,7 +42,7 @@ export default function CampusIntroductionPage() {
         )}
 
         {introText ? (
-          introText.split('\n\n').map((para, idx) => <p key={idx}>{para}</p>)
+          introText.split(/\n\n|\n/).map((para, idx) => (para.trim() ? <p key={idx}>{para}</p> : null))
         ) : (
           <>
             <p>

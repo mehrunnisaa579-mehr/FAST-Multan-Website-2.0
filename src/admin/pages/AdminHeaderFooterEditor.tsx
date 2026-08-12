@@ -8,9 +8,13 @@ import AdminInput from '../components/ui/AdminInput';
 import AdminToggle from '../components/ui/AdminToggle';
 import { cmsService } from '../../services/cmsService';
 import { footerContent } from '../../data/footer';
-import { Save, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Save, CheckCircle2, AlertCircle, Upload, ImageIcon } from 'lucide-react';
 
 export default function AdminHeaderFooterEditor() {
+  // Logos
+  const [headerLogoUrl, setHeaderLogoUrl] = useState('');
+  const [footerLogoUrl, setFooterLogoUrl] = useState('');
+
   // Header Settings
   const [tickerText, setTickerText] = useState('Orientation Ceremony — 16 August 2026');
   const [tickerEnabled, setTickerEnabled] = useState(true);
@@ -27,13 +31,17 @@ export default function AdminHeaderFooterEditor() {
   const [copyrightText, setCopyrightText] = useState(footerContent.copyrightText);
 
   const [saving, setSaving] = useState(false);
+  const [uploadingHeaderLogo, setUploadingHeaderLogo] = useState(false);
+  const [uploadingFooterLogo, setUploadingFooterLogo] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadSettings = async () => {
-      const data = await cmsService.getSetting('header_footer_content', null);
+      const data = await cmsService.getSetting<any>('header_footer_content', null);
       if (data) {
+        if (data.headerLogoUrl !== undefined) setHeaderLogoUrl(data.headerLogoUrl);
+        if (data.footerLogoUrl !== undefined) setFooterLogoUrl(data.footerLogoUrl);
         if (data.tickerText !== undefined) setTickerText(data.tickerText);
         if (data.tickerEnabled !== undefined) setTickerEnabled(data.tickerEnabled);
         if (data.facebookUrl) setFacebookUrl(data.facebookUrl);
@@ -51,12 +59,44 @@ export default function AdminHeaderFooterEditor() {
     loadSettings();
   }, []);
 
+  const handleHeaderLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingHeaderLogo(true);
+    const res = await cmsService.uploadMedia(file);
+    setUploadingHeaderLogo(false);
+
+    if (res.success && res.publicUrl) {
+      setHeaderLogoUrl(res.publicUrl);
+    } else {
+      alert(`Header logo upload failed: ${res.error || 'Unknown error'}`);
+    }
+  };
+
+  const handleFooterLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFooterLogo(true);
+    const res = await cmsService.uploadMedia(file);
+    setUploadingFooterLogo(false);
+
+    if (res.success && res.publicUrl) {
+      setFooterLogoUrl(res.publicUrl);
+    } else {
+      alert(`Footer logo upload failed: ${res.error || 'Unknown error'}`);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setSaveSuccess(false);
     setSaveError(null);
 
     const payload = {
+      headerLogoUrl,
+      footerLogoUrl,
       tickerText,
       tickerEnabled,
       facebookUrl,
@@ -68,6 +108,7 @@ export default function AdminHeaderFooterEditor() {
       phone,
       email,
       copyrightText,
+      updated_at: new Date().toISOString(),
     };
 
     const res = await cmsService.saveSetting('header_footer_content', payload, 'Header & Footer Settings');
@@ -85,9 +126,9 @@ export default function AdminHeaderFooterEditor() {
     <div className="space-y-6 text-left max-w-[1200px]">
       <AdminPageHeader
         title="Header & Footer Settings"
-        subtitle="Update top news ticker text, official campus contact numbers, social media profiles, and footer details."
+        subtitle="Update Header & Footer official logos, top news ticker text, campus contact numbers, social media profiles, and copyright notice."
         action={
-          <AdminButton variant="primary" onClick={handleSave} loading={saving} icon={<Save className="w-4 h-4" />}>
+          <AdminButton variant="primary" onClick={handleSave} loading={saving || uploadingHeaderLogo || uploadingFooterLogo} icon={<Save className="w-4 h-4" />}>
             Save Settings
           </AdminButton>
         }
@@ -103,11 +144,61 @@ export default function AdminHeaderFooterEditor() {
       {saveError && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-800 text-sm font-medium">
           <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-          <span>We couldn't save your settings. Please try again.</span>
+          <span>{saveError}</span>
         </div>
       )}
 
-      {/* Header & Ticker Section */}
+      {/* 1. Header Logo Section */}
+      <AdminSection title="Header Logo Upload" description="Manage the official university logo displayed in the top website navigation bar.">
+        <AdminCard className="space-y-4">
+          <AdminFormGroup label="Header Navigation Logo (Preview / Upload / Replace / Remove)">
+            <div className="flex items-center gap-4">
+              <div className="w-48 h-16 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center p-2 flex-shrink-0">
+                {headerLogoUrl ? (
+                  <img src={headerLogoUrl} alt="Header Logo Preview" className="w-full h-full object-contain" />
+                ) : (
+                  <div className="flex items-center gap-2 text-[#6B7280]">
+                    <ImageIcon className="w-5 h-5" />
+                    <span className="text-xs font-semibold uppercase">Default Seal</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
+                  <Upload className="w-4 h-4" />
+                  <span>
+                    {uploadingHeaderLogo
+                      ? 'Uploading...'
+                      : headerLogoUrl
+                      ? 'Replace Header Logo'
+                      : 'Upload Header Logo'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingHeaderLogo}
+                    onChange={handleHeaderLogoUpload}
+                  />
+                </label>
+
+                {headerLogoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setHeaderLogoUrl('')}
+                    className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200 cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            </div>
+          </AdminFormGroup>
+        </AdminCard>
+      </AdminSection>
+
+      {/* 2. Top Header & Live Ticker Section */}
       <AdminSection title="Top Header & Live Ticker Settings" description="Configure marquee ticker text and official social links.">
         <AdminCard className="space-y-4">
           <AdminFormGroup label="Live Scrolling News Ticker Text">
@@ -141,7 +232,59 @@ export default function AdminHeaderFooterEditor() {
         </AdminCard>
       </AdminSection>
 
-      {/* Footer Section */}
+      {/* 3. Footer Logo Section */}
+      <AdminSection title="Footer Logo Upload" description="Manage the logo displayed inside the white oval container on the left side of the website footer.">
+        <AdminCard className="space-y-4">
+          <AdminFormGroup label="Footer Branding Logo (Preview / Upload / Replace / Remove)">
+            <div className="flex items-center gap-4">
+              <div className="w-56 h-16 bg-[#0093DD] border border-[#0093DD] rounded-lg p-2 flex items-center justify-center flex-shrink-0">
+                <div className="w-full h-full bg-white rounded-full px-4 flex items-center justify-center">
+                  {footerLogoUrl ? (
+                    <img src={footerLogoUrl} alt="Footer Logo Preview" className="w-full h-full object-contain" />
+                  ) : (
+                    <div className="flex items-center gap-2 text-[#0093DD]">
+                      <ImageIcon className="w-4 h-4" />
+                      <span className="text-xs font-bold uppercase">Default Seal</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
+                  <Upload className="w-4 h-4" />
+                  <span>
+                    {uploadingFooterLogo
+                      ? 'Uploading...'
+                      : footerLogoUrl
+                      ? 'Replace Footer Logo'
+                      : 'Upload Footer Logo'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingFooterLogo}
+                    onChange={handleFooterLogoUpload}
+                  />
+                </label>
+
+                {footerLogoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setFooterLogoUrl('')}
+                    className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200 cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            </div>
+          </AdminFormGroup>
+        </AdminCard>
+      </AdminSection>
+
+      {/* 4. Footer Contact & Location Details */}
       <AdminSection title="Footer Contact & Location Details" description="Multan campus physical address, contact numbers, and copyright statement.">
         <AdminCard className="space-y-4">
           <AdminFormGroup label="Campus Address">
@@ -169,7 +312,7 @@ export default function AdminHeaderFooterEditor() {
       </AdminSection>
 
       <div className="pt-4 border-t border-[#E5E7EB] flex justify-end">
-        <AdminButton variant="primary" onClick={handleSave} loading={saving} icon={<Save className="w-4 h-4" />}>
+        <AdminButton variant="primary" onClick={handleSave} loading={saving || uploadingHeaderLogo || uploadingFooterLogo} icon={<Save className="w-4 h-4" />}>
           Save Settings
         </AdminButton>
       </div>

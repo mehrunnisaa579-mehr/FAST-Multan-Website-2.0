@@ -77,6 +77,27 @@ export const aidsPrograms: ProgramData[] = [
   },
 ];
 
+export const mgmtPrograms: ProgramData[] = [
+  {
+    id: 'bba',
+    title: 'Bachelor of Business Administration (BBA)',
+    subtitle: '4 Years Undergraduate Program',
+    imageLabel: 'PLACEHOLDER: BBA PROGRAM IMAGE',
+  },
+  {
+    id: 'mba',
+    title: 'Master of Business Administration (MBA)',
+    subtitle: '2 Years Graduate Program',
+    imageLabel: 'PLACEHOLDER: MBA PROGRAM IMAGE',
+  },
+  {
+    id: 'phd-mgmt',
+    title: 'PhD Management Sciences',
+    subtitle: 'Postgraduate Research Program',
+    imageLabel: 'PLACEHOLDER: PHD MANAGEMENT IMAGE',
+  },
+];
+
 export const csFaculty: FacultyMemberData[] = Array.from({ length: 8 }).map((_, i) => ({
   id: `cs-fac-${i + 1}`,
   name: `Dr. PLACEHOLDER: CS Faculty ${i + 1}`,
@@ -96,6 +117,13 @@ export const aidsFaculty: FacultyMemberData[] = Array.from({ length: 8 }).map((_
   name: `Dr. PLACEHOLDER: AI & DS Faculty ${i + 1}`,
   designation: i === 0 ? 'Professor & HOD' : i < 3 ? 'Associate Professor' : 'Assistant Professor',
   photoPlaceholder: `PLACEHOLDER: AI & DS FACULTY PHOTO ${i + 1}`,
+}));
+
+export const mgmtFaculty: FacultyMemberData[] = Array.from({ length: 6 }).map((_, i) => ({
+  id: `mgmt-fac-${i + 1}`,
+  name: `Dr. PLACEHOLDER: Management Faculty ${i + 1}`,
+  designation: i === 0 ? 'Professor & HOD' : i < 3 ? 'Associate Professor' : 'Assistant Professor',
+  photoPlaceholder: `PLACEHOLDER: MANAGEMENT FACULTY PHOTO ${i + 1}`,
 }));
 
 export const csResearchAreas: ResearchArea[] = [

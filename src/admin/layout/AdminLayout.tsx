@@ -2,10 +2,35 @@ import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
 import AdminTopbar from '../components/AdminTopbar';
+import AdminScrollToTop from '../components/AdminScrollToTop';
 
 export default function AdminLayout() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('admin_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
   const location = useLocation();
+
+  const toggleSidebar = () => {
+    if (window.innerWidth < 1024) {
+      setMobileSidebarOpen((prev) => !prev);
+    } else {
+      setIsDesktopCollapsed((prev) => {
+        const next = !prev;
+        try {
+          localStorage.setItem('admin_sidebar_collapsed', String(next));
+        } catch {
+          // ignore localStorage error
+        }
+        return next;
+      });
+    }
+  };
 
   // Determine title from current pathname for topbar
   const getPageTitle = (path: string) => {
@@ -30,16 +55,18 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-[#F6F8FB] flex flex-col lg:flex-row text-[#1F2937] admin-body">
+      <AdminScrollToTop />
       {/* Sidebar Navigation */}
       <AdminSidebar
         isOpen={mobileSidebarOpen}
+        isDesktopCollapsed={isDesktopCollapsed}
         onCloseMobile={() => setMobileSidebarOpen(false)}
       />
 
       {/* Main Workspace Container */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 transition-all duration-250 ease-in-out">
         <AdminTopbar
-          onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+          onToggleSidebar={toggleSidebar}
           activeSectionTitle={getPageTitle(location.pathname)}
         />
 

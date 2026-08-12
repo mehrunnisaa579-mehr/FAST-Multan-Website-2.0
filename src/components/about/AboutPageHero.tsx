@@ -8,7 +8,7 @@ export default function AboutPageHero({ title, backgroundImage }: AboutPageHeroP
 
   return (
     <section 
-      className={`relative w-full h-[230px] min-[700px]:h-[290px] min-[1100px]:h-[355px] select-none overflow-hidden flex items-center justify-center ${
+      className={`relative w-full h-[230px] min-[700px]:h-[290px] min-[1100px]:h-[355px] overflow-hidden flex items-center justify-center ${
         hasImage ? 'bg-cover bg-center bg-no-repeat' : 'bg-[#D9D9D9]'
       }`}
       style={hasImage ? { backgroundImage: `url(${backgroundImage})` } : undefined}

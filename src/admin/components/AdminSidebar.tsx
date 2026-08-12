@@ -16,6 +16,8 @@ import {
   ChevronDown,
   ChevronRight,
   FileText,
+  Building2,
+  BookOpen,
 } from 'lucide-react';
 
 interface SubMenuItem {
@@ -38,7 +40,10 @@ const sidebarNavigation: MenuItem[] = [
     label: 'Academics',
     icon: GraduationCap,
     children: [
-      { label: 'Departments', path: '/admin-panel5463/departments' },
+      { label: 'All Departments', path: '/admin-panel5463/all-departments' },
+      { label: 'FAST School of Computing', path: '/admin-panel5463/school-of-computing' },
+      { label: 'FAST School of Management', path: '/admin-panel5463/school-of-management' },
+      { label: 'Administration Staff', path: '/admin-panel5463/administration-staff' },
       { label: 'Schools & Academics', path: '/admin-panel5463/schools' },
       { label: 'Degree Programs', path: '/admin-panel5463/programs' },
       { label: 'Faculty Members', path: '/admin-panel5463/faculty' },
@@ -58,6 +63,7 @@ const sidebarNavigation: MenuItem[] = [
     label: 'Campus Life',
     icon: Users,
     children: [
+      { label: 'Manage Campus Overview', path: '/admin-panel5463/campus' },
       { label: 'Student Societies', path: '/admin-panel5463/societies' },
       { label: 'Photo Gallery', path: '/admin-panel5463/gallery' },
     ],
@@ -66,7 +72,9 @@ const sidebarNavigation: MenuItem[] = [
     label: 'Campus Services',
     icon: Sparkles,
     children: [
-      { label: 'Overview Services', path: '/admin-panel5463/services' },
+      { label: 'Manage Services', path: '/admin-panel5463/services' },
+      { label: 'Complaint Management', path: '/admin-panel5463/complaint-management' },
+      { label: 'Gatepass Application', path: '/admin-panel5463/gatepass-application' },
       { label: 'Career Services (CSO)', path: '/admin-panel5463/career-services' },
     ],
   },
@@ -79,10 +87,11 @@ const sidebarNavigation: MenuItem[] = [
 
 interface AdminSidebarProps {
   isOpen: boolean;
+  isDesktopCollapsed?: boolean;
   onCloseMobile?: () => void;
 }
 
-export default function AdminSidebar({ isOpen, onCloseMobile }: AdminSidebarProps) {
+export default function AdminSidebar({ isOpen, isDesktopCollapsed = false, onCloseMobile }: AdminSidebarProps) {
   const location = useLocation();
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     Academics: true,
@@ -109,19 +118,21 @@ export default function AdminSidebar({ isOpen, onCloseMobile }: AdminSidebarProp
       )}
 
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-[270px] bg-[#1E3A6D] text-slate-200 flex flex-col transition-transform duration-200 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        className={`fixed lg:static inset-y-0 left-0 z-50 bg-[#1E3A6D] text-slate-200 flex flex-col transition-all duration-250 ease-in-out ${
+          isOpen ? 'translate-x-0 w-[270px]' : '-translate-x-full lg:translate-x-0'
+        } ${
+          isDesktopCollapsed
+            ? 'lg:w-0 lg:min-w-0 lg:overflow-hidden lg:opacity-0 lg:pointer-events-none lg:border-r-0 lg:p-0'
+            : 'lg:w-[270px]'
         }`}
       >
-        {/* Sidebar Header Lockup */}
-        <div className="h-20 px-6 flex items-center border-b border-slate-700/60 bg-[#162D56]">
-          <div className="w-10 h-10 rounded bg-[#0093DD] text-white flex items-center justify-center font-bold text-sm mr-3.5 flex-shrink-0 shadow-xs">
-            FAST
-          </div>
-          <div className="flex flex-col text-left leading-tight">
-            <span className="text-base font-bold text-white tracking-tight">FAST-NUCES Multan</span>
-            <span className="text-xs font-semibold text-[#0093DD] mt-0.5">Website Admin</span>
-          </div>
+        {/* Sidebar Header Lockup - Horizontal Logo Only */}
+        <div className="h-20 px-4 flex items-center justify-center border-b border-slate-700/60 bg-[#162D56] flex-shrink-0">
+          <img
+            src="/cms-horizontal-logo.png"
+            alt="FAST-NUCES Multan Logo"
+            className="w-full max-w-[190px] sm:max-w-[200px] h-auto object-contain mx-auto"
+          />
         </div>
 
         {/* Navigation Menu */}

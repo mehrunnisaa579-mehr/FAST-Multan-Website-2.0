@@ -35,7 +35,7 @@ export default function CareerServicesPage() {
   }, []);
 
   return (
-    <div className="w-full bg-white select-none text-left">
+    <div className="w-full bg-white text-left">
       <AboutPageHero title={title} backgroundImage={heroImage} />
 
       <div className="w-full max-w-[1180px] mx-auto px-[20px] min-[700px]:px-[24px] py-[40px] min-[700px]:py-[50px] min-[1100px]:pt-[65px] min-[1100px]:pb-[85px] text-[#444444] text-[16px] leading-[1.75] font-normal space-y-[24px]">
@@ -47,7 +47,7 @@ export default function CareerServicesPage() {
         {contentBlocks.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px] pt-[20px]">
             {contentBlocks.map((block, idx) => (
-              <div key={idx} className="p-[24px] bg-[#F9FAFB] border border-[#EAEAEA] rounded-[8px] space-y-[10px]">
+              <div key={idx} className="p-[24px] bg-[#F9FAFB] border border-[#EAEAEA] rounded-[8px] space-y-[10px] card-hover-lift">
                 {block.imageUrl && (
                   <div className="w-[60px] h-[60px] rounded-md overflow-hidden bg-white border border-[#E5E7EB] p-2 mb-2">
                     <img src={block.imageUrl} alt={block.heading} className="w-full h-full object-contain" />

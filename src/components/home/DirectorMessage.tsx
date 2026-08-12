@@ -36,8 +36,8 @@ export default function DirectorMessage() {
         {/* Centered Content Container */}
         <div className="grid grid-cols-1 min-[700px]:grid-cols-[290px_1fr] gap-[34px] min-[900px]:gap-[40px] items-start">
           {/* Left Column: Photo Card */}
-          <div className="flex flex-col items-center justify-self-center min-[700px]:justify-self-start w-full max-w-[290px]">
-            <div className="w-[210px] h-[260px] min-[700px]:w-[240px] min-[700px]:h-[295px] bg-[#D9D9D9] rounded-[4px] flex items-center justify-center p-[16px] text-center mb-[14px] shadow-sm overflow-hidden border border-[#E5E7EB]">
+          <div className="flex flex-col items-center justify-self-center min-[700px]:justify-self-start w-full max-w-[290px] card-hover-lift rounded-[8px] p-[12px]">
+            <div className={`w-[210px] h-[260px] min-[700px]:w-[240px] min-[700px]:h-[295px] rounded-[4px] mb-[14px] shadow-sm overflow-hidden border border-[#E5E7EB] flex items-center justify-center${directorPhoto ? '' : ' bg-[#D9D9D9] p-[16px] text-center'}`}>
               {directorPhoto ? (
                 <img src={directorPhoto} alt={directorName} className="w-full h-full object-cover" />
               ) : (

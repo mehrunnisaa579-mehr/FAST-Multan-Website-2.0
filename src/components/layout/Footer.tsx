@@ -5,6 +5,7 @@ import { footerContent } from '../../data/footer';
 import { cmsService } from '../../services/cmsService';
 
 export default function Footer() {
+  const [footerLogoUrl, setFooterLogoUrl] = useState('');
   const [address, setAddress] = useState(footerContent.address);
   const [addressUrl, setAddressUrl] = useState(footerContent.addressUrl);
   const [phone, setPhone] = useState(footerContent.phone);
@@ -16,6 +17,7 @@ export default function Footer() {
     const fetchFooterData = async () => {
       const data = await cmsService.getSetting<any>('header_footer_content', null);
       if (data) {
+        if (data.footerLogoUrl) setFooterLogoUrl(data.footerLogoUrl);
         if (data.address) setAddress(data.address);
         if (data.addressUrl) setAddressUrl(data.addressUrl);
         if (data.phone) setPhone(data.phone);
@@ -41,28 +43,32 @@ export default function Footer() {
           <div className="flex flex-col items-center text-center w-full">
             {/* White Oval Container */}
             <div className="w-full max-w-[310px] bg-white rounded-[999px] py-[12px] px-[20px] flex items-center justify-center shadow-sm mx-auto">
-              <div className="flex items-center gap-[10px] text-left">
-                <div className="w-[38px] h-[38px] bg-[#0093DD] rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-[8px] font-bold text-white tracking-wider select-none">
-                    SEAL
-                  </span>
+              {footerLogoUrl ? (
+                <img src={footerLogoUrl} alt="FAST-NUCES Multan Footer Logo" className="h-[42px] max-w-[270px] object-contain" />
+              ) : (
+                <div className="flex items-center gap-[10px] text-left">
+                  <div className="w-[38px] h-[38px] bg-[#0093DD] rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-[8px] font-bold text-white tracking-wider select-none">
+                      SEAL
+                    </span>
+                  </div>
+                  <div className="flex flex-col leading-none">
+                    <span className="text-[12px] font-bold text-[#0C71C3] tracking-[0.2px] uppercase">
+                      NATIONAL UNIVERSITY
+                    </span>
+                    <span className="text-[7px] font-medium text-[#666666] tracking-[0.1px] uppercase mt-[2px]">
+                      OF COMPUTER AND EMERGING SCIENCES
+                    </span>
+                    <span className="text-[8px] font-bold text-[#0093DD] tracking-[0.4px] uppercase mt-[2px]">
+                      MULTAN CAMPUS
+                    </span>
+                  </div>
                 </div>
-                <div className="flex flex-col leading-none">
-                  <span className="text-[12px] font-bold text-[#0C71C3] tracking-[0.2px] uppercase">
-                    NATIONAL UNIVERSITY
-                  </span>
-                  <span className="text-[7px] font-medium text-[#666666] tracking-[0.1px] uppercase mt-[2px]">
-                    OF COMPUTER AND EMERGING SCIENCES
-                  </span>
-                  <span className="text-[8px] font-bold text-[#0093DD] tracking-[0.4px] uppercase mt-[2px]">
-                    MULTAN CAMPUS
-                  </span>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Social Icons Centered Below Oval */}
-            <div className="flex items-center justify-center gap-[20px] mt-[28px]">
+            <div className="flex items-center justify-center gap-[20px] mt-[40px] sm:mt-[52px] min-[1000px]:mt-[60px]">
               {/* Facebook */}
               <a
                 href={socials[0].url}

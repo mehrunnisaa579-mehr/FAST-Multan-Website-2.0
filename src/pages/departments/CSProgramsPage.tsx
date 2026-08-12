@@ -7,9 +7,19 @@ import '../../styles/department-pages.css';
 
 export default function CSProgramsPage() {
   const [programsList, setProgramsList] = useState<any[]>(csPrograms);
+  const [cmsContent, setCmsContent] = useState<any>(null);
 
   useEffect(() => {
     const fetchCsPrograms = async () => {
+      const data = await cmsService.getSetting<any>('department_cs_content', null);
+      if (data) {
+        setCmsContent(data);
+        if (data.programsList && Array.isArray(data.programsList) && data.programsList.length > 0) {
+          setProgramsList(data.programsList.filter((p: any) => p.is_visible !== false));
+          return;
+        }
+      }
+
       const cmsPrograms = await cmsService.getPrograms();
       if (cmsPrograms && cmsPrograms.length > 0) {
         const csOnly = cmsPrograms.filter((p: any) => p.department === 'cs' || !p.department);
@@ -29,9 +39,18 @@ export default function CSProgramsPage() {
     fetchCsPrograms();
   }, []);
 
+  const heroTitle = cmsContent?.heroTitle || 'Department Of Computer Science';
+  const heroImage = cmsContent?.heroImageUrl || '';
+  const hodName = cmsContent?.hodName || 'Dr. HOD Computer Science';
+  const hodDesignation = cmsContent?.hodDesignation || 'Head of Department';
+  const hodMessage =
+    cmsContent?.hodMessage ||
+    'Welcome to the Department of Computer Science at FAST-NUCES Multan Campus. Our department is committed to delivering world-class computing education, fostering innovative research, and preparing students for successful careers in software and technology industries.';
+  const hodPhoto = cmsContent?.hodPhotoUrl || '';
+
   return (
     <div className="department-page-bg">
-      <AboutPageHero title="Department Of Computer Science" />
+      <AboutPageHero title={heroTitle} backgroundImage={heroImage} />
 
       <div className="department-content-wrapper text-left">
         {/* HOD's Message Section */}
@@ -43,20 +62,16 @@ export default function CSProgramsPage() {
           <div className="flex flex-col md:flex-row gap-[24px] items-start bg-white p-[24px] border border-[#EAEAEA] rounded-[4px] shadow-sm">
             <div className="w-full md:w-[200px] flex-shrink-0">
               <DepartmentCard
-                title="Dr. HOD Computer Science"
-                role="Head of Department"
+                title={hodName}
+                role={hodDesignation}
                 imageLabel="HOD PHOTO"
+                imageUrl={hodPhoto}
                 variant="profile"
               />
             </div>
 
             <div className="flex-1 space-y-[12px] text-[15px] leading-[1.75] text-[#444444]">
-              <p>
-                Welcome to the Department of Computer Science at FAST-NUCES Multan Campus. Our department is committed to delivering world-class computing education, fostering innovative research, and preparing students for successful careers in software and technology industries.
-              </p>
-              <p>
-                Our curriculum combines rigorous theoretical foundations with hands-on practical experience, enabling our graduates to excel in competitive global environments.
-              </p>
+              <p>{hodMessage}</p>
             </div>
           </div>
         </div>
@@ -77,8 +92,8 @@ export default function CSProgramsPage() {
                 <DepartmentCard
                   title={prog.title}
                   subtitle={prog.subtitle}
-                  imageLabel={prog.imageLabel}
-                  image={prog.image}
+                  imageLabel={prog.imageLabel || 'PROGRAM IMAGE'}
+                  imageUrl={prog.image}
                   variant="program"
                 />
               </div>

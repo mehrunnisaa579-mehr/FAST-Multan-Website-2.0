@@ -35,3 +35,13 @@
   text-align: center;
   text-transform: uppercase;
 }
+
+/* Shared Card Row Flexbox Layout - horizontally centers dynamic card sets */
+.dept-card-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+}
+

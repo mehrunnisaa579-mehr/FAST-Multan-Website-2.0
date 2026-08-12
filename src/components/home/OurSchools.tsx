@@ -26,7 +26,7 @@ export default function OurSchools() {
   }, []);
 
   return (
-    <section className="py-[60px] w-full bg-[#F7F9FC] select-none">
+    <section className="py-[60px] w-full bg-[#F7F9FC]">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px]">
         {/* Section Heading & Subheading */}
         <h2 className="text-[28px] font-bold text-[#0C71C3] text-center mb-2">
@@ -36,8 +36,8 @@ export default function OurSchools() {
           {subtitle}
         </p>
 
-        {/* Compact Centered School Tiles (Horizontally Centered as a Group) */}
-        <div className="flex flex-wrap gap-[28px] justify-center items-center max-w-[800px] mx-auto w-full">
+        {/* 2 Centered School Cards */}
+        <div className="flex flex-wrap gap-[32px] justify-center items-center max-w-[960px] mx-auto w-full">
           {schools.map((school, index) => {
             const hasIcon = !!(school.icon || school.iconUrl);
             const iconSrc = school.iconUrl || school.icon;
@@ -46,29 +46,21 @@ export default function OurSchools() {
               <Link
                 key={index}
                 to={school.href || '/departments'}
-                className="w-full max-w-[330px] sm:w-[320px] min-h-[160px] bg-white border border-[#EAEAEA] rounded-[8px] p-[24px] shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-200 flex flex-col items-center justify-center text-center no-underline cursor-pointer block"
+                className="group w-full sm:w-[calc(50%-16px)] max-w-[440px] aspect-[16/9] bg-white border border-[#EAEAEA] rounded-[8px] overflow-hidden shadow-xs card-hover-lift flex items-center justify-center relative no-underline cursor-pointer p-3 sm:p-4"
               >
-                {/* Dynamic Icon / Logo Container (70px-90px height, object-contain) */}
-                <div className="h-[80px] w-full max-w-[160px] mb-[14px] flex items-center justify-center flex-shrink-0">
-                  {hasIcon ? (
-                    <img 
-                      src={iconSrc} 
-                      alt={school.name} 
-                      className="max-w-full max-h-full object-contain transition-transform duration-200 hover:scale-105"
-                    />
-                  ) : (
-                    <div className="w-[75px] h-[75px] bg-[#F3F4F6] border border-[#E5E7EB] rounded-[10px] flex items-center justify-center">
-                      <span className="text-[10px] font-bold text-[#888888] tracking-wider select-none">
-                        SCHOOL ICON
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Centered School Name */}
-                <h3 className="text-[15px] font-bold text-[#333333] uppercase leading-snug text-center tracking-wide">
-                  {school.name}
-                </h3>
+                {hasIcon ? (
+                  <img
+                    src={iconSrc}
+                    alt={school.name}
+                    className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-[#0C71C3] to-[#004B87] p-6 flex flex-col items-center justify-center text-center rounded-[6px]">
+                    <h3 className="text-[20px] font-bold text-white uppercase tracking-wide">
+                      {school.name}
+                    </h3>
+                  </div>
+                )}
               </Link>
             );
           })}

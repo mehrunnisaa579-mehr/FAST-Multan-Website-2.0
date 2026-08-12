@@ -25,7 +25,7 @@ export default function WhyChooseUs() {
   }, []);
 
   return (
-    <section className="py-[60px] w-full bg-white select-none">
+    <section className="py-[60px] w-full bg-white">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px]">
         {/* Section Heading & Subheading */}
         <h2 className="text-[28px] font-bold text-[#0C71C3] text-center mb-2">
@@ -42,7 +42,7 @@ export default function WhyChooseUs() {
             const iconSrc = item.iconUrl || item.icon;
 
             return (
-              <div key={index} className="flex flex-col items-center text-center w-full max-w-[270px]">
+              <div key={index} className="flex flex-col items-center text-center w-full max-w-[270px] card-hover-lift rounded-[8px] p-[16px]">
                 {/* Responsive Dynamic Icon Wrapper (72px to 100px) */}
                 <div className="w-[85px] sm:w-[95px] lg:w-[100px] h-[85px] sm:h-[95px] lg:h-[100px] flex items-center justify-center p-[8px] flex-shrink-0 mx-auto mb-[18px]">
                   {hasIcon ? (

@@ -3,7 +3,7 @@ import '../styles/legal-contact-pages.css';
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="legal-contact-bg">
+    <div className="w-full bg-white text-left">
       {/* Shared Hero */}
       <AboutPageHero title="Privacy Policy" />
 

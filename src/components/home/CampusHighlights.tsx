@@ -44,7 +44,7 @@ export default function CampusHighlights() {
   if (!isVisible) return null;
 
   return (
-    <section className="py-[60px] w-full bg-white select-none">
+    <section className="py-[60px] w-full bg-white">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px]">
         {/* Section Heading & Subheading */}
         <h2 className="text-[28px] font-bold text-[#0C71C3] text-center mb-2">
@@ -57,10 +57,9 @@ export default function CampusHighlights() {
         {/* 2 cards side by side */}
         <div className="flex flex-col md:flex-row gap-[24px] justify-center items-center max-w-[1000px] mx-auto w-full">
           {highlights.map((item, index) => {
-            const hasThumb = !!(item.thumbnail || item.thumbnailUrl);
-            const thumbSrc = item.thumbnailUrl || item.thumbnail;
             const targetUrl = item.videoUrl || item.youtubeUrl || '';
             const isUpload = item.videoType === 'upload' || (targetUrl.endsWith('.mp4') || targetUrl.endsWith('.webm'));
+            const thumbSrc = item.thumbnailUrl || item.thumbnail;
 
             return (
               <div 
@@ -71,20 +70,33 @@ export default function CampusHighlights() {
                     setActiveVideoUrl(isUpload ? targetUrl : getEmbedUrl(targetUrl));
                   }
                 }}
-                className="flex-1 w-full aspect-[16/9] rounded-[8px] overflow-hidden relative cursor-pointer select-none group bg-[#D9D9D9] shadow-sm"
+                className={`flex-1 w-full aspect-[16/9] rounded-[8px] overflow-hidden relative cursor-pointer select-none group shadow-sm card-hover-lift${!thumbSrc && !targetUrl ? ' bg-[#D9D9D9]' : ''}`}
               >
-                {/* Thumbnail Image / Placeholder */}
-                {hasThumb ? (
-                  <img 
-                    src={thumbSrc} 
-                    alt={item.title} 
-                    className="w-full h-full object-cover" 
+                {/* Video / Thumbnail preview */}
+                {thumbSrc ? (
+                  <img src={thumbSrc} alt={item.title} className="w-full h-full object-cover" />
+                ) : isUpload && targetUrl ? (
+                  <video
+                    src={targetUrl}
+                    muted
+                    playsInline
+                    preload="metadata"
+                    className="w-full h-full object-cover"
                   />
+                ) : targetUrl ? (
+                  (() => {
+                    const ytMatch = targetUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^?&#]+)/);
+                    return ytMatch ? (
+                      <img src={`https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`} alt={item.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-[#D9D9D9] flex items-center justify-center">
+                        <span className="text-[14px] font-semibold text-[#888888] tracking-wide">VIDEO</span>
+                      </div>
+                    );
+                  })()
                 ) : (
                   <div className="w-full h-full bg-[#D9D9D9] flex items-center justify-center">
-                    <span className="text-[14px] font-semibold text-[#888888] tracking-wide">
-                      VIDEO THUMBNAIL
-                    </span>
+                    <span className="text-[14px] font-semibold text-[#888888] tracking-wide">VIDEO THUMBNAIL</span>
                   </div>
                 )}
 
