@@ -71,13 +71,6 @@ const actionCards: ActionCard[] = [
     icon: Building2,
   },
   {
-    id: 'campus-news',
-    title: 'Manage Campus News',
-    description: 'Manage the full Campus News page, articles, images, sidebar content, categories and archives.',
-    path: '/admin-panel5463/campus-news',
-    icon: FileText,
-  },
-  {
     id: 'services',
     title: 'Manage Services',
     description: 'Manage editable service pages and service-related website content.',
