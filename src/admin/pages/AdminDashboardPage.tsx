@@ -85,13 +85,6 @@ const actionCards: ActionCard[] = [
     icon: Building2,
   },
   {
-    id: 'edc',
-    title: 'Manage EDC',
-    description: 'Manage EDC pages, conferences, workshops, speakers and highlights.',
-    path: '/admin-panel5463/edc',
-    icon: BriefcaseBusiness,
-  },
-  {
     id: 'useful-links',
     title: 'Manage Useful Links',
     description: 'Manage editable Useful Links pages, documents, policy content and downloadable resources.',

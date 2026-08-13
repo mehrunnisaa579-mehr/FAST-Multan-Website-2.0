@@ -80,7 +80,6 @@ const sidebarNavigation: MenuItem[] = [
       { label: 'EDC Workshops', path: '/admin-panel5463/edc/workshops-hub' },
     ],
   },
-  { label: 'EDC Center', icon: BriefcaseBusiness, path: '/admin-panel5463/edc' },
   { label: 'Useful Links', icon: LinkIcon, path: '/admin-panel5463/useful-links' },
   { label: 'Header & Footer', icon: PanelsTopLeft, path: '/admin-panel5463/header-footer' },
   { label: 'Media Library', icon: Images, path: '/admin-panel5463/media' },
