@@ -10,9 +10,9 @@ export default function AdminEDCWorkshopsHub() {
     <div className="space-y-6 text-left max-w-[1250px]">
       <div className="flex items-center gap-4 mb-2">
         <Link
-          to="/admin-panel5463/edc"
+          to="/admin-panel5463/services"
           className="p-2 bg-white border border-[#E5E7EB] rounded-md text-[#4B5563] hover:text-[#0093DD] transition-colors"
-          title="Back to EDC Admin Hub"
+          title="Back to Services"
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>

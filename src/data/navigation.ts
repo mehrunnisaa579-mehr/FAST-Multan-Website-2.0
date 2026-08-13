@@ -91,6 +91,12 @@ export const navigationData: NavItem[] = [
       { label: 'Gatepass Application', href: '/services/gatepass-application' },
       { label: 'FLEX', href: 'https://flexstudent.nu.edu.pk/Login', isExternal: true },
       { label: 'Career Services Office', href: '/services/career-services-office' },
+      {
+        label: 'Workshops',
+        items: [
+          { label: 'Summer Bootcamp 2026', href: '/edc/workshops/summer-bootcamp-2026' },
+        ],
+      },
     ],
   },
   {
@@ -121,24 +127,5 @@ export const navigationData: NavItem[] = [
       { label: 'Academic Calendar', href: 'https://www.nu.edu.pk/Student/Calender', isExternal: true },
     ],
   },
-  {
-    label: 'EDC',
-    items: [
-      { label: 'About EDC', href: '/edc/about' },
-      {
-        label: 'Conferences',
-        href: '/edc/conferences',
-        items: [
-          { label: 'Conference Speakers', href: '/edc/conferences/speakers' },
-        ],
-      },
-      {
-        label: 'Workshops',
-        items: [
-          { label: 'Summer Bootcamp 2026', href: '/edc/workshops/summer-bootcamp-2026' },
-        ],
-      },
-      { label: 'Highlights', href: '/edc/highlights' },
-    ],
-  },
+
 ];

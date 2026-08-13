@@ -77,6 +77,7 @@ const sidebarNavigation: MenuItem[] = [
       { label: 'Complaint Management', path: '/admin-panel5463/complaint-management' },
       { label: 'Gatepass Application', path: '/admin-panel5463/gatepass-application' },
       { label: 'Career Services (CSO)', path: '/admin-panel5463/career-services' },
+      { label: 'EDC Workshops', path: '/admin-panel5463/edc/workshops-hub' },
     ],
   },
   { label: 'EDC Center', icon: BriefcaseBusiness, path: '/admin-panel5463/edc' },
