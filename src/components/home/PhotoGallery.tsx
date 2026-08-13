@@ -34,7 +34,7 @@ function GalleryRow({ items, rowLabel, onImageClick }: GalleryRowProps) {
             <div
               key={index}
               onClick={() => onImageClick(item.originalIndex ?? index)}
-              className="w-[70vw] sm:w-[260px] h-[175px] rounded-[6px] overflow-hidden flex-shrink-0 shadow-sm relative group bg-[#D9D9D9] card-hover-lift cursor-pointer"
+              className="w-[70vw] sm:w-[260px] h-[175px] rounded-[6px] overflow-hidden flex-shrink-0 shadow-sm relative group bg-white card-hover-lift cursor-pointer"
             >
               {hasImage ? (
                 <img
@@ -43,7 +43,7 @@ function GalleryRow({ items, rowLabel, onImageClick }: GalleryRowProps) {
                   className="w-full h-full object-cover select-none"
                 />
               ) : (
-                <div className="w-full h-full bg-[#D9D9D9] flex items-center justify-center">
+                <div className="w-full h-full bg-white flex items-center justify-center">
                   <span className="text-[13px] font-semibold text-[#888888] tracking-wide uppercase">
                     IMAGE
                   </span>
@@ -236,7 +236,7 @@ export default function PhotoGallery() {
                 className="max-w-[80vw] max-h-[80vh] object-contain rounded-[4px] shadow-2xl"
               />
             ) : (
-              <div className="w-full max-w-[600px] h-[400px] bg-[#D9D9D9] flex items-center justify-center rounded-[4px] shadow-2xl">
+              <div className="w-full max-w-[600px] h-[400px] bg-white flex items-center justify-center rounded-[4px] shadow-2xl">
                 <span className="text-[16px] font-bold text-[#888888] tracking-wider uppercase">
                   IMAGE
                 </span>

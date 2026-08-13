@@ -70,7 +70,7 @@ export default function CampusHighlights() {
                     setActiveVideoUrl(isUpload ? targetUrl : getEmbedUrl(targetUrl));
                   }
                 }}
-                className={`flex-1 w-full aspect-[16/9] rounded-[8px] overflow-hidden relative cursor-pointer select-none group shadow-sm card-hover-lift${!thumbSrc && !targetUrl ? ' bg-[#D9D9D9]' : ''}`}
+                className={`flex-1 w-full aspect-[16/9] rounded-[8px] overflow-hidden relative cursor-pointer select-none group shadow-sm card-hover-lift${!thumbSrc && !targetUrl ? ' bg-white' : ''}`}
               >
                 {/* Video / Thumbnail preview */}
                 {thumbSrc ? (
@@ -89,13 +89,13 @@ export default function CampusHighlights() {
                     return ytMatch ? (
                       <img src={`https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`} alt={item.title} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full bg-[#D9D9D9] flex items-center justify-center">
+                      <div className="w-full h-full bg-white flex items-center justify-center">
                         <span className="text-[14px] font-semibold text-[#888888] tracking-wide">VIDEO</span>
                       </div>
                     );
                   })()
                 ) : (
-                  <div className="w-full h-full bg-[#D9D9D9] flex items-center justify-center">
+                  <div className="w-full h-full bg-white flex items-center justify-center">
                     <span className="text-[14px] font-semibold text-[#888888] tracking-wide">VIDEO THUMBNAIL</span>
                   </div>
                 )}

@@ -9,6 +9,7 @@ import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
 import { cmsService } from '../../services/cmsService';
+import { archiveService } from '../../services/archiveService';
 import { csPrograms, csFaculty, csResearchAreas } from '../../data/departments';
 import {
   Save,
@@ -231,100 +232,59 @@ export default function AdminCSDepartmentEditor() {
     setIsProgModalOpen(false);
   };
 
-  const handleDeleteProg = () => {
+  const handleDeleteProg = async () => {
     if (!deleteProgTarget) return;
     setProgramsList((prev) => prev.filter((p) => p.id !== deleteProgTarget.id));
+
+    await archiveService.archiveItem({
+      table: 'programs',
+      settingKey: 'department_cs_content',
+      arrayKey: 'programsList',
+      itemId: deleteProgTarget.id,
+      moduleName: 'CS Programs',
+      title: deleteProgTarget.title,
+      subtitle: deleteProgTarget.subtitle,
+      image_url: deleteProgTarget.image,
+      itemData: deleteProgTarget,
+    });
+
     setDeleteProgTarget(null);
   };
 
-  const handleMoveProg = (index: number, direction: 'up' | 'down') => {
-    const newList = [...programsList];
-    const targetIdx = direction === 'up' ? index - 1 : index + 1;
-    if (targetIdx < 0 || targetIdx >= newList.length) return;
-    const temp = newList[index];
-    newList[index] = newList[targetIdx];
-    newList[targetIdx] = temp;
-    setProgramsList(newList);
-  };
-
-  // Faculty CRUD Handlers
-  const handleOpenAddFac = () => {
-    setEditingFac({
-      id: `fac-cs-${Date.now()}`,
-      name: 'Dr. New Faculty Member',
-      designation: 'Assistant Professor',
-      qualification: 'PhD Computer Science',
-      photoUrl: '',
-      display_order: facultyList.length + 1,
-      is_visible: true,
-    });
-    setIsFacModalOpen(true);
-  };
-
-  const handleSaveFac = () => {
-    if (!editingFac?.name?.trim()) {
-      alert('Please enter a faculty name.');
-      return;
-    }
-    const updated = [...facultyList];
-    const idx = updated.findIndex((f) => f.id === editingFac.id);
-    if (idx >= 0) {
-      updated[idx] = editingFac as CSFacultyItem;
-    } else {
-      updated.push(editingFac as CSFacultyItem);
-    }
-    setFacultyList(updated);
-    setIsFacModalOpen(false);
-  };
-
-  const handleDeleteFac = () => {
+  const handleDeleteFac = async () => {
     if (!deleteFacTarget) return;
     setFacultyList((prev) => prev.filter((f) => f.id !== deleteFacTarget.id));
+
+    await archiveService.archiveItem({
+      table: 'faculty',
+      settingKey: 'department_cs_content',
+      arrayKey: 'facultyList',
+      itemId: deleteFacTarget.id,
+      moduleName: 'CS Faculty',
+      title: deleteFacTarget.name,
+      subtitle: deleteFacTarget.designation,
+      image_url: deleteFacTarget.photoUrl,
+      itemData: deleteFacTarget,
+    });
+
     setDeleteFacTarget(null);
   };
 
-  const handleMoveFac = (index: number, direction: 'up' | 'down') => {
-    const newList = [...facultyList];
-    const targetIdx = direction === 'up' ? index - 1 : index + 1;
-    if (targetIdx < 0 || targetIdx >= newList.length) return;
-    const temp = newList[index];
-    newList[index] = newList[targetIdx];
-    newList[targetIdx] = temp;
-    setFacultyList(newList);
-  };
-
-  // Research Area CRUD Handlers
-  const handleOpenAddRes = () => {
-    setEditingRes({
-      id: `res-cs-${Date.now()}`,
-      title: 'New Research Area',
-      description: 'Focuses on cutting-edge computer science research...',
-      url: '/departments/computing/computer-science/research-groups',
-      display_order: researchList.length + 1,
-      is_visible: true,
-    });
-    setIsResModalOpen(true);
-  };
-
-  const handleSaveRes = () => {
-    if (!editingRes?.title?.trim()) {
-      alert('Please enter a research title.');
-      return;
-    }
-    const updated = [...researchList];
-    const idx = updated.findIndex((r) => r.id === editingRes.id);
-    if (idx >= 0) {
-      updated[idx] = editingRes as CSResearchItem;
-    } else {
-      updated.push(editingRes as CSResearchItem);
-    }
-    setResearchList(updated);
-    setIsResModalOpen(false);
-  };
-
-  const handleDeleteRes = () => {
+  const handleDeleteRes = async () => {
     if (!deleteResTarget) return;
     setResearchList((prev) => prev.filter((r) => r.id !== deleteResTarget.id));
+
+    await archiveService.archiveItem({
+      table: 'research_groups',
+      settingKey: 'department_cs_content',
+      arrayKey: 'researchList',
+      itemId: deleteResTarget.id,
+      moduleName: 'CS Research Areas',
+      title: deleteResTarget.title,
+      subtitle: deleteResTarget.description,
+      itemData: deleteResTarget,
+    });
+
     setDeleteResTarget(null);
   };
 

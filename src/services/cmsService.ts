@@ -106,9 +106,10 @@ export const cmsService = {
       const { data, error } = await supabase
         .from('departments')
         .select('*')
+        .or('is_archived.eq.false,is_archived.is.null')
         .order('display_order', { ascending: true });
       if (error) throw error;
-      return data || [];
+      return (data || []).filter((item: any) => item.is_archived !== true);
     } catch {
       return [];
     }
@@ -120,9 +121,10 @@ export const cmsService = {
       const { data, error } = await supabase
         .from('programs')
         .select('*')
+        .or('is_archived.eq.false,is_archived.is.null')
         .order('display_order', { ascending: true });
       if (error) throw error;
-      return data || [];
+      return (data || []).filter((item: any) => item.is_archived !== true);
     } catch {
       return [];
     }
@@ -134,9 +136,10 @@ export const cmsService = {
       const { data, error } = await supabase
         .from('faculty')
         .select('*')
+        .or('is_archived.eq.false,is_archived.is.null')
         .order('display_order', { ascending: true });
       if (error) throw error;
-      return data || [];
+      return (data || []).filter((item: any) => item.is_archived !== true);
     } catch {
       return [];
     }
@@ -148,9 +151,10 @@ export const cmsService = {
       const { data, error } = await supabase
         .from('research_groups')
         .select('*')
+        .or('is_archived.eq.false,is_archived.is.null')
         .order('display_order', { ascending: true });
       if (error) throw error;
-      return data || [];
+      return (data || []).filter((item: any) => item.is_archived !== true);
     } catch {
       return [];
     }
@@ -162,10 +166,11 @@ export const cmsService = {
       const { data, error } = await supabase
         .from('news')
         .select('*')
+        .or('is_archived.eq.false,is_archived.is.null')
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data || [];
+      return (data || []).filter((item: any) => item.is_archived !== true);
     } catch {
       return [];
     }
@@ -181,9 +186,10 @@ export const cmsService = {
       const { data, error } = await supabase
         .from('events')
         .select('*')
+        .or('is_archived.eq.false,is_archived.is.null')
         .order('display_order', { ascending: true });
       if (error) throw error;
-      return data || [];
+      return (data || []).filter((item: any) => item.is_archived !== true);
     } catch {
       return [];
     }
@@ -195,9 +201,10 @@ export const cmsService = {
       const { data, error } = await supabase
         .from('campus_gallery')
         .select('*')
+        .or('is_archived.eq.false,is_archived.is.null')
         .order('display_order', { ascending: true });
       if (error) throw error;
-      return data || [];
+      return (data || []).filter((item: any) => item.is_archived !== true);
     } catch {
       return [];
     }
@@ -209,9 +216,10 @@ export const cmsService = {
       const { data, error } = await supabase
         .from('student_societies')
         .select('*')
+        .or('is_archived.eq.false,is_archived.is.null')
         .order('display_order', { ascending: true });
       if (error) throw error;
-      return data || [];
+      return (data || []).filter((item: any) => item.is_archived !== true);
     } catch {
       return [];
     }
@@ -223,9 +231,10 @@ export const cmsService = {
       const { data, error } = await supabase
         .from('administration_staff')
         .select('*')
+        .or('is_archived.eq.false,is_archived.is.null')
         .order('display_order', { ascending: true });
       if (error) throw error;
-      return data || [];
+      return (data || []).filter((item: any) => item.is_archived !== true);
     } catch {
       return [];
     }

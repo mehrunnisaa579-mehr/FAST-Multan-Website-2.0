@@ -93,7 +93,7 @@ export default function AllDepartmentsPage() {
           <div className="flex flex-col md:flex-row gap-[32px] md:gap-[40px] items-center md:items-start text-left">
             {/* Left Column: Director Photo */}
             <div className="flex flex-col items-center flex-shrink-0">
-              <div className={`w-[190px] h-[235px] rounded-[4px] overflow-hidden flex items-center justify-center mb-[12px] shadow-sm${directorPhoto ? '' : ' bg-[#D9D9D9] p-[8px]'}`}>
+              <div className={`w-[190px] h-[235px] rounded-[4px] overflow-hidden flex items-center justify-center mb-[12px] shadow-sm${directorPhoto ? '' : ' bg-white p-[8px]'}`}>
                 {directorPhoto ? (
                   <img src={directorPhoto} alt={directorName} className="w-full h-full object-cover" />
                 ) : (

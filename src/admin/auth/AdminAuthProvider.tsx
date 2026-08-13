@@ -1,6 +1,10 @@
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useRef, ReactNode } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
+
+export const ADMIN_INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+const LAST_ACTIVITY_KEY = 'admin_last_activity';
+const LOGOUT_REASON_KEY = 'admin_logout_reason';
 
 export interface AdminProfile {
   user_id: string;
@@ -30,6 +34,8 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [adminProfile, setAdminProfile] = useState<AdminProfile | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  const lastActivityRef = useRef<number>(Date.now());
 
   const verifyAdminStatus = async (currentUser: User | null): Promise<boolean> => {
     if (!currentUser) {
@@ -107,6 +113,139 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const signOut = async (): Promise<void> => {
+    setLoading(true);
+    try {
+      localStorage.removeItem(LAST_ACTIVITY_KEY);
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Error signing out:', err);
+    } finally {
+      setUser(null);
+      setSession(null);
+      setIsAdmin(false);
+      setAdminProfile(null);
+      setAuthError(null);
+      setLoading(false);
+    }
+  };
+
+  // Inactivity Timeout Manager
+  useEffect(() => {
+    if (!user || !isAdmin || loading) {
+      return;
+    }
+
+    const now = Date.now();
+    let initialActivity = now;
+    try {
+      const stored = localStorage.getItem(LAST_ACTIVITY_KEY);
+      if (stored) {
+        const parsed = Number(stored);
+        if (!isNaN(parsed) && parsed > 0) {
+          initialActivity = parsed;
+        }
+      } else {
+        localStorage.setItem(LAST_ACTIVITY_KEY, String(now));
+      }
+    } catch {}
+
+    // Check if session has already expired before setting up listeners
+    if (now - initialActivity >= ADMIN_INACTIVITY_TIMEOUT_MS) {
+      try {
+        localStorage.setItem(LOGOUT_REASON_KEY, 'inactivity');
+        localStorage.removeItem(LAST_ACTIVITY_KEY);
+      } catch {}
+      signOut().then(() => {
+        if (window.location.pathname.startsWith('/admin-panel5463') && !window.location.pathname.endsWith('/login')) {
+          window.location.href = '/admin-panel5463/login?reason=inactivity';
+        }
+      });
+      return;
+    }
+
+    lastActivityRef.current = initialActivity;
+
+    // Reset timer on meaningful user activity (throttled at 2 seconds)
+    const updateActivity = () => {
+      const currentTime = Date.now();
+      if (currentTime - lastActivityRef.current >= 2000) {
+        lastActivityRef.current = currentTime;
+        try {
+          localStorage.setItem(LAST_ACTIVITY_KEY, String(currentTime));
+        } catch {}
+      }
+    };
+
+    const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+    activityEvents.forEach((event) => {
+      window.addEventListener(event, updateActivity, { passive: true });
+    });
+
+    const checkInactivity = async () => {
+      const currentTime = Date.now();
+      let lastAct = lastActivityRef.current;
+      try {
+        const stored = localStorage.getItem(LAST_ACTIVITY_KEY);
+        if (stored) {
+          const parsed = Number(stored);
+          if (!isNaN(parsed) && parsed > 0) {
+            lastAct = Math.max(lastAct, parsed);
+          }
+        }
+      } catch {}
+
+      if (currentTime - lastAct >= ADMIN_INACTIVITY_TIMEOUT_MS) {
+        try {
+          localStorage.setItem(LOGOUT_REASON_KEY, 'inactivity');
+          localStorage.removeItem(LAST_ACTIVITY_KEY);
+        } catch {}
+        await signOut();
+        if (window.location.pathname.startsWith('/admin-panel5463') && !window.location.pathname.endsWith('/login')) {
+          window.location.href = '/admin-panel5463/login?reason=inactivity';
+        }
+      }
+    };
+
+    const intervalId = setInterval(checkInactivity, 2500);
+
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        checkInactivity();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === LAST_ACTIVITY_KEY && e.newValue) {
+        const ts = Number(e.newValue);
+        if (!isNaN(ts) && ts > 0) {
+          lastActivityRef.current = Math.max(lastActivityRef.current, ts);
+        }
+      } else if (e.key === LOGOUT_REASON_KEY && e.newValue === 'inactivity') {
+        signOut().then(() => {
+          if (window.location.pathname.startsWith('/admin-panel5463') && !window.location.pathname.endsWith('/login')) {
+            window.location.href = '/admin-panel5463/login?reason=inactivity';
+          }
+        });
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      activityEvents.forEach((event) => {
+        window.removeEventListener(event, updateActivity);
+      });
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, [user, isAdmin, loading]);
+
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     setAuthError(null);
     setLoading(true);
@@ -146,22 +285,6 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signOut = async (): Promise<void> => {
-    setLoading(true);
-    try {
-      await supabase.auth.signOut();
-    } catch (err) {
-      console.error('Error signing out:', err);
-    } finally {
-      setUser(null);
-      setSession(null);
-      setIsAdmin(false);
-      setAdminProfile(null);
-      setAuthError(null);
-      setLoading(false);
-    }
-  };
-
   const clearAuthError = () => setAuthError(null);
 
   return (
@@ -182,3 +305,4 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     </AdminAuthContext.Provider>
   );
 }
+

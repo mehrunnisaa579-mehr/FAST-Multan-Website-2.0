@@ -9,6 +9,7 @@ import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
 import { cmsService } from '../../services/cmsService';
+import { archiveService } from '../../services/archiveService';
 import { supabase } from '../../lib/supabase';
 import { adminOfficesList, initialStaffMembers } from '../../data/staffData';
 import {
@@ -300,16 +301,24 @@ export default function AdminAdministrationStaffManager() {
   const handleDeleteStaff = async () => {
     if (!deleteStaffTarget) return;
     try {
-      if (!deleteStaffTarget.id.includes('-staff-')) {
-        const { error } = await supabase.from('administration_staff').delete().eq('id', deleteStaffTarget.id);
-        if (error) throw error;
-      }
+      const res = await archiveService.archiveItem({
+        table: 'administration_staff',
+        itemId: deleteStaffTarget.id,
+        moduleName: 'Administration Staff',
+        title: deleteStaffTarget.name,
+        subtitle: `${deleteStaffTarget.designation || 'Staff'} (${deleteStaffTarget.office || ''})`,
+        image_url: deleteStaffTarget.photo_url,
+        itemData: deleteStaffTarget,
+      });
+
+      if (!res.success) throw new Error(res.error || 'Failed to archive staff member');
+
       setStaffList((prev) => prev.filter((s) => s.id !== deleteStaffTarget.id));
       setDeleteStaffTarget(null);
-      setMessage({ type: 'success', text: 'Staff member deleted.' });
+      setMessage({ type: 'success', text: 'Staff member moved to Archive.' });
       setTimeout(() => setMessage(null), 4000);
     } catch (err: any) {
-      setMessage({ type: 'error', text: err?.message || 'Failed to delete staff member.' });
+      setMessage({ type: 'error', text: err?.message || 'Failed to archive staff member.' });
     }
   };
 

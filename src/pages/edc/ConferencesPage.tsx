@@ -49,7 +49,7 @@ export default function ConferencesPage() {
 
         <div className="flex flex-col md:flex-row gap-[32px] items-start mb-[50px]">
           {/* Left Poster */}
-          <div className={`w-full md:w-[320px] min-h-[400px] rounded-[4px] flex items-center justify-center flex-shrink-0 mx-auto overflow-hidden${posterUrl ? '' : ' bg-[#D9D9D9] border border-[#CCCCCC] p-[4px]'}`}>
+          <div className={`w-full md:w-[320px] min-h-[400px] rounded-[4px] flex items-center justify-center flex-shrink-0 mx-auto overflow-hidden${posterUrl ? '' : ' bg-white border border-[#CCCCCC] p-[4px]'}`}>
             <CmsImage
               src={posterUrl}
               alt={heading || 'Conference Poster'}

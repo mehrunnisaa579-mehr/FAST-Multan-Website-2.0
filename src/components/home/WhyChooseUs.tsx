@@ -52,7 +52,7 @@ export default function WhyChooseUs() {
                       className="w-full h-full object-contain"
                     />
                   ) : (
-                    <div className="w-full h-full bg-[#F3F4F6] border border-[#E5E7EB] rounded-[12px] flex items-center justify-center">
+                    <div className="w-full h-full bg-white border border-[#E5E7EB] rounded-[12px] flex items-center justify-center">
                       <span className="text-[11px] font-bold text-[#888888] tracking-wider select-none">
                         ICON
                       </span>

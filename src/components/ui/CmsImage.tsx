@@ -51,7 +51,7 @@ export default function CmsImage({
   return (
     <div
       onClick={onClick}
-      className={`w-full h-full flex items-center justify-center p-3 text-center bg-[#D9D9D9] select-none ${containerClassName}`}
+      className={`w-full h-full flex items-center justify-center p-3 text-center bg-white select-none ${containerClassName}`}
     >
       <span className={`text-[11px] font-semibold text-[#666666] tracking-wide uppercase ${placeholderClassName}`}>
         {fallbackLabel}

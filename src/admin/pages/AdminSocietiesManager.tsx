@@ -9,6 +9,7 @@ import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
 import { cmsService } from '../../services/cmsService';
+import { archiveService } from '../../services/archiveService';
 import { supabase } from '../../lib/supabase';
 import { societiesData } from '../../data/societies';
 import {
@@ -306,14 +307,21 @@ export default function AdminSocietiesManager() {
     const updated = societies.filter((s) => s.id !== deleteTarget.id && s.slug !== deleteTarget.slug);
     setSocieties(updated);
 
-    // Also attempt deleting from Supabase societies table if present
-    try {
-      await supabase.from('societies').delete().eq('slug', deleteTarget.slug);
-    } catch {
-      // Ignore if table RLS or network error
-    }
+    await archiveService.archiveItem({
+      table: 'societies',
+      settingKey: 'student_societies_full_list',
+      arrayKey: 'societies',
+      itemId: deleteTarget.id,
+      moduleName: 'Societies',
+      title: deleteTarget.name,
+      subtitle: deleteTarget.short_name || deleteTarget.slug,
+      image_url: deleteTarget.hero_image_url,
+      itemData: deleteTarget,
+    });
 
     setDeleteTarget(null);
+    setMessage({ type: 'success', text: 'Society moved to Archive.' });
+    setTimeout(() => setMessage(null), 4000);
   };
 
   const handleMove = (index: number, direction: 'up' | 'down') => {

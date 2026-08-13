@@ -64,15 +64,19 @@ interface DeleteConfirmModalProps {
   title?: string;
   itemTitle?: string;
   loading?: boolean;
+  confirmText?: string;
+  description?: string;
 }
 
 export function DeleteConfirmModal({
   isOpen,
   onClose,
   onConfirm,
-  title = 'Delete Item?',
+  title = 'Archive Item?',
   itemTitle,
   loading = false,
+  confirmText = 'Archive',
+  description,
 }: DeleteConfirmModalProps) {
   return (
     <AdminModal
@@ -86,24 +90,26 @@ export function DeleteConfirmModal({
             Cancel
           </AdminButton>
           <AdminButton variant="danger" onClick={onConfirm} loading={loading}>
-            Delete
+            {confirmText}
           </AdminButton>
         </>
       }
     >
       <div className="flex items-start gap-4">
-        <div className="w-10 h-10 rounded-full bg-[#FEF2F2] text-[#DC2626] flex items-center justify-center flex-shrink-0 mt-0.5">
-          <AlertTriangle className="w-5 h-5" />
+        <div className="w-10 h-10 rounded-full bg-[#EFF6FF] text-[#0093DD] flex items-center justify-center flex-shrink-0 mt-0.5">
+          <AlertTriangle className="w-5 h-5 text-[#0093DD]" />
         </div>
         <div>
-          <h4 className="text-sm font-bold text-[#1F2937] mb-1">Are you sure?</h4>
+          <h4 className="text-sm font-bold text-[#1F2937] mb-1">Move to Archive?</h4>
           <p className="text-xs text-[#6B7280] leading-relaxed">
-            {itemTitle ? (
+            {description ? (
+              description
+            ) : itemTitle ? (
               <>
-                You are about to delete <strong className="text-[#1F2937]">"{itemTitle}"</strong>. This action cannot be undone.
+                You are about to archive <strong className="text-[#1F2937]">"{itemTitle}"</strong>. This item will be moved to Archive and can be restored later.
               </>
             ) : (
-              'This action cannot be undone.'
+              'This item will be moved to Archive and can be restored later.'
             )}
           </p>
         </div>

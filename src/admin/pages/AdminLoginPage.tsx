@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { useAdminAuth } from '../auth/useAdminAuth';
 import { Lock, Mail, AlertCircle, ShieldAlert } from 'lucide-react';
 import '../styles/admin.css';
@@ -7,11 +7,29 @@ import '../styles/admin.css';
 export default function AdminLoginPage() {
   const { user, isAdmin, loading, signIn, authError, clearAuthError } = useAdminAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [inactivityMsg, setInactivityMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const reasonParam = searchParams.get('reason');
+    let storedReason: string | null = null;
+    try {
+      storedReason = localStorage.getItem('admin_logout_reason');
+    } catch {}
+
+    if (reasonParam === 'inactivity' || storedReason === 'inactivity' || location.state?.reason === 'inactivity') {
+      setInactivityMsg('Your admin session expired due to inactivity. Please sign in again.');
+      try {
+        localStorage.removeItem('admin_logout_reason');
+      } catch {}
+    }
+  }, [location]);
 
   // If already logged in and verified admin, redirect to /admin-panel5463 dashboard
   if (!loading && user && isAdmin) {
@@ -21,6 +39,7 @@ export default function AdminLoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError(null);
+    setInactivityMsg(null);
     clearAuthError();
 
     if (!email.trim() || !password) {
@@ -37,7 +56,7 @@ export default function AdminLoginPage() {
     }
   };
 
-  const displayError = localError || authError;
+  const displayError = localError || authError || inactivityMsg;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-6 sm:p-10 py-12 sm:py-16 select-none">

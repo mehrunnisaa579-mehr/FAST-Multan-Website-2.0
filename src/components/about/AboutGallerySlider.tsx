@@ -60,7 +60,7 @@ function GalleryRow({ items, rowLabel }: { items: AboutGalleryItem[]; rowLabel: 
             key={item.id}
             className="w-[82vw] sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)] flex-shrink-0 bg-white border border-[#EAEAEA] rounded-[4px] overflow-hidden shadow-sm flex flex-col group cursor-pointer card-hover-lift"
           >
-            <div className={`w-full aspect-[4/3] flex items-center justify-center relative overflow-hidden${item.image ? '' : ' bg-[#D9D9D9]'}`}>
+            <div className={`w-full aspect-[4/3] flex items-center justify-center relative overflow-hidden${item.image ? '' : ' bg-white'}`}>
               <CmsImage
                 src={item.image}
                 alt={item.title}

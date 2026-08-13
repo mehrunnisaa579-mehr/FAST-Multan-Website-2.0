@@ -132,7 +132,7 @@ export default function ComplaintManagementPage() {
               {steps.map((step) => (
                 <div key={step.id} className="p-6 bg-white border border-[#E5E7EB] rounded-lg space-y-3 shadow-xs card-hover-lift">
                   {step.iconUrl ? (
-                    <div className="w-12 h-12 rounded-md overflow-hidden bg-[#F3F4F6] border border-[#E5E7EB] p-2">
+                    <div className="w-12 h-12 rounded-md overflow-hidden bg-white border border-[#E5E7EB] p-2">
                       <img src={step.iconUrl} alt={step.title} className="w-full h-full object-contain" />
                     </div>
                   ) : (

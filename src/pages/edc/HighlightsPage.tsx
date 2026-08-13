@@ -76,7 +76,7 @@ export default function HighlightsPage() {
                     <div
                       key={imgIdx}
                       className={`w-full aspect-[4/3] rounded-[8px] overflow-hidden flex items-center justify-center border border-[#E2E8F0] shadow-xs card-hover-lift mx-auto${
-                        imgUrl ? ' bg-white' : ' bg-[#F8FAFC] p-4 text-center'
+                        imgUrl ? ' bg-white' : ' bg-white p-4 text-center'
                       }`}
                     >
                       {imgUrl ? (

@@ -45,3 +45,26 @@
   width: 100%;
 }
 
+/* True Viewport Centering Wrapper */
+.dept-main-wrapper {
+  width: min(100% - 48px, 1320px);
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+
+/* Card Wrappers for true centering & correct widths */
+.dept-program-wrapper {
+  width: 340px;
+  max-width: 100%;
+}
+
+.dept-faculty-wrapper {
+  width: 230px;
+  max-width: 100%;
+}
+
+.dept-research-wrapper {
+  width: 480px;
+  max-width: 100%;
+}
+

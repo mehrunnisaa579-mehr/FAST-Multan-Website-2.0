@@ -36,7 +36,7 @@ export default function CampusIntroductionPage() {
 
       <div className="w-full max-w-[1180px] mx-auto px-[20px] min-[700px]:px-[24px] py-[40px] min-[700px]:py-[50px] min-[1100px]:pt-[65px] min-[1100px]:pb-[70px] text-[#444444] text-[16px] leading-[1.75] font-normal text-left space-y-[18px]">
         {photoUrl && (
-          <div className="w-full max-h-[420px] rounded-lg overflow-hidden mb-6 bg-[#F3F4F6] border border-[#E5E7EB]">
+          <div className="w-full max-h-[420px] rounded-lg overflow-hidden mb-6 bg-white border border-[#E5E7EB]">
             <img src={photoUrl} alt={title} className="w-full h-full object-cover" />
           </div>
         )}

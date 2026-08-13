@@ -63,7 +63,7 @@ export default function DepartmentCard({
   if (variant === 'program') {
     return (
       <div className="w-full bg-white border border-[#EAEAEA] rounded-[4px] overflow-hidden flex flex-col items-center text-center shadow-sm card-hover-lift">
-        <div className="w-full aspect-[4/3] bg-[#D9D9D9] flex items-center justify-center overflow-hidden">
+        <div className="w-full aspect-[4/3] bg-white flex items-center justify-center overflow-hidden">
           <CmsImage
             src={displayImage}
             alt={title}
@@ -88,7 +88,7 @@ export default function DepartmentCard({
   if (variant === 'faculty') {
     return (
       <div className="w-full bg-white border border-[#EAEAEA] rounded-[4px] overflow-hidden flex flex-col items-center text-center shadow-sm card-hover-lift">
-        <div className="w-full aspect-[3/4] max-h-[220px] bg-[#D9D9D9] flex items-center justify-center overflow-hidden">
+        <div className="w-full aspect-[3/4] max-h-[220px] bg-white flex items-center justify-center overflow-hidden">
           <CmsImage
             src={displayImage}
             alt={title}
@@ -114,7 +114,7 @@ export default function DepartmentCard({
   if (variant === 'profile') {
     return (
       <div className="w-full bg-white border border-[#EAEAEA] rounded-[4px] p-[20px] flex flex-col items-center text-center shadow-sm card-hover-lift">
-        <div className={`w-[140px] h-[175px] rounded-[4px] overflow-hidden flex items-center justify-center mb-[14px]${displayImage ? '' : ' bg-[#D9D9D9] p-[4px]'}`}>
+        <div className={`w-[140px] h-[175px] rounded-[4px] overflow-hidden flex items-center justify-center mb-[14px]${displayImage ? '' : ' bg-white p-[4px]'}`}>
           <CmsImage
             src={displayImage}
             alt={title}
@@ -135,7 +135,7 @@ export default function DepartmentCard({
   // Standard Card
   const standardContent = (
     <div className="w-full bg-white border border-[#EAEAEA] rounded-[4px] overflow-hidden flex flex-col items-center text-center shadow-sm card-hover-lift cursor-pointer h-full">
-      <div className={`w-full aspect-[4/3] overflow-hidden flex items-center justify-center${displayImage ? '' : ' bg-[#D9D9D9]'}`}>
+      <div className={`w-full aspect-[4/3] overflow-hidden flex items-center justify-center${displayImage ? '' : ' bg-white'}`}>
         <CmsImage
           src={displayImage}
           alt={title}

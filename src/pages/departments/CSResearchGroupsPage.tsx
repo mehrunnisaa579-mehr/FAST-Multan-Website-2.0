@@ -50,7 +50,7 @@ export default function CSResearchGroupsPage() {
             </div>
 
             {/* Research Graphic Placeholder */}
-            <div className="w-full md:w-[300px] h-[200px] bg-[#D9D9D9] border border-[#CCCCCC] rounded-[4px] flex items-center justify-center p-[16px] flex-shrink-0">
+            <div className="w-full md:w-[300px] h-[200px] bg-white border border-[#CCCCCC] rounded-[4px] flex items-center justify-center p-[16px] flex-shrink-0">
               <span className="text-[12px] font-semibold text-[#666666] tracking-wide uppercase text-center">
                 RESEARCH GRAPHIC
               </span>
@@ -91,7 +91,7 @@ export default function CSResearchGroupsPage() {
                 className="flex flex-col sm:flex-row gap-[20px] items-start p-[20px] bg-white border border-[#EAEAEA] rounded-[4px] shadow-sm card-hover-lift"
               >
                 {/* Researcher Portrait Placeholder */}
-                <div className="w-full sm:w-[140px] h-[175px] bg-[#D9D9D9] border border-[#CCCCCC] rounded-[4px] flex items-center justify-center p-[12px] flex-shrink-0">
+                <div className="w-full sm:w-[140px] h-[175px] bg-white border border-[#CCCCCC] rounded-[4px] flex items-center justify-center p-[12px] flex-shrink-0">
                   <span className="text-[10px] font-semibold text-[#666666] tracking-wide uppercase text-center">
                     {member.photoPlaceholder}
                   </span>

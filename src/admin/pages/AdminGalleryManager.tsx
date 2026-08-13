@@ -9,6 +9,7 @@ import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
 import { cmsService } from '../../services/cmsService';
+import { archiveService } from '../../services/archiveService';
 import { supabase } from '../../lib/supabase';
 import { galleryItems as defaultInitialGallery } from '../../data/gallery';
 import {
@@ -211,13 +212,21 @@ export default function AdminGalleryManager() {
     const updated = items.filter((i) => i.id !== deleteTarget.id);
     setItems(updated);
 
-    try {
-      await supabase.from('gallery_items').delete().eq('id', deleteTarget.id);
-    } catch {
-      // Ignore fallback
-    }
+    await archiveService.archiveItem({
+      table: 'gallery_items',
+      settingKey: 'campus_gallery_list',
+      arrayKey: 'items',
+      itemId: deleteTarget.id,
+      moduleName: 'Photo Gallery',
+      title: deleteTarget.title || 'Gallery Image',
+      subtitle: deleteTarget.video_url ? 'Video Item' : 'Photo Item',
+      image_url: deleteTarget.thumbnail_url,
+      itemData: deleteTarget,
+    });
 
     setDeleteTarget(null);
+    setMessage({ type: 'success', text: 'Gallery item moved to Archive.' });
+    setTimeout(() => setMessage(null), 4000);
   };
 
   const handleMove = (index: number, direction: 'up' | 'down') => {

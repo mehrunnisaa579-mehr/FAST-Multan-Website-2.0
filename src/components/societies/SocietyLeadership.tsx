@@ -20,7 +20,7 @@ export default function SocietyLeadership({ leadership }: SocietyLeadershipProps
         {/* Portrait Image or Placeholder */}
         <div className={
           member.photoUrl
-            ? 'w-full h-[220px] rounded-[4px] overflow-hidden flex items-center justify-center mb-[16px] bg-[#F3F4F6] border border-[#E5E7EB]'
+            ? 'w-full h-[220px] rounded-[4px] overflow-hidden flex items-center justify-center mb-[16px] bg-white border border-[#E5E7EB]'
             : 'society-portrait-placeholder'
         }>
           <CmsImage

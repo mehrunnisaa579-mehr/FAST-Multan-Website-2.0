@@ -96,7 +96,7 @@ export default function StaffAccordion() {
                       className="bg-white border border-[#EAEAEA] rounded-[6px] p-[20px] flex flex-col items-center text-center shadow-xs card-hover-lift no-underline cursor-pointer group block"
                     >
                       {/* Photo / Placeholder Container */}
-                      <div className="w-[120px] h-[150px] bg-[#F3F4F6] border border-[#E5E7EB] rounded-[4px] overflow-hidden flex items-center justify-center p-[6px] mb-[14px] shadow-xs group-hover:border-[#0093DD]">
+                      <div className="w-[120px] h-[150px] bg-white border border-[#E5E7EB] rounded-[4px] overflow-hidden flex items-center justify-center p-[6px] mb-[14px] shadow-xs group-hover:border-[#0093DD]">
                         {member.photoUrl ? (
                           <img
                             src={member.photoUrl}

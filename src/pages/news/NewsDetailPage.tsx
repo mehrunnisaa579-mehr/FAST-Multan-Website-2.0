@@ -170,7 +170,7 @@ export default function NewsDetailPage() {
 
             {/* Featured Image */}
             {isImageUrl && (
-              <div className="w-full aspect-[16/9] max-h-[450px] bg-[#F3F4F6] rounded-[4px] overflow-hidden mb-[28px] border border-[#EAEAEA]">
+              <div className="w-full aspect-[16/9] max-h-[450px] bg-white rounded-[4px] overflow-hidden mb-[28px] border border-[#EAEAEA]">
                 <img
                   src={article.image}
                   alt={article.title}

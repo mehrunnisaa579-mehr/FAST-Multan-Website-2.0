@@ -101,6 +101,7 @@ import AdminServicesManager from './admin/pages/AdminServicesManager';
 import AdminEdcManager from './admin/pages/AdminEdcManager';
 import AdminUsefulLinksManager from './admin/pages/AdminUsefulLinksManager';
 import AdminSettingsManager from './admin/pages/AdminSettingsManager';
+import AdminArchiveManager from './admin/pages/AdminArchiveManager';
 
 export default function App() {
   useEffect(() => {
@@ -204,6 +205,7 @@ export default function App() {
               <Route path="useful-links/brand-identity-guideline" element={<AdminBrandGuidelineEditor />} />
               <Route path="header-footer" element={<AdminHeaderFooterEditor />} />
               <Route path="media" element={<AdminMediaLibrary />} />
+              <Route path="archive" element={<AdminArchiveManager />} />
               <Route path="settings" element={<AdminSettingsManager />} />
             </Route>
           </Route>

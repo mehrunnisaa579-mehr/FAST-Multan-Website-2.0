@@ -72,7 +72,7 @@ export default function SchoolOfManagementPage() {
           <div className="flex flex-col md:flex-row gap-[32px] md:gap-[40px] items-center md:items-start text-left">
             {/* Left Column: Photo Placeholder */}
             <div className="flex flex-col items-center flex-shrink-0">
-              <div className={`w-[190px] h-[235px] rounded-[4px] overflow-hidden flex items-center justify-center mb-[12px] shadow-sm${headPhotoUrl ? '' : ' bg-[#D9D9D9] p-[4px] text-center'}`}>
+              <div className={`w-[190px] h-[235px] rounded-[4px] overflow-hidden flex items-center justify-center mb-[12px] shadow-sm${headPhotoUrl ? '' : ' bg-white p-[4px] text-center'}`}>
                 <CmsImage
                   src={headPhotoUrl}
                   alt={headName || 'HOD Photo'}

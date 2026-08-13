@@ -35,7 +35,7 @@ export default function Header() {
           ) : (
             <>
               {/* Circular Placeholder Seal */}
-              <div className="w-[40px] h-[40px] sm:w-[55px] sm:h-[55px] bg-[#E5E5E5] rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-[40px] h-[40px] sm:w-[55px] sm:h-[55px] bg-white border border-[#E5E5E5] rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-[8px] font-bold text-[#999999] tracking-wider">SEAL</span>
               </div>
 

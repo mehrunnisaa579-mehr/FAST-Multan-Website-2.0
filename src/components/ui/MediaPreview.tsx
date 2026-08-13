@@ -98,7 +98,7 @@ export default function MediaPreview({
   return (
     <div
       onClick={onClick}
-      className={`w-full h-full bg-[#D9D9D9] flex items-center justify-center ${className}`}
+      className={`w-full h-full bg-white flex items-center justify-center ${className}`}
     >
       <span className="text-[13px] font-semibold text-[#888888] tracking-wide select-none">
         {fallbackLabel}

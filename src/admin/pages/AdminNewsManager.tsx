@@ -114,15 +114,24 @@ export default function AdminNewsManager() {
     if (!deleteTarget) return;
     setIsDeleting(true);
     try {
-      const { error } = await supabase.from('news').delete().eq('id', deleteTarget.id);
-      if (error) throw error;
+      const res = await archiveService.archiveItem({
+        table: 'news',
+        itemId: deleteTarget.id,
+        moduleName: 'Campus News & Announcements',
+        title: deleteTarget.title,
+        subtitle: deleteTarget.category || deleteTarget.excerpt,
+        image_url: deleteTarget.image_url,
+        itemData: deleteTarget,
+      });
+
+      if (!res.success) throw new Error(res.error || 'Failed to archive item');
 
       setDeleteTarget(null);
-      setMessage({ type: 'success', text: 'News item deleted.' });
+      setMessage({ type: 'success', text: 'News item moved to Archive.' });
       setTimeout(() => setMessage(null), 4000);
       fetchNews();
     } catch (err: any) {
-      setMessage({ type: 'error', text: err?.message || 'Failed to delete item.' });
+      setMessage({ type: 'error', text: err?.message || 'Failed to archive item.' });
     } finally {
       setIsDeleting(false);
     }

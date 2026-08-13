@@ -12,6 +12,7 @@ import {
   Link as LinkIcon,
   Images,
   Settings,
+  Archive,
   Sparkles,
   ChevronDown,
   ChevronRight,
@@ -82,6 +83,7 @@ const sidebarNavigation: MenuItem[] = [
   { label: 'Useful Links', icon: LinkIcon, path: '/admin-panel5463/useful-links' },
   { label: 'Header & Footer', icon: PanelsTopLeft, path: '/admin-panel5463/header-footer' },
   { label: 'Media Library', icon: Images, path: '/admin-panel5463/media' },
+  { label: 'Archive', icon: Archive, path: '/admin-panel5463/archive' },
   { label: 'Settings', icon: Settings, path: '/admin-panel5463/settings' },
 ];
 

@@ -93,7 +93,7 @@ export default function StaffProfilePage() {
           {/* Left Column: Photograph & Personal Details */}
           <div className="w-full md:w-[320px] bg-white border border-[#EAEAEA] rounded-[8px] p-[24px] shadow-sm flex flex-col items-center text-center flex-shrink-0 card-hover-lift">
             {/* Photograph / Placeholder */}
-            <div className={`w-[180px] h-[225px] rounded-[6px] overflow-hidden flex items-center justify-center mb-[18px] shadow-xs${staff.photoUrl ? '' : ' bg-[#F3F4F6] border border-[#E5E7EB] p-[4px]'}`}>
+            <div className={`w-[180px] h-[225px] rounded-[6px] overflow-hidden flex items-center justify-center mb-[18px] shadow-xs${staff.photoUrl ? '' : ' bg-white border border-[#E5E7EB] p-[4px]'}`}>
               <CmsImage
                 src={staff.photoUrl}
                 alt={staff.name}

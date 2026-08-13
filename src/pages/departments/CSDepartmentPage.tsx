@@ -57,7 +57,7 @@ export default function CSDepartmentPage() {
     <div className="dept-page-container">
       <AboutPageHero title={heroTitle} backgroundImage={heroImage} />
 
-      <div className="w-full max-w-[1050px] mx-auto px-[20px] sm:px-[28px] py-[48px] sm:py-[64px] space-y-[48px] sm:space-y-[56px] flex flex-col items-center">
+      <div className="dept-main-wrapper py-[48px] sm:py-[64px] space-y-[48px] sm:space-y-[56px] flex flex-col items-center">
         {/* HOD MESSAGE SECTION */}
         <section className="w-full max-w-[950px] mx-auto flex flex-col items-center text-center space-y-[24px]">
           <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center w-full">
@@ -67,7 +67,7 @@ export default function CSDepartmentPage() {
           <div className="flex flex-col md:flex-row gap-[28px] md:gap-[36px] items-center text-center md:text-left bg-[#F8FAFC] p-[28px] sm:p-[36px] border border-[#E2E8F0] rounded-[10px] shadow-xs w-full">
             {/* HOD Photo */}
             <div className="flex flex-col items-center flex-shrink-0 mx-auto md:mx-0">
-              <div className={`w-[190px] h-[235px] rounded-[6px] overflow-hidden flex items-center justify-center mb-[12px] shadow-sm${hodPhoto ? '' : ' bg-[#E2E8F0] p-[8px]'}`}>
+              <div className={`w-[190px] h-[235px] rounded-[6px] overflow-hidden flex items-center justify-center mb-[12px] shadow-sm${hodPhoto ? '' : ' bg-white p-[8px]'}`}>
                 {hodPhoto ? (
                   <img src={hodPhoto} alt={hodName} className="w-full h-full object-cover" />
                 ) : (
@@ -94,22 +94,24 @@ export default function CSDepartmentPage() {
         </div>
 
         {/* OUR DEGREE PROGRAMS */}
-        <section className="w-full max-w-[1050px] mx-auto space-y-[24px]">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left pb-[6px] border-b border-[#E2E8F0]">
-            <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center sm:text-left">
+        <section className="w-full space-y-[24px]">
+          <div className="relative w-full flex flex-col sm:flex-row items-center justify-center pb-[6px] border-b border-[#E2E8F0] gap-2 sm:gap-0">
+            <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center">
               {programsHeading}
             </h2>
-            <Link
-              to={viewAllProgramsUrl}
-              className="text-[13px] font-bold text-[#0093DD] hover:text-[#0C71C3] uppercase tracking-wider no-underline text-center sm:text-right"
-            >
-              {viewAllProgramsText}
-            </Link>
+            <div className="sm:absolute sm:right-0 sm:bottom-[6px]">
+              <Link
+                to={viewAllProgramsUrl}
+                className="text-[13px] font-bold text-[#0093DD] hover:text-[#0C71C3] uppercase tracking-wider no-underline text-center sm:text-right"
+              >
+                {viewAllProgramsText}
+              </Link>
+            </div>
           </div>
 
-          <div className="dept-card-row flex flex-wrap justify-center gap-[24px]">
+          <div className="dept-card-row">
             {programsList.map((prog: any) => (
-              <Link key={prog.id} to={prog.url || viewAllProgramsUrl} className="no-underline block w-full max-w-[340px]">
+              <Link key={prog.id} to={prog.url || viewAllProgramsUrl} className="no-underline block dept-program-wrapper">
                 <DepartmentCard
                   variant="program"
                   title={prog.title}
@@ -129,22 +131,24 @@ export default function CSDepartmentPage() {
         </div>
 
         {/* DEPARTMENT FACULTY */}
-        <section className="w-full max-w-[1050px] mx-auto space-y-[24px]">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left pb-[6px] border-b border-[#E2E8F0]">
-            <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center sm:text-left">
+        <section className="w-full space-y-[24px]">
+          <div className="relative w-full flex flex-col sm:flex-row items-center justify-center pb-[6px] border-b border-[#E2E8F0] gap-2 sm:gap-0">
+            <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center">
               {facultyHeading}
             </h2>
-            <Link
-              to={viewAllFacultyUrl}
-              className="text-[13px] font-bold text-[#0093DD] hover:text-[#0C71C3] uppercase tracking-wider no-underline text-center sm:text-right"
-            >
-              {viewAllFacultyText}
-            </Link>
+            <div className="sm:absolute sm:right-0 sm:bottom-[6px]">
+              <Link
+                to={viewAllFacultyUrl}
+                className="text-[13px] font-bold text-[#0093DD] hover:text-[#0C71C3] uppercase tracking-wider no-underline text-center sm:text-right"
+              >
+                {viewAllFacultyText}
+              </Link>
+            </div>
           </div>
 
-          <div className="dept-card-row flex flex-wrap justify-center gap-[24px]">
+          <div className="dept-card-row">
             {facultyList.slice(0, 4).map((fac: any) => (
-              <div key={fac.id} className="w-full max-w-[240px] sm:w-[230px]">
+              <div key={fac.id} className="dept-faculty-wrapper">
                 <DepartmentCard
                   variant="faculty"
                   title={fac.name}
@@ -164,24 +168,26 @@ export default function CSDepartmentPage() {
         </div>
 
         {/* RESEARCH GROUPS (CS ONLY) */}
-        <section className="w-full max-w-[1050px] mx-auto space-y-[24px]">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left pb-[6px] border-b border-[#E2E8F0]">
-            <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center sm:text-left">
+        <section className="w-full space-y-[24px]">
+          <div className="relative w-full flex flex-col sm:flex-row items-center justify-center pb-[6px] border-b border-[#E2E8F0] gap-2 sm:gap-0">
+            <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center">
               {researchHeading}
             </h2>
-            <Link
-              to={exploreResearchUrl}
-              className="text-[13px] font-bold text-[#0093DD] hover:text-[#0C71C3] uppercase tracking-wider no-underline text-center sm:text-right"
-            >
-              {exploreResearchText}
-            </Link>
+            <div className="sm:absolute sm:right-0 sm:bottom-[6px]">
+              <Link
+                to={exploreResearchUrl}
+                className="text-[13px] font-bold text-[#0093DD] hover:text-[#0C71C3] uppercase tracking-wider no-underline text-center sm:text-right"
+              >
+                {exploreResearchText}
+              </Link>
+            </div>
           </div>
 
-          <div className="dept-card-row flex flex-wrap justify-center gap-[24px]">
+          <div className="dept-card-row">
             {researchList.slice(0, 4).map((area: any, idx: number) => (
               <div
                 key={area.id || idx}
-                className="w-full max-w-[480px] p-[24px] bg-white border border-[#E2E8F0] rounded-[8px] shadow-xs card-hover-lift text-center flex flex-col items-center"
+                className="dept-research-wrapper p-[24px] bg-white border border-[#E2E8F0] rounded-[8px] shadow-xs card-hover-lift text-center flex flex-col items-center"
               >
                 <h3 className="text-[17px] font-bold text-[#0C71C3] mb-[8px] text-center">{area.title}</h3>
                 <p className="text-[14px] text-[#555555] leading-[1.65] text-center">{area.description}</p>

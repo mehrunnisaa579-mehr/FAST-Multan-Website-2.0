@@ -6,7 +6,7 @@ import AdminButton from '../components/ui/AdminButton';
 import AdminFormGroup from '../components/ui/AdminFormGroup';
 import AdminInput from '../components/ui/AdminInput';
 import { useAdminAuth } from '../auth/useAdminAuth';
-import { Save, CheckCircle2, ShieldCheck, User } from 'lucide-react';
+import { Save, CheckCircle2, User } from 'lucide-react';
 
 export default function AdminSettingsManager() {
   const { user } = useAdminAuth();
@@ -57,24 +57,6 @@ export default function AdminSettingsManager() {
             <AdminButton variant="primary" onClick={handleSave} icon={<Save className="w-4 h-4" />}>
               Save Profile
             </AdminButton>
-          </div>
-        </AdminCard>
-      </AdminSection>
-
-      {/* Security Status */}
-      <AdminSection title="CMS Security Overview" description="Active security policies and role-based access control.">
-        <AdminCard className="space-y-3">
-          <div className="flex items-center gap-3 text-sm font-medium text-[#1F2937]">
-            <ShieldCheck className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-            <span>Supabase Row Level Security (RLS) is active across all tables.</span>
-          </div>
-          <div className="flex items-center gap-3 text-sm font-medium text-[#1F2937]">
-            <ShieldCheck className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-            <span>Anonymous website visitors have read-only access to published content.</span>
-          </div>
-          <div className="flex items-center gap-3 text-sm font-medium text-[#1F2937]">
-            <ShieldCheck className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-            <span>Only authenticated administrators in <code className="bg-[#F3F4F6] px-1.5 py-0.5 rounded text-xs">admin_users</code> table can save or modify content.</span>
           </div>
         </AdminCard>
       </AdminSection>

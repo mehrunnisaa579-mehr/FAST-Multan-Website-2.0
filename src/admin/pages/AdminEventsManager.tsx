@@ -8,6 +8,7 @@ import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
 import { cmsService } from '../../services/cmsService';
+import { archiveService } from '../../services/archiveService';
 import { supabase } from '../../lib/supabase';
 import { Plus, Edit2, Trash2, CheckCircle2, AlertCircle, Calendar as CalendarIcon, Upload, ImageIcon } from 'lucide-react';
 
@@ -157,15 +158,24 @@ export default function AdminEventsManager() {
     if (!deleteTarget) return;
     setIsDeleting(true);
     try {
-      const { error } = await supabase.from('events').delete().eq('id', deleteTarget.id);
-      if (error) throw error;
+      const res = await archiveService.archiveItem({
+        table: 'events',
+        itemId: deleteTarget.id,
+        moduleName: 'Events Calendar',
+        title: deleteTarget.title,
+        subtitle: `${deleteTarget.event_date || 'Event'} • ${deleteTarget.location || ''}`,
+        image_url: deleteTarget.image_url,
+        itemData: deleteTarget,
+      });
+
+      if (!res.success) throw new Error(res.error || 'Failed to archive event');
 
       setDeleteTarget(null);
-      setMessage({ type: 'success', text: 'Event deleted.' });
+      setMessage({ type: 'success', text: 'Event moved to Archive.' });
       setTimeout(() => setMessage(null), 4000);
       fetchEvents();
     } catch (err: any) {
-      setMessage({ type: 'error', text: err?.message || 'Failed to delete event.' });
+      setMessage({ type: 'error', text: err?.message || 'Failed to archive event.' });
     } finally {
       setIsDeleting(false);
     }

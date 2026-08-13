@@ -171,7 +171,7 @@ export default function ContactPage() {
               </div>
 
               {/* CAPTCHA Placeholder Box */}
-              <div className="w-[260px] h-[60px] bg-[#F5F5F5] border border-[#D5D5D5] rounded-[4px] flex items-center justify-center text-[13px] font-semibold text-[#666666] uppercase mb-[20px] select-none">
+              <div className="w-[260px] h-[60px] bg-white border border-[#D5D5D5] rounded-[4px] flex items-center justify-center text-[13px] font-semibold text-[#666666] uppercase mb-[20px] select-none">
                 PLACEHOLDER: CAPTCHA
               </div>
 

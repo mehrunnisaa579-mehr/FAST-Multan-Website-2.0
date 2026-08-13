@@ -52,7 +52,7 @@ export default function Hero() {
             key={index}
             className={`absolute inset-0 transition-opacity duration-400 ease-in-out ${
               isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-            } ${isImage ? 'bg-cover bg-center bg-no-repeat' : 'bg-[#D9D9D9]'}`}
+            } ${isImage ? 'bg-cover bg-center bg-no-repeat' : 'bg-white'}`}
             style={isImage ? { backgroundImage: `url(${mediaUrl})` } : undefined}
           >
             {/* Background Video if Media Type is Video */}

@@ -49,6 +49,7 @@ export default function AdminLayout() {
     if (path.endsWith('/videos')) return 'Videos';
     if (path.endsWith('/edc')) return 'EDC';
     if (path.endsWith('/useful-links')) return 'Useful Links';
+    if (path.endsWith('/archive')) return 'Archive';
     if (path.endsWith('/settings')) return 'Settings';
     return 'Dashboard';
   };
