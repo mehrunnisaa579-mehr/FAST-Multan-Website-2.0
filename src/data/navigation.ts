@@ -73,10 +73,6 @@ export const navigationData: NavItem[] = [
     ],
   },
   {
-    label: 'NEWS',
-    href: '/news',
-  },
-  {
     label: 'ADMISSIONS',
     items: [
       { label: 'Admission Schedule', href: 'https://nu.edu.pk/Admissions/Schedule', isExternal: true },
@@ -116,6 +112,7 @@ export const navigationData: NavItem[] = [
   {
     label: 'USEFUL LINKS',
     items: [
+      { label: 'News', href: '/news' },
       { label: 'Disability & Accessibility Committee', href: '/useful-links/disability-accessibility' },
       { label: 'GEIAH', href: '/useful-links/geiah' },
       { label: 'Policies', href: 'https://nu.edu.pk/University/Policies', isExternal: true },

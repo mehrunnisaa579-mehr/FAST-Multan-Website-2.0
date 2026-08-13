@@ -22,7 +22,7 @@ export default function Header() {
     <header className="w-full bg-white border-b border-[#EAEAEA] relative z-40 select-none">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px] flex justify-between items-center h-[64px] sm:h-[92px]">
         {/* Swappable Logo Lockup structure */}
-        <Link to="/" className="flex items-center gap-[10px] select-none outline-none cursor-pointer flex-shrink-0">
+        <Link to="/" aria-label="FAST-NUCES Multan Home" className="flex items-center gap-[10px] select-none outline-none cursor-pointer flex-shrink-0">
           {headerLogoUrl ? (
             /* Fixed-size wrapper matching default seal dimensions — image never inflates header */
             <div className="h-[40px] sm:h-[55px] w-auto max-w-[220px] sm:max-w-[260px] flex items-center flex-shrink-0 overflow-hidden">
