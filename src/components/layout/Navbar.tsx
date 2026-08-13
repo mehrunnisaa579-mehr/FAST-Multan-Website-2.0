@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
 import { navigationData } from '../../data/navigation';
 import type { NavItem, NavSubItem } from '../../data/navigation';
 import { useDynamicNavigation } from '../../hooks/useDynamicNavigation';
@@ -20,6 +20,8 @@ function DesktopSubItem({
   const isExternal = subItem.isExternal || (subItem.href && subItem.href.startsWith('http'));
   const isSubActive = !isExternal && subItem.href && location.pathname === subItem.href;
 
+  const ChevronIcon = flyoutDirection === 'left' ? ChevronLeft : ChevronRight;
+
   return (
     <li
       className="relative group/sub"
@@ -34,7 +36,7 @@ function DesktopSubItem({
               className="w-full text-left px-4 py-[11px] text-[13px] font-medium outline-none transition-colors text-[#333333] hover:bg-[#F5F5F5] hover:text-[#0093DD] focus:bg-[#F5F5F5] focus:text-[#0093DD] flex items-center justify-between"
             >
               <span>{subItem.label}</span>
-              {hasSubmenu && <ChevronRight className="w-3.5 h-3.5 text-gray-400 ml-2" />}
+              {hasSubmenu && <ChevronIcon className="w-3.5 h-3.5 text-gray-400 ml-2" />}
             </a>
           ) : (
             <Link
@@ -46,7 +48,7 @@ function DesktopSubItem({
               }`}
             >
               <span>{subItem.label}</span>
-              {hasSubmenu && <ChevronRight className="w-3.5 h-3.5 text-gray-400 ml-2" />}
+              {hasSubmenu && <ChevronIcon className="w-3.5 h-3.5 text-gray-400 ml-2" />}
             </Link>
           )
         ) : (
@@ -57,7 +59,7 @@ function DesktopSubItem({
             aria-expanded={isOpen}
           >
             <span>{subItem.label}</span>
-            {hasSubmenu && <ChevronRight className="w-3.5 h-3.5 text-gray-400 ml-2" />}
+            {hasSubmenu && <ChevronIcon className="w-3.5 h-3.5 text-gray-400 ml-2" />}
           </button>
         )}
       </div>
@@ -182,7 +184,7 @@ export function DesktopNavbar() {
                       key={subItem.label}
                       subItem={subItem}
                       onClose={() => setOpenDropdown(null)}
-                      flyoutDirection={item.label === 'EDC' || item.label === 'CAMPUS' ? 'left' : 'right'}
+                      flyoutDirection={item.label === 'CAMPUS' || subItem.label === 'Workshops' ? 'left' : 'right'}
                     />
                   ))}
                 </ul>
