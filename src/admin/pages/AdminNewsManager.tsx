@@ -138,16 +138,25 @@ export default function AdminNewsManager() {
     }
   };
 
+  const [uploadingImage, setUploadingImage] = useState(false);
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setUploadingImage(true);
     const res = await cmsService.uploadMedia(file);
+    setUploadingImage(false);
+
     if (res.success && res.publicUrl) {
       setEditingItem((prev) => ({ ...prev, image_url: res.publicUrl }));
     } else {
       alert(`Upload failed: ${res.error}`);
     }
+  };
+
+  const handleRemoveImage = () => {
+    setEditingItem((prev) => ({ ...prev, image_url: '' }));
   };
 
   return (
@@ -265,36 +274,59 @@ export default function AdminNewsManager() {
             />
           </AdminFormGroup>
 
-          <AdminFormGroup label="Short Summary / Excerpt">
+          <AdminFormGroup label="Short Summary / Excerpt (Displayed on News Listing Cards)">
             <AdminTextarea
-              rows={2}
+              rows={3}
               value={editingItem?.excerpt || ''}
               onChange={(e) => setEditingItem((prev) => ({ ...prev, excerpt: e.target.value }))}
-              placeholder="Brief overview shown on news listing..."
+              placeholder="Brief summary snippet shown on news cards..."
             />
           </AdminFormGroup>
 
-          <AdminFormGroup label="Full Article Content">
+          <AdminFormGroup label="Long Description / Full Article Body (Displayed on /news/:id Detail Page)">
             <AdminTextarea
-              rows={6}
+              rows={8}
               value={editingItem?.content || ''}
               onChange={(e) => setEditingItem((prev) => ({ ...prev, content: e.target.value }))}
-              placeholder="Full news story text..."
+              placeholder="Full detailed article text. Use double linebreaks between paragraphs..."
             />
           </AdminFormGroup>
 
-          <AdminFormGroup label="Featured Image URL or File Upload">
-            <div className="flex gap-2 items-center">
+          <AdminFormGroup label="Hero / Featured Image">
+            <div className="space-y-3">
+              <div className="flex items-center gap-4">
+                <div className="w-24 h-16 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
+                  {editingItem?.image_url ? (
+                    <img src={editingItem.image_url} alt="Hero Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="text-[10px] font-bold text-[#9CA3AF] text-center px-1">NO HERO IMAGE</div>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs transition-colors">
+                    <Upload className="w-4 h-4" />
+                    <span>{uploadingImage ? 'Uploading...' : editingItem?.image_url ? 'Replace Hero Image' : 'Upload Hero Image'}</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={uploadingImage} />
+                  </label>
+
+                  {editingItem?.image_url && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200 cursor-pointer transition-colors"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+
               <AdminInput
                 value={editingItem?.image_url || ''}
                 onChange={(e) => setEditingItem((prev) => ({ ...prev, image_url: e.target.value }))}
-                placeholder="https://..."
+                placeholder="Or paste direct image URL (https://...)"
               />
-              <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
-                <Upload className="w-4 h-4" />
-                <span>Upload</span>
-                <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
-              </label>
             </div>
           </AdminFormGroup>
 
