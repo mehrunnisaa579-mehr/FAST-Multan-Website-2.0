@@ -81,11 +81,8 @@ export const navigationData: NavItem[] = [
     label: 'USEFUL LINKS',
     items: [
       { label: 'News', href: '/news' },
-      { label: 'Disability & Accessibility Committee', href: '/useful-links/disability-accessibility' },
-      { label: 'GEIAH', href: '/useful-links/geiah' },
       { label: 'Policies', href: 'https://nu.edu.pk/University/Policies', isExternal: true },
       { label: 'Student Guide Book', href: '/useful-links/student-guide-book' },
-      { label: 'NUCES Brand Identity Guideline', href: '/useful-links/brand-identity-guideline' },
       { label: 'Academic Calendar', href: 'https://www.nu.edu.pk/Student/Calender', isExternal: true },
     ],
   },
