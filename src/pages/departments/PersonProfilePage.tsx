@@ -424,8 +424,8 @@ export default function PersonProfilePage() {
       {/* Hero Header with Person Name */}
       <AboutPageHero title={person.name} />
 
-      {/* Main Content Container matching Master Layout */}
-      <div className="w-full max-w-[1320px] mx-auto px-[20px] sm:px-[36px] md:px-[48px] py-[56px] md:py-[72px] lg:py-[80px]">
+      {/* Main Content Container matching CS Master Layout */}
+      <div className="w-full max-w-[1480px] mx-auto px-[28px] sm:px-[40px] md:px-[56px] py-[64px] sm:py-[72px]">
         {/* Back Button */}
         <div className="relative -top-[20px] mb-[8px]">
           <button

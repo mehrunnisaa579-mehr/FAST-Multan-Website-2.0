@@ -27,15 +27,15 @@ export default function CSFacultyPage() {
       : csFaculty;
 
   return (
-    <div className="w-full bg-white">
+    <div className="department-page-bg">
       {/* Shared Hero */}
       <AboutPageHero title={heroTitle} backgroundImage={heroImage} />
 
       {/* Main Content Area */}
-      <div className="w-full max-w-[1320px] mx-auto px-[20px] sm:px-[36px] md:px-[48px] py-[56px] md:py-[72px] lg:py-[80px] text-left">
+      <div className="department-content-wrapper text-left">
         {/* Department Faculty Section */}
         <div>
-          <h2 className="text-[22px] min-[700px]:text-[26px] font-bold text-[#0C71C3] uppercase mb-[32px] md:mb-[40px] text-center">
+          <h2 className="text-[22px] min-[700px]:text-[24px] font-bold text-[#0C71C3] uppercase mb-[28px]">
             {facultyHeading}
           </h2>
 

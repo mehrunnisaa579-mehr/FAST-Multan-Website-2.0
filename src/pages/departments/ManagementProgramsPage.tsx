@@ -54,16 +54,16 @@ export default function ManagementProgramsPage() {
   }, []);
 
   return (
-    <div className="w-full bg-white">
+    <div className="dept-page-container">
       <AboutPageHero title="FAST School of Management — Programs" backgroundImage={heroImage} />
 
-      <div className="w-full max-w-[1320px] mx-auto px-[20px] sm:px-[36px] md:px-[48px] py-[56px] md:py-[72px] lg:py-[80px]">
+      <div className="w-full max-w-[1180px] mx-auto px-[20px] min-[700px]:px-[24px] py-[40px] min-[700px]:py-[50px] min-[1100px]:pt-[55px] min-[1100px]:pb-[85px]">
         <section className="w-full text-center">
-          <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase mb-[32px] md:mb-[40px] text-center">
+          <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase mb-[28px] text-center">
             OUR PROGRAMS
           </h2>
 
-          <div className="dept-card-row flex flex-wrap justify-center gap-[28px] md:gap-[32px]">
+          <div className="dept-card-row flex flex-wrap justify-center gap-[24px]">
             {programsList.map((prog) => (
               <div key={prog.id} className="w-full max-w-[340px]">
                 <DepartmentCard
