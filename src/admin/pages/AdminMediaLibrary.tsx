@@ -40,7 +40,17 @@ export default function AdminMediaLibrary() {
       if (error || !data) {
         setFileList([]);
       } else {
-        setFileList(data.filter((f) => f.name !== '.emptyFolderPlaceholder'));
+        setFileList(
+          data
+            .filter((f) => f.name !== '.emptyFolderPlaceholder')
+            .map((f) => ({
+              name: f.name,
+              id: f.id || undefined,
+              updated_at: f.updated_at || undefined,
+              created_at: f.created_at || undefined,
+              metadata: f.metadata || undefined,
+            }))
+        );
       }
     } catch {
       setFileList([]);

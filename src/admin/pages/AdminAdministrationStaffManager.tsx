@@ -95,7 +95,7 @@ export default function AdminAdministrationStaffManager() {
     }
 
     const dbStaff = await cmsService.getAdminStaff();
-    const savedOffices = await cmsService.getSetting<OfficeItem[]>('admin_offices_list', null);
+    const savedOffices = await cmsService.getSetting<OfficeItem[]>('admin_offices_list', []);
 
     if (savedOffices && savedOffices.length > 0) {
       setOffices(savedOffices);

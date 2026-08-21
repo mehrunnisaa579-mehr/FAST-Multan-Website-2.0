@@ -65,7 +65,9 @@ interface DeleteConfirmModalProps {
   itemTitle?: string;
   loading?: boolean;
   confirmText?: string;
+  confirmLabel?: string;
   description?: string;
+  message?: string;
 }
 
 export function DeleteConfirmModal({
@@ -76,8 +78,12 @@ export function DeleteConfirmModal({
   itemTitle,
   loading = false,
   confirmText = 'Archive',
+  confirmLabel,
   description,
+  message,
 }: DeleteConfirmModalProps) {
+  const finalConfirmText = confirmLabel || confirmText;
+  const finalDescription = message || description;
   return (
     <AdminModal
       isOpen={isOpen}
@@ -90,7 +96,7 @@ export function DeleteConfirmModal({
             Cancel
           </AdminButton>
           <AdminButton variant="danger" onClick={onConfirm} loading={loading}>
-            {confirmText}
+            {finalConfirmText}
           </AdminButton>
         </>
       }
@@ -102,8 +108,8 @@ export function DeleteConfirmModal({
         <div>
           <h4 className="text-sm font-bold text-[#1F2937] mb-1">Move to Archive?</h4>
           <p className="text-xs text-[#6B7280] leading-relaxed">
-            {description ? (
-              description
+            {finalDescription ? (
+              finalDescription
             ) : itemTitle ? (
               <>
                 You are about to archive <strong className="text-[#1F2937]">"{itemTitle}"</strong>. This item will be moved to Archive and can be restored later.

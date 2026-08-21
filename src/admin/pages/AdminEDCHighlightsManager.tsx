@@ -96,7 +96,7 @@ export default function AdminEDCHighlightsManager() {
       setEditingHighlight((prev) => {
         if (!prev) return prev;
         const nextImages = [...(prev.images || [])];
-        nextImages[imgIdx] = res.publicUrl;
+        nextImages[imgIdx] = res.publicUrl || '';
         return { ...prev, images: nextImages };
       });
     } else {

@@ -8,6 +8,7 @@ import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
 import { cmsService } from '../../services/cmsService';
+import { archiveService } from '../../services/archiveService';
 import { supabase } from '../../lib/supabase';
 import { Plus, Edit2, Trash2, CheckCircle2, AlertCircle, Upload, Eye, EyeOff } from 'lucide-react';
 
