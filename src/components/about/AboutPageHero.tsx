@@ -1,17 +1,33 @@
+import { useState, useEffect } from 'react';
+import { cmsService } from '../../services/cmsService';
+
 interface AboutPageHeroProps {
   title: string;
   backgroundImage?: string;
 }
 
 export default function AboutPageHero({ title, backgroundImage }: AboutPageHeroProps) {
-  const hasImage = !!backgroundImage;
+  const [globalHero, setGlobalHero] = useState<string>('');
+
+  useEffect(() => {
+    const fetchGlobalHero = async () => {
+      const settings = await cmsService.getSetting<any>('header_footer_content', null);
+      if (settings && settings.globalHeroImageUrl) {
+        setGlobalHero(settings.globalHeroImageUrl);
+      }
+    };
+    fetchGlobalHero();
+  }, []);
+
+  const activeImage = backgroundImage || globalHero;
+  const hasImage = !!activeImage;
 
   return (
     <section 
       className={`relative w-full h-[230px] min-[700px]:h-[290px] min-[1100px]:h-[355px] overflow-hidden flex items-center justify-center ${
         hasImage ? 'bg-cover bg-center bg-no-repeat' : 'bg-white'
       }`}
-      style={hasImage ? { backgroundImage: `url(${backgroundImage})` } : undefined}
+      style={hasImage ? { backgroundImage: `url(${activeImage})` } : undefined}
     >
       {/* Dark semi-transparent overlay */}
       <div className="absolute inset-0 bg-[rgba(0,0,0,0.48)] z-10" />

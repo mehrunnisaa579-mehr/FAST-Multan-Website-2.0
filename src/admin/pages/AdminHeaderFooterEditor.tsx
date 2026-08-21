@@ -11,6 +11,10 @@ import { footerContent } from '../../data/footer';
 import { Save, CheckCircle2, AlertCircle, Upload, ImageIcon } from 'lucide-react';
 
 export default function AdminHeaderFooterEditor() {
+  // Global Banner / Hero Image (All Non-Homepage Pages)
+  const [globalHeroImageUrl, setGlobalHeroImageUrl] = useState('');
+  const [uploadingGlobalHero, setUploadingGlobalHero] = useState(false);
+
   // Logos
   const [headerLogoUrl, setHeaderLogoUrl] = useState('');
   const [footerLogoUrl, setFooterLogoUrl] = useState('');
@@ -40,6 +44,7 @@ export default function AdminHeaderFooterEditor() {
     const loadSettings = async () => {
       const data = await cmsService.getSetting<any>('header_footer_content', null);
       if (data) {
+        if (data.globalHeroImageUrl !== undefined) setGlobalHeroImageUrl(data.globalHeroImageUrl);
         if (data.headerLogoUrl !== undefined) setHeaderLogoUrl(data.headerLogoUrl);
         if (data.footerLogoUrl !== undefined) setFooterLogoUrl(data.footerLogoUrl);
         if (data.tickerText !== undefined) setTickerText(data.tickerText);
@@ -58,6 +63,21 @@ export default function AdminHeaderFooterEditor() {
     };
     loadSettings();
   }, []);
+
+  const handleGlobalHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingGlobalHero(true);
+    const res = await cmsService.uploadMedia(file);
+    setUploadingGlobalHero(false);
+
+    if (res.success && res.publicUrl) {
+      setGlobalHeroImageUrl(res.publicUrl);
+    } else {
+      alert(`Global hero image upload failed: ${res.error || 'Unknown error'}`);
+    }
+  };
 
   const handleHeaderLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -95,6 +115,7 @@ export default function AdminHeaderFooterEditor() {
     setSaveError(null);
 
     const payload = {
+      globalHeroImageUrl,
       headerLogoUrl,
       footerLogoUrl,
       tickerText,
@@ -125,10 +146,10 @@ export default function AdminHeaderFooterEditor() {
   return (
     <div className="space-y-6 text-left max-w-[1200px]">
       <AdminPageHeader
-        title="Header & Footer Settings"
-        subtitle="Update Header & Footer official logos, top news ticker text, campus contact numbers, social media profiles, and copyright notice."
+        title="Global Hero & Header / Footer Settings"
+        subtitle="Manage Global Hero Image for all non-homepage pages, official logos, news ticker text, and contact details."
         action={
-          <AdminButton variant="primary" onClick={handleSave} loading={saving || uploadingHeaderLogo || uploadingFooterLogo} icon={<Save className="w-4 h-4" />}>
+          <AdminButton variant="primary" onClick={handleSave} loading={saving || uploadingGlobalHero || uploadingHeaderLogo || uploadingFooterLogo} icon={<Save className="w-4 h-4" />}>
             Save Settings
           </AdminButton>
         }
@@ -137,9 +158,69 @@ export default function AdminHeaderFooterEditor() {
       {saveSuccess && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-3 text-emerald-800 text-sm font-medium">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-          <span>Header and footer settings saved successfully.</span>
+          <span>Global Hero and Header/Footer settings saved successfully.</span>
         </div>
       )}
+
+      {saveError && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-800 text-sm font-medium">
+          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+          <span>{saveError}</span>
+        </div>
+      )}
+
+      {/* 0. Global Hero Image Upload Section */}
+      <AdminSection
+        title="Global Hero / Banner Image Upload"
+        description="Upload a single Global Hero Image used across ALL non-homepage pages on the website. (Homepage 3-hero carousel remains untouched)."
+      >
+        <AdminCard className="space-y-4">
+          <AdminFormGroup label="Global Hero Image (Preview / Upload / Replace / Remove)">
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-4">
+              <div className="w-48 h-24 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center p-1 flex-shrink-0">
+                {globalHeroImageUrl ? (
+                  <img src={globalHeroImageUrl} alt="Global Hero Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex items-center gap-2 text-[#6B7280]">
+                    <ImageIcon className="w-5 h-5" />
+                    <span className="text-xs font-semibold uppercase">Default Hero</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
+                  <Upload className="w-4 h-4" />
+                  <span>
+                    {uploadingGlobalHero
+                      ? 'Uploading...'
+                      : globalHeroImageUrl
+                      ? 'Replace Global Hero'
+                      : 'Upload Global Hero'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingGlobalHero}
+                    onChange={handleGlobalHeroUpload}
+                  />
+                </label>
+
+                {globalHeroImageUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setGlobalHeroImageUrl('')}
+                    className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200 cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            </div>
+          </AdminFormGroup>
+        </AdminCard>
+      </AdminSection>
 
       {saveError && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-800 text-sm font-medium">

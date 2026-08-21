@@ -101,12 +101,17 @@ export default function AdminAIDepartmentEditor() {
     }))
   );
 
+  // Allied Faculty Section State
+  const [alliedFacultyHeading, setAlliedFacultyHeading] = useState('ALLIED FACULTY');
+  const [alliedFacultyList, setAlliedFacultyList] = useState<AIFacultyItem[]>([]);
+
   // Accordion Section Expansion State
   const [accordions, setAccordions] = useState<Record<string, boolean>>({
     hero: true,
     hod: true,
     programs: false,
     faculty: false,
+    allied: false,
   });
 
   const toggleAccordion = (key: string) => {
@@ -121,6 +126,10 @@ export default function AdminAIDepartmentEditor() {
   const [isFacModalOpen, setIsFacModalOpen] = useState(false);
   const [editingFac, setEditingFac] = useState<Partial<AIFacultyItem> | null>(null);
   const [deleteFacTarget, setDeleteFacTarget] = useState<AIFacultyItem | null>(null);
+
+  const [isAlliedModalOpen, setIsAlliedModalOpen] = useState(false);
+  const [editingAllied, setEditingAllied] = useState<Partial<AIFacultyItem> | null>(null);
+  const [deleteAlliedTarget, setDeleteAlliedTarget] = useState<AIFacultyItem | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -146,6 +155,9 @@ export default function AdminAIDepartmentEditor() {
       if (saved.viewAllFacultyText) setViewAllFacultyText(saved.viewAllFacultyText);
       if (saved.viewAllFacultyUrl) setViewAllFacultyUrl(saved.viewAllFacultyUrl);
       if (Array.isArray(saved.facultyList)) setFacultyList(saved.facultyList);
+
+      if (saved.alliedFacultyHeading) setAlliedFacultyHeading(saved.alliedFacultyHeading);
+      if (Array.isArray(saved.alliedFacultyList)) setAlliedFacultyList(saved.alliedFacultyList);
     }
   };
 
@@ -255,6 +267,49 @@ export default function AdminAIDepartmentEditor() {
     setFacultyList(newList);
   };
 
+  // Allied Faculty CRUD Handlers
+  const handleOpenAddAllied = () => {
+    setEditingAllied({
+      id: `allied-ai-${Date.now()}`,
+      name: 'Dr. New Allied Faculty',
+      designation: 'Associated Professor (AI & DS)',
+      qualification: 'M.S. / Ph.D.',
+      photoUrl: '',
+      display_order: alliedFacultyList.length + 1,
+      is_visible: true,
+    });
+    setIsAlliedModalOpen(true);
+  };
+
+  const handleSaveAlliedModal = (savedData: FacultyMemberData) => {
+    const updated = [...alliedFacultyList];
+    const itemToSave = { ...editingAllied, ...savedData } as AIFacultyItem;
+    const idx = updated.findIndex((f) => f.id === itemToSave.id);
+    if (idx >= 0) {
+      updated[idx] = itemToSave;
+    } else {
+      updated.push(itemToSave);
+    }
+    setAlliedFacultyList(updated);
+    setIsAlliedModalOpen(false);
+  };
+
+  const handleDeleteAllied = () => {
+    if (!deleteAlliedTarget) return;
+    setAlliedFacultyList((prev) => prev.filter((f) => f.id !== deleteAlliedTarget.id));
+    setDeleteAlliedTarget(null);
+  };
+
+  const handleMoveAllied = (index: number, direction: 'up' | 'down') => {
+    const newList = [...alliedFacultyList];
+    const targetIdx = direction === 'up' ? index - 1 : index + 1;
+    if (targetIdx < 0 || targetIdx >= newList.length) return;
+    const temp = newList[index];
+    newList[index] = newList[targetIdx];
+    newList[targetIdx] = temp;
+    setAlliedFacultyList(newList);
+  };
+
   // Save All
   const handleSaveAll = async () => {
     setSaving(true);
@@ -276,6 +331,8 @@ export default function AdminAIDepartmentEditor() {
       viewAllFacultyText,
       viewAllFacultyUrl,
       facultyList,
+      alliedFacultyHeading,
+      alliedFacultyList,
       updated_at: new Date().toISOString(),
     };
 
@@ -638,6 +695,93 @@ export default function AdminAIDepartmentEditor() {
         )}
       </div>
 
+      {/* 5. ALLIED FACULTY SECTION */}
+      <div className="border border-[#E5E7EB] rounded-lg bg-white overflow-hidden shadow-xs">
+        <button
+          type="button"
+          onClick={() => toggleAccordion('allied')}
+          className="w-full p-4 bg-[#F9FAFB] hover:bg-[#F3F4F6] flex items-center justify-between font-bold text-base text-[#1F2937] transition-colors cursor-pointer border-b border-[#E5E7EB]"
+        >
+          <div className="flex items-center gap-2">
+            <span className="w-7 h-7 rounded bg-[#F0F9FF] text-[#0093DD] flex items-center justify-center text-xs font-bold">5</span>
+            <span>Allied Faculty</span>
+          </div>
+          {accordions.allied ? <ChevronDown className="w-5 h-5 text-[#6B7280]" /> : <ChevronRight className="w-5 h-5 text-[#6B7280]" />}
+        </button>
+
+        {accordions.allied && (
+          <div className="p-5 space-y-4">
+            <AdminFormGroup label="Section Heading">
+              <AdminInput value={alliedFacultyHeading} onChange={(e) => setAlliedFacultyHeading(e.target.value)} />
+            </AdminFormGroup>
+
+            <div className="flex justify-between items-center pt-2">
+              <h4 className="text-sm font-bold text-[#374151]">AI Allied Faculty List</h4>
+              <AdminButton variant="primary" onClick={handleOpenAddAllied} icon={<Plus className="w-4 h-4" />}>
+                Add Allied Faculty Member
+              </AdminButton>
+            </div>
+
+            <div className="space-y-3">
+              {alliedFacultyList.map((fac, idx) => (
+                <AdminCard key={fac.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-14 rounded-md bg-[#F3F4F6] border border-[#E5E7EB] overflow-hidden flex items-center justify-center flex-shrink-0">
+                      {fac.photoUrl ? (
+                        <img src={fac.photoUrl} alt={fac.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-6 h-6 text-[#9CA3AF]" />
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold text-[#0093DD] bg-[#F0F9FF] px-2 py-0.5 rounded">Order #{idx + 1}</span>
+                        {!fac.is_visible && (
+                          <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">Hidden</span>
+                        )}
+                      </div>
+                      <h4 className="text-base font-bold text-[#1F2937]">{fac.name}</h4>
+                      <p className="text-xs text-[#6B7280]">{fac.designation}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 self-end sm:self-center justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleMoveAllied(idx, 'up')}
+                      disabled={idx === 0}
+                      className="p-2 text-[#6B7280] hover:text-[#1F2937] disabled:opacity-30 border border-[#E5E7EB] rounded-md bg-white cursor-pointer"
+                      title="Move Up"
+                    >
+                      <ArrowUp className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleMoveAllied(idx, 'down')}
+                      disabled={idx === alliedFacultyList.length - 1}
+                      className="p-2 text-[#6B7280] hover:text-[#1F2937] disabled:opacity-30 border border-[#E5E7EB] rounded-md bg-white cursor-pointer"
+                      title="Move Down"
+                    >
+                      <ArrowDown className="w-4 h-4" />
+                    </button>
+
+                    <AdminButton variant="secondary" onClick={() => { setEditingAllied({ ...fac }); setIsAlliedModalOpen(true); }} icon={<Edit2 className="w-4 h-4" />}>
+                      Edit
+                    </AdminButton>
+
+                    <AdminButton variant="danger" onClick={() => setDeleteAlliedTarget(fac)} icon={<Trash2 className="w-4 h-4" />}>
+                      Remove
+                    </AdminButton>
+                  </div>
+                </AdminCard>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Program Edit Modal */}
       <AdminModal
         isOpen={isProgModalOpen}
@@ -724,6 +868,15 @@ export default function AdminAIDepartmentEditor() {
         initialData={editingFac}
       />
 
+      {/* Allied Faculty Edit Modal */}
+      <FacultyEditModal
+        isOpen={isAlliedModalOpen}
+        onClose={() => setIsAlliedModalOpen(false)}
+        onSave={handleSaveAlliedModal}
+        title={editingAllied?.id ? 'Edit AI Allied Faculty' : 'Add AI Allied Faculty'}
+        initialData={editingAllied}
+      />
+
       <DeleteConfirmModal
         isOpen={!!deleteProgTarget}
         onClose={() => setDeleteProgTarget(null)}
@@ -736,6 +889,13 @@ export default function AdminAIDepartmentEditor() {
         onClose={() => setDeleteFacTarget(null)}
         onConfirm={handleDeleteFac}
         itemTitle={deleteFacTarget?.name}
+      />
+
+      <DeleteConfirmModal
+        isOpen={!!deleteAlliedTarget}
+        onClose={() => setDeleteAlliedTarget(null)}
+        onConfirm={handleDeleteAllied}
+        itemTitle={deleteAlliedTarget?.name}
       />
     </div>
   );
