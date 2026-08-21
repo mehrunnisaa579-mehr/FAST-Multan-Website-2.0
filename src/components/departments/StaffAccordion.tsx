@@ -5,12 +5,35 @@ import { adminOfficesList, initialStaffMembers } from '../../data/staffData';
 import type { StaffMember } from '../../data/staffData';
 import { cmsService } from '../../services/cmsService';
 
+interface OfficeGroupItem {
+  id: string;
+  title: string;
+}
+
 export default function StaffAccordion() {
   const [openIndex, setOpenIndex] = useState<number | null>(0); // Open first accordion by default
+  const [officesList, setOfficesList] = useState<OfficeGroupItem[]>(
+    adminOfficesList.map((o) => ({ id: o.id, title: o.title }))
+  );
   const [staffData, setStaffData] = useState<StaffMember[]>(initialStaffMembers);
 
   useEffect(() => {
     const fetchStaffData = async () => {
+      // 1. Dynamic offices from CMS
+      const savedOffices = await cmsService.getSetting<any[]>('admin_offices_list', []);
+      let currentOffices: OfficeGroupItem[] = [];
+      if (savedOffices && savedOffices.length > 0) {
+        currentOffices = savedOffices
+          .filter((o: any) => o.is_visible !== false)
+          .map((o: any) => ({
+            id: o.id,
+            title: o.title || o.label || o.id,
+          }));
+      } else {
+        currentOffices = adminOfficesList.map((o) => ({ id: o.id, title: o.title }));
+      }
+
+      // 2. DB Staff
       const dbStaff = await cmsService.getAdminStaff();
       if (dbStaff && dbStaff.length > 0) {
         const formatted: StaffMember[] = dbStaff.map((s: any) => ({
@@ -19,7 +42,7 @@ export default function StaffAccordion() {
           name: s.name,
           designation: s.designation,
           office: s.office,
-          photoUrl: s.photo_url || '',
+          photoUrl: s.photo_url || s.photoUrl || '',
           email: s.email || '',
           phone: s.phone || '',
           extension: s.extension || '',
@@ -29,10 +52,26 @@ export default function StaffAccordion() {
           is_visible: s.is_visible ?? true,
         }));
 
-        // Merge CMS staff with initial placeholders per office so every office retains at least 6 cards
+        // Include any office from staff records not present in currentOffices
+        const existingIds = new Set(currentOffices.map((o) => o.id));
+        formatted.forEach((s) => {
+          if (s.office && !existingIds.has(s.office)) {
+            currentOffices.push({
+              id: s.office,
+              title: s.office.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+            });
+            existingIds.add(s.office);
+          }
+        });
+
+        setOfficesList(currentOffices);
+
+        // Merge CMS staff per office
         const merged: StaffMember[] = [];
-        adminOfficesList.forEach((office) => {
-          const cmsForOffice = formatted.filter((s) => s.office === office.id && s.is_visible !== false);
+        currentOffices.forEach((office) => {
+          const cmsForOffice = formatted.filter(
+            (s) => (s.office === office.id || s.office === office.title) && s.is_visible !== false
+          );
           if (cmsForOffice.length > 0) {
             merged.push(...cmsForOffice);
           } else {
@@ -41,6 +80,8 @@ export default function StaffAccordion() {
           }
         });
         setStaffData(merged);
+      } else {
+        setOfficesList(currentOffices);
       }
     };
 
@@ -53,12 +94,14 @@ export default function StaffAccordion() {
 
   return (
     <div className="w-full max-w-[1380px] mx-auto flex flex-col border border-[#DADADA] rounded-[4px] overflow-hidden text-left select-none">
-      {adminOfficesList.map((group, index) => {
+      {officesList.map((group, index) => {
         const isOpen = openIndex === index;
         const panelId = `panel-${group.id}`;
         const buttonId = `button-${group.id}`;
 
-        const officeMembers = staffData.filter((s) => s.office === group.id);
+        const officeMembers = staffData.filter(
+          (s) => s.office === group.id || s.office === group.title
+        );
 
         return (
           <div key={group.id} className="border-b border-[#DADADA] last:border-b-0">

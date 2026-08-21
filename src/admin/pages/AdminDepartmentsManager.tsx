@@ -73,6 +73,9 @@ export default function AdminDepartmentsManager() {
 
   // Admin Staff State
   const [staffList, setStaffList] = useState<AdminStaffItem[]>([]);
+  const [offices, setOffices] = useState<{ id: string; title: string }[]>(
+    adminOfficesList.map((o) => ({ id: o.id, title: o.title }))
+  );
   const [selectedOffice, setSelectedOffice] = useState<string>('admin-office');
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<Partial<AdminStaffItem> | null>(null);
@@ -99,7 +102,12 @@ export default function AdminDepartmentsManager() {
     const deptsData = await cmsService.getDepartments();
     const schoolsData = await cmsService.getSchools();
     const staffDataFromDb = await cmsService.getAdminStaff();
+    const savedOffices = await cmsService.getSetting<any[]>('admin_offices_list', []);
     setSchools(schoolsData);
+
+    if (savedOffices && savedOffices.length > 0) {
+      setOffices(savedOffices.map((o: any) => ({ id: o.id, title: o.title || o.label || o.id })));
+    }
 
     if (deptsData.length > 0) {
       setDepartments(deptsData);
@@ -528,7 +536,7 @@ export default function AdminDepartmentsManager() {
         <div className="space-y-6">
           {/* Office Selector Filter Tabs */}
           <div className="flex flex-wrap gap-2 border-b border-[#E5E7EB] pb-3">
-            {adminOfficesList.map((off) => (
+            {offices.map((off) => (
               <button
                 key={off.id}
                 type="button"
@@ -694,7 +702,7 @@ export default function AdminDepartmentsManager() {
                 onChange={(e) => setEditingStaff((prev) => ({ ...prev, office: e.target.value }))}
                 className="w-full px-3.5 py-2.5 bg-white border border-[#E5E7EB] rounded-md text-sm text-[#1F2937]"
               >
-                {adminOfficesList.map((off) => (
+                {offices.map((off) => (
                   <option key={off.id} value={off.id}>
                     {off.title}
                   </option>

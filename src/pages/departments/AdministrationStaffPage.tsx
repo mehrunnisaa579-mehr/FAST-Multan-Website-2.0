@@ -7,24 +7,23 @@ import type { StaffMember } from '../../data/staffData';
 import { cmsService } from '../../services/cmsService';
 import '../../styles/department-pages.css';
 
-// ── Office label mapping (public display names → internal IDs) ──────────────
-const PUBLIC_OFFICE_NAV = [
-  { id: 'academic-office', label: 'Academic Office' },
-  { id: 'admin-office', label: 'Admin Office' },
-  { id: 'accounts-office', label: 'Account Office' },
-  { id: 'engineering-labs', label: 'Engineering Labs' },
-  { id: 'library', label: 'Library' },
-  { id: 'qec', label: 'QEC' },
-  { id: 'student-affairs', label: 'Student Affairs' },
-  { id: 'it-networks', label: 'IT & Network' },
-  { id: 'maintenance', label: 'Human Resources' },
-] as const;
+interface OfficeNavItem {
+  id: string;
+  label: string;
+  display_order?: number;
+  is_visible?: boolean;
+}
 
 export default function AdministrationStaffPage() {
   // ── Hero CMS ──────────────────────────────────────────────────────────────
   const [heroTitle, setHeroTitle] = useState('Administration Staff');
   const [heroImageUrl, setHeroImageUrl] = useState<string | undefined>(
     undefined
+  );
+
+  // ── Dynamic Offices/Categories list ────────────────────────────────────────
+  const [officeNavList, setOfficeNavList] = useState<OfficeNavItem[]>(
+    adminOfficesList.map((o) => ({ id: o.id, label: o.title }))
   );
 
   // ── Staff data ────────────────────────────────────────────────────────────
@@ -35,10 +34,10 @@ export default function AdministrationStaffPage() {
   const [activeOfficeId, setActiveOfficeId] =
     useState<string>('academic-office');
 
-  // ── Fetch hero + staff from CMS ───────────────────────────────────────────
+  // ── Fetch hero + categories + staff from CMS ──────────────────────────────
   useEffect(() => {
     const fetchAll = async () => {
-      // Hero
+      // 1. Hero
       const heroData = await cmsService.getSetting<any>(
         'admin_staff_hero_settings',
         null
@@ -56,7 +55,30 @@ export default function AdministrationStaffPage() {
         );
       }
 
-      // Staff members
+      // 2. Dynamic Office Categories from CMS
+      const savedOffices = await cmsService.getSetting<any[]>(
+        'admin_offices_list',
+        []
+      );
+
+      let currentOffices: OfficeNavItem[] = [];
+      if (savedOffices && savedOffices.length > 0) {
+        currentOffices = savedOffices
+          .filter((o: any) => o.is_visible !== false)
+          .map((o: any) => ({
+            id: o.id,
+            label: o.title || o.label || o.id,
+            display_order: o.display_order || 1,
+          }));
+      } else {
+        currentOffices = adminOfficesList.map((o) => ({
+          id: o.id,
+          label: o.title,
+          display_order: 1,
+        }));
+      }
+
+      // 3. Staff members from DB
       const dbStaff = await cmsService.getAdminStaff();
 
       if (dbStaff && dbStaff.length > 0) {
@@ -66,7 +88,7 @@ export default function AdministrationStaffPage() {
           name: s.name,
           designation: s.designation,
           office: s.office,
-          photoUrl: s.photo_url || '',
+          photoUrl: s.photo_url || s.photoUrl || '',
           email: s.email || '',
           phone: s.phone || '',
           extension: s.extension || '',
@@ -76,29 +98,56 @@ export default function AdministrationStaffPage() {
           is_visible: s.is_visible ?? true,
         }));
 
-        // Per-office merge:
-        // prefer CMS records, otherwise use placeholders
+        // Check if any staff member is assigned to an office not yet present in currentOffices
+        const existingOfficeIds = new Set(currentOffices.map((o) => o.id));
+        formatted.forEach((s) => {
+          if (s.office && !existingOfficeIds.has(s.office)) {
+            currentOffices.push({
+              id: s.office,
+              label: s.office.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+              display_order: 99,
+            });
+            existingOfficeIds.add(s.office);
+          }
+        });
+
+        setOfficeNavList(currentOffices);
+
+        if (currentOffices.length > 0) {
+          setActiveOfficeId((prev) =>
+            currentOffices.some((o) => o.id === prev) ? prev : currentOffices[0].id
+          );
+        }
+
+        // Per-office merge across ALL dynamic offices:
         const merged: StaffMember[] = [];
 
-        adminOfficesList.forEach((office) => {
+        currentOffices.forEach((office) => {
           const cmsForOffice = formatted.filter(
             (s) =>
-              s.office === office.id &&
+              (s.office === office.id || s.office === office.label) &&
               s.is_visible !== false
           );
 
           if (cmsForOffice.length > 0) {
             merged.push(...cmsForOffice);
           } else {
-            merged.push(
-              ...initialStaffMembers.filter(
-                (s) => s.office === office.id
-              )
+            // Fallback to static placeholders ONLY if default pre-existing office has no CMS entries
+            const fallbacks = initialStaffMembers.filter(
+              (s) => s.office === office.id
             );
+            merged.push(...fallbacks);
           }
         });
 
         setStaffData(merged);
+      } else {
+        setOfficeNavList(currentOffices);
+        if (currentOffices.length > 0) {
+          setActiveOfficeId((prev) =>
+            currentOffices.some((o) => o.id === prev) ? prev : currentOffices[0].id
+          );
+        }
       }
     };
 
@@ -108,14 +157,14 @@ export default function AdministrationStaffPage() {
   // ── Visible staff for selected office ─────────────────────────────────────
   const visibleStaff = staffData.filter(
     (s) =>
-      s.office === activeOfficeId &&
+      (s.office === activeOfficeId ||
+        s.office ===
+          officeNavList.find((o) => o.id === activeOfficeId)?.label) &&
       s.is_visible !== false
   );
 
   const activeOfficeLabel =
-    PUBLIC_OFFICE_NAV.find(
-      (o) => o.id === activeOfficeId
-    )?.label ?? 'Staff';
+    officeNavList.find((o) => o.id === activeOfficeId)?.label ?? 'Staff';
 
   return (
     <div className="dept-page-container">
@@ -182,7 +231,7 @@ export default function AdministrationStaffPage() {
               "
               role="list"
             >
-              {PUBLIC_OFFICE_NAV.map((office) => (
+              {officeNavList.map((office) => (
 
                 <li key={office.id}>
 

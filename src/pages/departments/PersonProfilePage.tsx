@@ -213,13 +213,15 @@ export default function PersonProfilePage() {
           (s: any) => s.slug === cleanSlug || s.id === cleanSlug || toSlug(s.name) === cleanSlug
         );
         if (foundStaff) {
-          const officeObj = adminOfficesList.find((o) => o.id === foundStaff.office);
+          const savedOffices = await cmsService.getSetting<any[]>('admin_offices_list', []);
+          const officeObj = (savedOffices || []).find((o: any) => o.id === foundStaff.office) || adminOfficesList.find((o) => o.id === foundStaff.office);
+          const officeTitle = officeObj ? (officeObj.title || officeObj.label) : (foundStaff.office ? foundStaff.office.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 'Administration Office');
           setPerson({
             id: foundStaff.id,
             slug: foundStaff.slug || foundStaff.id,
             name: foundStaff.name,
             designation: foundStaff.designation || 'Administrative Staff',
-            departmentOrOffice: officeObj ? officeObj.title : foundStaff.office || 'Administration Office',
+            departmentOrOffice: officeTitle,
             photoUrl: foundStaff.photo_url || foundStaff.photoUrl || '',
             badgePhotoUrl: foundStaff.badge_photo_url || foundStaff.badgePhotoUrl || foundStaff.photo_url || '',
             email: foundStaff.email || '',
