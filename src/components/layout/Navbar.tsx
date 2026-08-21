@@ -512,7 +512,7 @@ export function MobileNavbar({
   };
 
   return (
-    <div className="min-[1050px]:hidden border-t border-[#E5E7EB] bg-white w-full">
+    <div className="min-[1050px]:hidden border-t border-[#E5E7EB] bg-white w-full max-h-[calc(100vh-80px)] overflow-y-auto shadow-lg">
       <nav
         className="flex flex-col max-w-[1300px] mx-auto"
         role="navigation"

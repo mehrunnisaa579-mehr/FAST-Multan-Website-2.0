@@ -122,7 +122,7 @@ export default function AdminDashboardPage() {
             <RouterLink
               key={card.id}
               to={card.path}
-              className="bg-white border border-[#E5E7EB] rounded-lg p-6 shadow-xs hover:border-[#0093DD] hover:shadow-md transition-all flex flex-col justify-between group min-h-[190px] no-underline block"
+              className="bg-white border border-[#E5E7EB] rounded-lg p-5 sm:p-6 shadow-xs hover:border-[#0093DD] hover:shadow-md transition-all flex flex-col justify-between group min-h-[190px] no-underline block"
             >
               <div>
                 <div className="w-12 h-12 rounded-lg bg-[#F0F9FF] text-[#0093DD] flex items-center justify-center mb-4 group-hover:bg-[#0093DD] group-hover:text-white transition-colors">
