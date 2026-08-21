@@ -73,6 +73,7 @@ export const archiveService = {
     const settingArrayConfigs = [
       { key: 'department_cs_content', arrayKey: 'programsList', moduleName: 'CS Programs' },
       { key: 'department_cs_content', arrayKey: 'facultyList', moduleName: 'CS Faculty' },
+      { key: 'department_cs_content', arrayKey: 'alliedFacultyList', moduleName: 'CS Allied Faculty' },
       { key: 'department_cs_content', arrayKey: 'researchList', moduleName: 'CS Research Areas' },
       { key: 'department_se_content', arrayKey: 'programsList', moduleName: 'SE Programs' },
       { key: 'department_se_content', arrayKey: 'facultyList', moduleName: 'SE Faculty' },
@@ -80,12 +81,14 @@ export const archiveService = {
       { key: 'department_ai_content', arrayKey: 'facultyList', moduleName: 'AI Faculty' },
       { key: 'school_of_management_content', arrayKey: 'programsList', moduleName: 'Management Programs' },
       { key: 'school_of_management_content', arrayKey: 'facultyList', moduleName: 'Management Faculty' },
+      { key: 'school_of_management_content', arrayKey: 'alliedFacultyList', moduleName: 'Management Allied Faculty' },
       { key: 'homepage_full_content', arrayKey: 'newsList', moduleName: 'Homepage News' },
       { key: 'homepage_full_content', arrayKey: 'eventsList', moduleName: 'Homepage Events' },
       { key: 'homepage_full_content', arrayKey: 'galleryImages', moduleName: 'Homepage Gallery' },
       { key: 'campus_intro_content', arrayKey: 'galleryList', moduleName: 'Campus Introduction Gallery' },
       { key: 'edc_summer_bootcamp', arrayKey: 'modulesList', moduleName: 'Summer Bootcamp Modules' },
       { key: 'edc_highlights', arrayKey: 'mediaList', moduleName: 'EDC Highlights Media' },
+      { key: 'workshops_list', arrayKey: 'items', moduleName: 'Workshops' },
     ];
 
     for (const cfg of settingArrayConfigs) {

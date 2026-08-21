@@ -61,6 +61,33 @@ export function useDynamicNavigation() {
           }
         }
 
+        // 3. Fetch workshops for Services → Workshops submenu
+        const workshopsData = await cmsService.getSetting<{ items?: any[] }>('workshops_list', { items: [] });
+        const workshopItems: any[] = (workshopsData?.items || [])
+          .filter((w: any) => w.is_archived !== true && w.is_visible !== false)
+          .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
+
+        if (workshopItems.length > 0) {
+          updatedNav = updatedNav.map((item) => {
+            if (item.label === 'SERVICES' && item.items) {
+              const updatedServiceItems = item.items.map((sub) => {
+                if (sub.label === 'Workshops') {
+                  return {
+                    ...sub,
+                    items: workshopItems.map((w: any) => ({
+                      label: w.title,
+                      href: `/edc/workshops/${w.slug}`,
+                    })),
+                  };
+                }
+                return sub;
+              });
+              return { ...item, items: updatedServiceItems };
+            }
+            return item;
+          });
+        }
+
         setNavItems(updatedNav);
       } catch (err) {
         console.error('Failed to load dynamic navigation', err);

@@ -28,10 +28,10 @@ export default function WhyChooseUs() {
     <section className="py-[60px] w-full bg-white">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px]">
         {/* Section Heading & Subheading */}
-        <h2 className="text-[28px] font-bold text-[#0C71C3] text-center mb-2">
+        <h2 className="text-[28px] font-bold text-[#0C71C3] text-center mb-2 relative -top-[20px]">
           {heading}
         </h2>
-        <p className="text-[15px] text-[#666666] text-center mb-[40px] font-medium">
+        <p className="text-[15px] text-[#666666] text-center mb-[40px] font-medium relative -top-[20px]">
           {subtitle}
         </p>
 
@@ -65,8 +65,8 @@ export default function WhyChooseUs() {
                   {item.title}
                 </h3>
 
-                {/* Centered Readable Description */}
-                <p className="text-[14px] text-[#666666] leading-[1.6]">
+                {/* Justified Body Description */}
+                <p className="text-[14px] text-[#555555] leading-[1.65] text-justify [text-justify:inter-word] max-sm:text-left w-full">
                   {item.description}
                 </p>
               </div>

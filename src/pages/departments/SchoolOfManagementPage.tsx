@@ -2,271 +2,333 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AboutPageHero from '../../components/about/AboutPageHero';
 import DepartmentCard from '../../components/departments/DepartmentCard';
-import CmsImage from '../../components/ui/CmsImage';
+import DecorativeProfileImageFrame from '../../components/ui/DecorativeProfileImageFrame';
+import { mgmtPrograms, mgmtFaculty } from '../../data/departments';
 import { cmsService } from '../../services/cmsService';
 import '../../styles/department-pages.css';
 
-interface MgmtLinkItem {
-  id: string;
-  title: string;
-  url: string;
-  description?: string;
-  display_order: number;
-  is_visible: boolean;
-}
-
 export default function SchoolOfManagementPage() {
-  const [heroTitle, setHeroTitle] = useState('FAST School Of Management');
-  const [heroImageUrl, setHeroImageUrl] = useState('');
-  const [headName, setHeadName] = useState('');
-  const [headDesignation, setHeadDesignation] = useState('');
-  const [headPhotoUrl, setHeadPhotoUrl] = useState('');
-  const [headMessage, setHeadMessage] = useState('');
-  const [programsList, setProgramsList] = useState<any[] | null>(null);
-  const [facultyList, setFacultyList] = useState<any[] | null>(null);
-  const [importantLinks, setImportantLinks] = useState<MgmtLinkItem[] | null>(null);
+  const [cmsContent, setCmsContent] = useState<any>(null);
 
   useEffect(() => {
     const fetchCmsData = async () => {
-      const savedData = await cmsService.getSetting<any>('school_of_management_content', null);
-      if (savedData) {
-        if (savedData.heroTitle) setHeroTitle(savedData.heroTitle);
-        if (savedData.heroImageUrl || savedData.hero_image_url || savedData.heroImage) {
-          setHeroImageUrl(savedData.heroImageUrl || savedData.hero_image_url || savedData.heroImage);
-        }
-        if (savedData.headName) setHeadName(savedData.headName);
-        if (savedData.headDesignation) setHeadDesignation(savedData.headDesignation);
-        if (savedData.headPhotoUrl) setHeadPhotoUrl(savedData.headPhotoUrl);
-        if (savedData.headMessage) setHeadMessage(savedData.headMessage);
-        if (savedData.programsList && Array.isArray(savedData.programsList)) {
-          setProgramsList(savedData.programsList);
-        }
-        if (savedData.facultyList && Array.isArray(savedData.facultyList)) {
-          setFacultyList(savedData.facultyList);
-        }
-        if (savedData.importantLinks && Array.isArray(savedData.importantLinks)) {
-          setImportantLinks(savedData.importantLinks);
-        }
+      const data = await cmsService.getSetting<any>(
+        'school_of_management_content',
+        null
+      );
+
+      if (data) {
+        setCmsContent(data);
       }
     };
+
     fetchCmsData();
   }, []);
 
-  const visibleLinks = importantLinks ? importantLinks.filter((l) => l.is_visible !== false) : null;
-  const visiblePrograms = programsList ? programsList.filter((p) => p.is_visible !== false) : null;
-  const visibleFaculty = facultyList ? facultyList.filter((f) => f.is_visible !== false) : null;
+  // ── Hero ──────────────────────────────────────────────────────────────────
+  const heroTitle =
+    cmsContent?.heroTitle || 'Department Of Management Sciences';
+
+  const heroImage =
+    cmsContent?.heroImageUrl ||
+    cmsContent?.hero_image_url ||
+    cmsContent?.heroImage ||
+    '';
+
+  // ── HOD ──────────────────────────────────────────────────────────────────
+  const hodHeading =
+    cmsContent?.hodHeading || "HOD'S MESSAGE";
+
+  const hodName =
+    cmsContent?.headName ||
+    cmsContent?.hodName ||
+    'Dr. [Head of Department]';
+
+  const hodDesignation =
+    cmsContent?.headDesignation ||
+    cmsContent?.hodDesignation ||
+    'Head, Department of Management Sciences';
+
+  const hodMessage =
+    cmsContent?.headMessage ||
+    cmsContent?.hodMessage ||
+    'Welcome to the Department of Management Sciences at FAST-NUCES Multan Campus. Our programs are designed to develop strategic thinkers, financial analysts, and entrepreneurial leaders ready for a dynamic global economy.';
+
+  const hodPhoto =
+    cmsContent?.headPhotoUrl ||
+    cmsContent?.hodPhotoUrl ||
+    '';
+
+  // ── Programs ──────────────────────────────────────────────────────────────
+  const programsHeading =
+    cmsContent?.programsHeading || 'OUR PROGRAMS';
+
+  const viewAllProgramsText =
+    cmsContent?.viewAllProgramsText || 'VIEW ALL PROGRAMS →';
+
+  const viewAllProgramsUrl =
+    cmsContent?.viewAllProgramsUrl ||
+    '/departments/management/programs';
+
+  const programsList =
+    cmsContent?.programsList &&
+    Array.isArray(cmsContent.programsList) &&
+    cmsContent.programsList.length > 0
+      ? cmsContent.programsList.filter(
+          (p: any) => p.is_visible !== false
+        )
+      : mgmtPrograms
+        ? mgmtPrograms.map((p: any, idx: number) => ({
+            ...p,
+            url: '/departments/management/programs',
+            display_order: idx + 1,
+          }))
+        : [
+            {
+              id: 'bba',
+              title: 'BBA',
+              subtitle: 'Bachelor of Business Administration',
+              display_order: 1,
+            },
+            {
+              id: 'mba',
+              title: 'MBA',
+              subtitle: 'Master of Business Administration',
+              display_order: 2,
+            },
+          ];
+
+  // ── Department Faculty ────────────────────────────────────────────────────
+  const facultyHeading =
+    cmsContent?.facultyHeading || 'DEPARTMENT FACULTY';
+
+  const facultyList =
+    cmsContent?.facultyList &&
+    Array.isArray(cmsContent.facultyList) &&
+    cmsContent.facultyList.length > 0
+      ? cmsContent.facultyList.filter(
+          (f: any) => f.is_visible !== false
+        )
+      : mgmtFaculty
+        ? mgmtFaculty.map((f: any, idx: number) => ({
+            ...f,
+            display_order: idx + 1,
+          }))
+        : [
+            {
+              id: 'fac-1',
+              name: 'Dr. [Faculty 1]',
+              designation: 'Professor & HOD',
+              display_order: 1,
+            },
+            {
+              id: 'fac-2',
+              name: 'Dr. [Faculty 2]',
+              designation: 'Associate Professor',
+              display_order: 2,
+            },
+          ];
+
+  // ── Allied Faculty ────────────────────────────────────────────────────────
+  const alliedFacultyHeading =
+    cmsContent?.alliedFacultyHeading || 'ALLIED FACULTY';
+
+  const alliedFacultyList =
+    cmsContent?.alliedFacultyList &&
+    Array.isArray(cmsContent.alliedFacultyList) &&
+    cmsContent.alliedFacultyList.length > 0
+      ? cmsContent.alliedFacultyList.filter(
+          (f: any) => f.is_visible !== false
+        )
+      : [
+          {
+            id: 'allied-mgmt-default-1',
+            name: 'Dr. Allied Faculty Placeholder',
+            designation: 'Associated Professor (Management)',
+            photoUrl: '',
+            photoPlaceholder: 'PLACEHOLDER: PHOTO',
+          },
+        ];
 
   return (
     <div className="dept-page-container">
-      {/* Shared Hero */}
-      <AboutPageHero title={heroTitle} backgroundImage={heroImageUrl} />
 
-      {/* Main Content Area */}
-      <div className="w-full max-w-[1180px] mx-auto px-[20px] min-[700px]:px-[24px] py-[40px] min-[700px]:py-[50px] min-[1100px]:pt-[55px] min-[1100px]:pb-[85px]">
-        {/* HOD'S MESSAGE */}
-        <section className="w-full text-center">
-          <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase mb-[28px] text-center">
+      {/* ── Shared Hero ── */}
+      <AboutPageHero
+        title={heroTitle}
+        backgroundImage={heroImage}
+      />
+
+      {/* ── Main Content Wrapper ── */}
+      <div className="w-full max-w-[1480px] mx-auto px-[28px] sm:px-[40px] md:px-[56px] py-[64px] sm:py-[72px] space-y-[48px] sm:space-y-[56px]">
+
+        {/* =====================================================
             HOD'S MESSAGE
+            SAME LAYOUT AS COMPUTER SCIENCE
+            ===================================================== */}
+
+        <section className="w-full">
+
+          {/* Desktop Heading */}
+          <div className="hidden md:grid grid-cols-[320px_minmax(0,1fr)] gap-[30px] md:gap-[38px] lg:gap-[40px] mb-[50px]">
+
+            <div />
+
+            <h2 className="relative -top-[20px] m-0 text-[40px] lg:text-[46px] leading-[1.1] font-bold text-[#0C71C3] uppercase tracking-[-1px] text-left">
+              {hodHeading}
+            </h2>
+
+          </div>
+
+          {/* Mobile Heading */}
+          <h2 className="md:hidden text-[32px] sm:text-[38px] leading-[1.1] font-bold text-[#0C71C3] uppercase tracking-tight text-center mb-[34px]">
+            {hodHeading}
           </h2>
 
-          <div className="flex flex-col md:flex-row gap-[32px] md:gap-[40px] items-center md:items-start text-left">
-            {/* Left Column: Photo Placeholder */}
-            <div className="flex flex-col items-center flex-shrink-0">
-              <div className={`w-[190px] h-[235px] rounded-[4px] overflow-hidden flex items-center justify-center mb-[12px] shadow-sm${headPhotoUrl ? '' : ' bg-white p-[4px] text-center'}`}>
-                <CmsImage
-                  src={headPhotoUrl}
-                  alt={headName || 'HOD Photo'}
-                  fallbackLabel="PLACEHOLDER: HOD PHOTO"
-                  fit="cover"
+          {/* Photo + Message */}
+          <div className="grid grid-cols-1 md:grid-cols-[320px_minmax(0,1fr)] gap-[30px] md:gap-[38px] lg:gap-[40px] items-start">
+
+            {/* LEFT — HOD IMAGE + NAME */}
+            <div className="w-full max-w-[315px] mx-auto md:mx-0">
+              <Link to="/people/management-hod" className="no-underline block group cursor-pointer w-full text-center">
+                <DecorativeProfileImageFrame
+                  src={hodPhoto}
+                  alt={hodName}
+                  showBadge={false}
+                  fallbackLabel="MANAGEMENT HOD PHOTO"
                 />
-              </div>
-              <h3 className="text-[16px] font-bold text-[#333333]">{headName || 'Dr. [HOD Name]'}</h3>
-              <p className="text-[13px] font-medium text-[#666666]">{headDesignation || 'Head, FAST School of Management'}</p>
+
+                <h3 className="m-0 mt-[6px] text-[18px] sm:text-[19px] leading-[1.3] font-bold text-black group-hover:text-[#0093DD] transition-colors text-center">
+                  {hodName}
+                </h3>
+              </Link>
             </div>
 
-            {/* Right Column: Message Paragraphs */}
-            <div className="flex-1 text-[15px] min-[700px]:text-[16px] leading-[1.7] text-[#444444] space-y-[16px]">
-              {headMessage ? (
-                <p>{headMessage}</p>
-              ) : (
-                <>
-                  <p>
-                    PLACEHOLDER: Welcome to the FAST School of Management Sciences at Multan Campus. We offer comprehensive business administration and management degrees focused on strategic decision-making, financial analytics, and entrepreneurial leadership.
-                  </p>
-                  <p>
-                    PLACEHOLDER: Our programs equip students with modern managerial frameworks, digital business skills, and analytical capabilities required to lead contemporary corporate and financial institutions.
-                  </p>
-                </>
-              )}
+            {/* RIGHT — MESSAGE */}
+            <div className="w-full text-[14px] lg:text-[14.5px] leading-[1.7] text-[#26384A] text-left">
+
+              <p className="m-0 text-justify">
+                {hodMessage}
+              </p>
+
             </div>
+
           </div>
+
         </section>
 
-        {/* SECTION DIVIDER */}
-        <div className="dept-divider">
-          <div className="dept-divider-line" />
-          <div className="dept-divider-dot" />
-        </div>
+        {/* =====================================================
+            OUR PROGRAMS
+            ===================================================== */}
 
-        {/* OUR PROGRAMS */}
-        <section className="w-full text-center">
-          <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] mb-[28px] text-center">
-            Our Programs
-          </h2>
+        <section className="w-full space-y-[24px]">
 
-          <div className="flex flex-wrap justify-center gap-[24px] max-w-[1050px] mx-auto">
-            {visiblePrograms && visiblePrograms.length > 0 ? (
-              visiblePrograms.map((prog) => (
-                <div key={prog.id} className="w-full max-w-[320px]">
+          <div className="relative w-full flex items-center justify-center pb-[6px] border-b border-[#E2E8F0]">
+
+            <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center">
+              {programsHeading}
+            </h2>
+
+          </div>
+
+          <div className="dept-card-row">
+
+            {programsList.map((prog: any) => {
+              const targetUrl = 'https://nu.edu.pk/Program/BS(BA)';
+
+              return (
+                <a
+                  key={prog.id}
+                  href={targetUrl}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.location.assign(targetUrl);
+                  }}
+                  className="no-underline block dept-program-wrapper cursor-pointer"
+                >
+
                   <DepartmentCard
                     variant="program"
                     title={prog.title}
                     subtitle={prog.subtitle}
                     imageUrl={prog.image}
-                    imageLabel="PROGRAM IMAGE"
+                    imageLabel={
+                      prog.imageLabel || 'MANAGEMENT PROGRAM'
+                    }
                   />
-                </div>
-              ))
-            ) : (
-              <>
-                <div className="w-full max-w-[320px]">
-                  <DepartmentCard
-                    variant="program"
-                    title="BBA"
-                    subtitle="Bachelor of Business Administration"
-                    imageLabel="PLACEHOLDER: BBA PROGRAM"
-                  />
-                </div>
-                <div className="w-full max-w-[320px]">
-                  <DepartmentCard
-                    variant="program"
-                    title="BS (Business Analytics)"
-                    subtitle="BS Business Analytics"
-                    imageLabel="PLACEHOLDER: BS ANALYTICS"
-                  />
-                </div>
-                <div className="w-full max-w-[320px]">
-                  <DepartmentCard
-                    variant="program"
-                    title="BS (Financial Technology)"
-                    subtitle="BS FinTech"
-                    imageLabel="PLACEHOLDER: BS FINTECH"
-                  />
-                </div>
-                <div className="w-full max-w-[320px]">
-                  <DepartmentCard
-                    variant="program"
-                    title="MBA"
-                    subtitle="Master of Business Administration"
-                    imageLabel="PLACEHOLDER: MBA PROGRAM"
-                  />
-                </div>
-              </>
-            )}
+
+                </a>
+              );
+            })}
+
           </div>
+
         </section>
 
-        {/* SECTION DIVIDER */}
-        <div className="dept-divider">
-          <div className="dept-divider-line" />
-          <div className="dept-divider-dot" />
-        </div>
+        {/* =====================================================
+            DEPARTMENT FACULTY
+            ===================================================== */}
 
-        {/* IMPORTANT LINKS */}
-        <section className="w-full text-center">
-          <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] mb-[20px] text-center">
-            Important Links
-          </h2>
+        <section className="w-full space-y-[24px]">
 
-          {visibleLinks && visibleLinks.length > 0 ? (
-            <div className="flex flex-wrap justify-center items-center gap-[24px] text-center">
-              {visibleLinks.map((link) => {
-                const isExternal = link.url.startsWith('http');
-                if (isExternal) {
-                  return (
-                    <a
-                      key={link.id}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[16px] text-[#0C71C3] font-semibold hover:underline cursor-pointer flex flex-col items-center"
-                      title={link.description}
-                    >
-                      <span>{link.title} →</span>
-                      {link.description && (
-                        <span className="text-[12px] font-normal text-[#666666] mt-0.5">{link.description}</span>
-                      )}
-                    </a>
-                  );
-                }
-                return (
-                  <Link
-                    key={link.id}
-                    to={link.url}
-                    className="text-[16px] text-[#0C71C3] font-semibold hover:underline cursor-pointer flex flex-col items-center"
-                    title={link.description}
-                  >
-                    <span>{link.title} →</span>
-                    {link.description && (
-                      <span className="text-[12px] font-normal text-[#666666] mt-0.5">{link.description}</span>
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center">
-              <a
-                href="#"
-                onClick={(e) => e.preventDefault()}
-                className="text-[16px] text-[#0C71C3] font-semibold hover:underline cursor-pointer"
-              >
-                PLACEHOLDER: Department Important Link
-              </a>
-            </div>
-          )}
+          <div className="relative w-full flex flex-col sm:flex-row items-center justify-center pb-[6px] border-b border-[#E2E8F0] gap-2 sm:gap-0">
+
+            <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center">
+              {facultyHeading}
+            </h2>
+
+          </div>
+
+          <div className="dept-card-row dept-faculty-grid">
+            {facultyList.map((fac: any) => (
+              <div key={fac.id} className="dept-faculty-wrapper">
+                <Link to={`/people/${fac.slug || fac.id}`} className="no-underline block cursor-pointer">
+                  <DepartmentCard
+                    variant="faculty"
+                    title={fac.name}
+                    role={fac.designation}
+                    imageUrl={fac.photoUrl || fac.photo_url || fac.image}
+                    imageLabel={fac.photoPlaceholder || 'FACULTY MEMBER'}
+                  />
+                </Link>
+              </div>
+            ))}
+          </div>
+
         </section>
 
-        {/* SECTION DIVIDER */}
-        <div className="dept-divider">
-          <div className="dept-divider-line" />
-          <div className="dept-divider-dot" />
-        </div>
+        {/* =====================================================
+            ALLIED FACULTY
+            ===================================================== */}
 
-        {/* DEPARTMENT FACULTY */}
-        <section className="w-full text-center">
-          <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] mb-[28px] text-center">
-            Department Faculty
-          </h2>
+        <section className="w-full space-y-[24px]">
 
-          <div className="flex flex-wrap justify-center gap-[24px]">
-            {visibleFaculty && visibleFaculty.length > 0 ? (
-              visibleFaculty.map((fac) => (
-                <div key={fac.id} className="w-full max-w-[240px] sm:w-[230px]">
+          <div className="relative w-full flex flex-col sm:flex-row items-center justify-center pb-[6px] border-b border-[#E2E8F0] gap-2 sm:gap-0">
+            <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center">
+              {alliedFacultyHeading}
+            </h2>
+          </div>
+
+          <div className="dept-card-row dept-faculty-grid">
+            {alliedFacultyList.map((fac: any) => (
+              <div key={fac.id} className="dept-faculty-wrapper">
+                <Link to={`/people/${fac.slug || fac.id}`} className="no-underline block cursor-pointer">
                   <DepartmentCard
                     variant="faculty"
                     title={fac.name}
                     role={fac.designation}
                     imageUrl={fac.photoUrl}
-                    imageLabel="FACULTY MEMBER"
+                    imageLabel={fac.photoPlaceholder || 'ALLIED FACULTY MEMBER'}
                   />
-                </div>
-              ))
-            ) : (
-              Array.from({ length: 8 }).map((_, idx) => (
-                <div key={idx} className="w-full max-w-[240px] sm:w-[230px]">
-                  <DepartmentCard
-                    variant="faculty"
-                    title={`Dr. [Faculty ${idx + 1}]`}
-                    role={idx % 2 === 0 ? 'Assistant Professor' : 'Lecturer'}
-                    imageLabel={`FACULTY MEMBER ${idx + 1}`}
-                  />
-                </div>
-              ))
-            )}
+                </Link>
+              </div>
+            ))}
           </div>
+
         </section>
+
       </div>
+
     </div>
   );
 }

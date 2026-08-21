@@ -4,12 +4,18 @@ interface SocietyInstagramCTAProps {
   instagramUrl: string;
 }
 
-export default function SocietyInstagramCTA({ instagramUrl }: SocietyInstagramCTAProps) {
+export default function SocietyInstagramCTA({
+  instagramUrl,
+}: SocietyInstagramCTAProps) {
   return (
     <div className="w-full max-w-[850px] mx-auto text-center mt-[56px] sm:mt-[64px] pt-[40px] border-t border-[#EAEAEA] flex flex-col items-center">
-      <p className="text-[16px] sm:text-[18px] text-[#444444] mb-[24px] font-medium leading-relaxed max-w-[650px] mx-auto text-center">
+
+      <p className="text-[16px] sm:text-[18px] text-[#444444] font-medium leading-relaxed max-w-[650px] mx-auto text-center">
         Stay connected with us for the latest society updates, activities, and announcements.
       </p>
+
+      {/* Space between announcement text and Instagram button */}
+      <div style={{ height: '24px' }} />
 
       <div className="flex justify-center">
         <a
@@ -21,6 +27,7 @@ export default function SocietyInstagramCTA({ instagramUrl }: SocietyInstagramCT
           Visit Instagram
         </a>
       </div>
+
     </div>
   );
 }

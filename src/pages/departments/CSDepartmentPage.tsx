@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AboutPageHero from '../../components/about/AboutPageHero';
 import DepartmentCard from '../../components/departments/DepartmentCard';
-import { csPrograms, csFaculty, csResearchAreas } from '../../data/departments';
+import DecorativeProfileImageFrame from '../../components/ui/DecorativeProfileImageFrame';
+import { csPrograms, csFaculty } from '../../data/departments';
 import { cmsService } from '../../services/cmsService';
 import '../../styles/department-pages.css';
 
@@ -11,191 +12,292 @@ export default function CSDepartmentPage() {
 
   useEffect(() => {
     const fetchCmsData = async () => {
-      const data = await cmsService.getSetting<any>('department_cs_content', null);
+      const data = await cmsService.getSetting<any>(
+        'department_cs_content',
+        null
+      );
+
       if (data) {
         setCmsContent(data);
       }
     };
+
     fetchCmsData();
   }, []);
 
-  const heroTitle = cmsContent?.heroTitle || 'Department Of Computer Science';
-  const heroImage = cmsContent?.heroImageUrl || cmsContent?.hero_image_url || cmsContent?.heroImage || cmsContent?.hero_image || '';
-  const hodHeading = cmsContent?.hodHeading || "HOD'S MESSAGE";
-  const hodName = cmsContent?.hodName || 'Dr. Head of Department';
-  const hodDesignation = cmsContent?.hodDesignation || 'Head, Department of Computer Science';
+  const heroTitle =
+    cmsContent?.heroTitle || 'Department Of Computer Science';
+
+  const heroImage =
+    cmsContent?.heroImageUrl ||
+    cmsContent?.hero_image_url ||
+    cmsContent?.heroImage ||
+    cmsContent?.hero_image ||
+    '';
+
+  const hodHeading =
+    cmsContent?.hodHeading || "HOD'S MESSAGE";
+
+  const hodName =
+    cmsContent?.hodName || 'Dr. Head of Department';
+
+  const hodDesignation =
+    cmsContent?.hodDesignation ||
+    'Head, Department of Computer Science';
+
   const hodMessage =
     cmsContent?.hodMessage ||
     'Welcome to the Department of Computer Science at FAST-NUCES Multan Campus. Our department offers world-class degree programs in computing, software development, artificial intelligence, and cutting-edge research.';
-  const hodPhoto = cmsContent?.hodPhotoUrl || '';
 
-  const programsHeading = cmsContent?.programsHeading || 'OUR PROGRAMS';
-  const viewAllProgramsText = cmsContent?.viewAllProgramsText || 'VIEW ALL PROGRAMS →';
-  const viewAllProgramsUrl = cmsContent?.viewAllProgramsUrl || '/departments/computing/computer-science/programs';
+  const hodPhoto =
+    cmsContent?.hodPhotoUrl || '';
+
+  const programsHeading =
+    cmsContent?.programsHeading || 'OUR PROGRAMS';
+
+  const viewAllProgramsText =
+    cmsContent?.viewAllProgramsText || 'VIEW ALL PROGRAMS →';
+
+  const viewAllProgramsUrl =
+    cmsContent?.viewAllProgramsUrl ||
+    '/departments/computing/computer-science/programs';
+
   const programsList =
-    cmsContent?.programsList && Array.isArray(cmsContent.programsList) && cmsContent.programsList.length > 0
-      ? cmsContent.programsList.filter((p: any) => p.is_visible !== false)
-      : csPrograms.map((p, idx) => ({ ...p, url: '/departments/computing/computer-science/programs', display_order: idx + 1 }));
+    cmsContent?.programsList &&
+      Array.isArray(cmsContent.programsList) &&
+      cmsContent.programsList.length > 0
+      ? cmsContent.programsList.filter(
+        (p: any) => p.is_visible !== false
+      )
+      : csPrograms.map((p, idx) => ({
+        ...p,
+        url: '/departments/computing/computer-science/programs',
+        display_order: idx + 1,
+      }));
 
-  const facultyHeading = cmsContent?.facultyHeading || 'DEPARTMENT FACULTY';
-  const viewAllFacultyText = cmsContent?.viewAllFacultyText || 'VIEW ALL FACULTY →';
-  const viewAllFacultyUrl = cmsContent?.viewAllFacultyUrl || '/departments/computing/computer-science/faculty';
+  const facultyHeading =
+    cmsContent?.facultyHeading || 'DEPARTMENT FACULTY';
+
+  const viewAllFacultyText =
+    cmsContent?.viewAllFacultyText || 'VIEW ALL FACULTY →';
+
+  const viewAllFacultyUrl =
+    cmsContent?.viewAllFacultyUrl ||
+    '/departments/computing/computer-science/faculty';
+
   const facultyList =
-    cmsContent?.facultyList && Array.isArray(cmsContent.facultyList) && cmsContent.facultyList.length > 0
-      ? cmsContent.facultyList.filter((f: any) => f.is_visible !== false)
-      : csFaculty.map((f, idx) => ({ ...f, display_order: idx + 1 }));
+    cmsContent?.facultyList &&
+      Array.isArray(cmsContent.facultyList) &&
+      cmsContent.facultyList.length > 0
+      ? cmsContent.facultyList.filter(
+        (f: any) => f.is_visible !== false
+      )
+      : csFaculty.map((f, idx) => ({
+        ...f,
+        display_order: idx + 1,
+      }));
 
-  const researchHeading = cmsContent?.researchHeading || 'RESEARCH GROUPS & AREAS';
-  const exploreResearchText = cmsContent?.exploreResearchText || 'EXPLORE RESEARCH GROUPS →';
-  const exploreResearchUrl = cmsContent?.exploreResearchUrl || '/departments/computing/computer-science/research-groups';
-  const researchList =
-    cmsContent?.researchList && Array.isArray(cmsContent.researchList) && cmsContent.researchList.length > 0
-      ? cmsContent.researchList.filter((r: any) => r.is_visible !== false)
-      : csResearchAreas.map((r, idx) => ({ ...r, id: `res-${idx + 1}` }));
+  const alliedFacultyHeading =
+    cmsContent?.alliedFacultyHeading || 'ALLIED FACULTY';
+
+  const alliedFacultyList =
+    cmsContent?.alliedFacultyList &&
+      Array.isArray(cmsContent.alliedFacultyList) &&
+      cmsContent.alliedFacultyList.length > 0
+      ? cmsContent.alliedFacultyList.filter(
+        (f: any) => f.is_visible !== false
+      )
+      : [
+        {
+          id: 'allied-default-1',
+          name: 'Dr. Allied Faculty Placeholder',
+          designation: 'Associated Professor (CS)',
+          photoUrl: '',
+          photoPlaceholder: 'PLACEHOLDER: PHOTO',
+        },
+      ];
 
   return (
     <div className="dept-page-container">
-      <AboutPageHero title={heroTitle} backgroundImage={heroImage} />
 
-      <div className="dept-main-wrapper py-[48px] sm:py-[64px] space-y-[48px] sm:space-y-[56px] flex flex-col items-center">
-        {/* HOD MESSAGE SECTION */}
-        <section className="w-full max-w-[950px] mx-auto flex flex-col items-center text-center space-y-[24px]">
-          <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center w-full">
+      <AboutPageHero
+        title={heroTitle}
+        backgroundImage={heroImage}
+      />
+
+      {/* Main Department Content */}
+      <div className="w-full max-w-[1480px] mx-auto px-[28px] sm:px-[40px] md:px-[56px] py-[64px] sm:py-[72px] space-y-[48px] sm:space-y-[56px]">
+
+        {/* =====================================================
+            HOD'S MESSAGE
+            DIRECTOR'S MESSAGE REFERENCE LAYOUT
+            ===================================================== */}
+
+        <section className="w-full">
+
+          {/* Desktop: heading aligned with message column */}
+          <div className="hidden md:grid grid-cols-[320px_minmax(0,1fr)] gap-[30px] lg:gap-[38px] mb-[40px]">
+            <div />
+
+            <h2 className="m-0 text-[40px] lg:text-[46px] leading-[1.1] font-bold text-[#0C71C3] uppercase tracking-[-1px] text-left relative -top-[30px]">
+              {hodHeading}
+            </h2>
+          </div>
+
+          {/* Mobile Heading */}
+          <h2 className="md:hidden text-[32px] sm:text-[38px] leading-[1.1] font-bold text-[#0C71C3] uppercase tracking-tight text-center mb-[34px]">
             {hodHeading}
           </h2>
 
-          <div className="flex flex-col md:flex-row gap-[28px] md:gap-[36px] items-center text-center md:text-left bg-[#F8FAFC] p-[28px] sm:p-[36px] border border-[#E2E8F0] rounded-[10px] shadow-xs w-full">
-            {/* HOD Photo */}
-            <div className="flex flex-col items-center flex-shrink-0 mx-auto md:mx-0">
-              <div className={`w-[190px] h-[235px] rounded-[6px] overflow-hidden flex items-center justify-center mb-[12px] shadow-sm${hodPhoto ? '' : ' bg-white p-[8px]'}`}>
-                {hodPhoto ? (
-                  <img src={hodPhoto} alt={hodName} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-[12px] font-semibold text-[#64748B] tracking-wide uppercase text-center">
-                    PLACEHOLDER: CS HOD PHOTO
-                  </span>
-                )}
-              </div>
-              <h3 className="text-[17px] font-bold text-[#1F2937] text-center">{hodName}</h3>
-              <p className="text-[13px] font-semibold text-[#0093DD] text-center mt-0.5">{hodDesignation}</p>
+          {/* Photo + Message */}
+          <div className="grid grid-cols-1 md:grid-cols-[320px_minmax(0,1fr)] gap-[30px] md:gap-[38px] lg:gap-[40px] items-start">
+
+            {/* LEFT — HOD IMAGE + NAME */}
+            <div className="w-full max-w-[315px] mx-auto md:mx-0">
+              <Link to="/people/cs-hod" className="no-underline block group cursor-pointer w-full text-center">
+                <DecorativeProfileImageFrame
+                  src={hodPhoto}
+                  alt={hodName}
+                  showBadge={false}
+                  fallbackLabel="CS HOD PHOTO"
+                />
+
+                <h3 className="m-0 mt-[6px] text-[18px] sm:text-[19px] leading-[1.3] font-bold text-black group-hover:text-[#0093DD] transition-colors text-center">
+                  {hodName}
+                </h3>
+              </Link>
             </div>
 
-            {/* HOD Message Paragraphs */}
-            <div className="flex-1 text-[15px] min-[700px]:text-[16px] leading-[1.8] text-[#444444] space-y-[16px] text-center md:text-left">
-              <p>{hodMessage}</p>
+            {/* RIGHT — MESSAGE */}
+            <div className="w-full text-[14px] lg:text-[14.5px] leading-[1.7] text-[#26384A] text-left">
+
+              <p className="m-0 text-justify">
+                {hodMessage}
+              </p>
+
             </div>
+
           </div>
+
         </section>
 
-        {/* SECTION DIVIDER */}
-        <div className="dept-divider w-full max-w-[600px] mx-auto">
-          <div className="dept-divider-line" />
-          <div className="dept-divider-dot" />
-        </div>
 
-        {/* OUR DEGREE PROGRAMS */}
+        {/* =====================================================
+            OUR DEGREE PROGRAMS
+            ===================================================== */}
+
         <section className="w-full space-y-[24px]">
-          <div className="relative w-full flex flex-col sm:flex-row items-center justify-center pb-[6px] border-b border-[#E2E8F0] gap-2 sm:gap-0">
+
+          <div className="relative w-full flex items-center justify-center pb-[6px] border-b border-[#E2E8F0]">
+
             <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center">
               {programsHeading}
             </h2>
-            <div className="sm:absolute sm:right-0 sm:bottom-[6px]">
-              <Link
-                to={viewAllProgramsUrl}
-                className="text-[13px] font-bold text-[#0093DD] hover:text-[#0C71C3] uppercase tracking-wider no-underline text-center sm:text-right"
-              >
-                {viewAllProgramsText}
-              </Link>
-            </div>
+
           </div>
 
           <div className="dept-card-row">
-            {programsList.map((prog: any) => (
-              <Link key={prog.id} to={prog.url || viewAllProgramsUrl} className="no-underline block dept-program-wrapper">
-                <DepartmentCard
-                  variant="program"
-                  title={prog.title}
-                  subtitle={prog.subtitle}
-                  imageUrl={prog.image}
-                  imageLabel={prog.imageLabel || 'CS PROGRAM'}
-                />
-              </Link>
-            ))}
+
+            {programsList.map((prog: any) => {
+              const tLower = (prog.title || '').toLowerCase();
+              let targetUrl = 'https://nu.edu.pk/Program/BS(CS)';
+              if (tLower.includes('software engineering') || tLower.includes('bs(se)')) {
+                targetUrl = 'https://nu.edu.pk/Program/BS(SE)';
+              } else if (tLower.includes('artificial intelligence') || tLower.includes('bs(ai)')) {
+                targetUrl = 'https://nu.edu.pk/Program/BS(AI)';
+              }
+
+              return (
+                <a
+                  key={prog.id}
+                  href={targetUrl}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.location.assign(targetUrl);
+                  }}
+                  className="no-underline block dept-program-wrapper cursor-pointer"
+                >
+
+                  <DepartmentCard
+                    variant="program"
+                    title={prog.title}
+                    subtitle={prog.subtitle}
+                    imageUrl={prog.image}
+                    imageLabel={prog.imageLabel || 'CS PROGRAM'}
+                  />
+
+                </a>
+              );
+            })}
+
           </div>
+
         </section>
 
-        {/* SECTION DIVIDER */}
-        <div className="dept-divider w-full max-w-[600px] mx-auto">
-          <div className="dept-divider-line" />
-          <div className="dept-divider-dot" />
-        </div>
 
-        {/* DEPARTMENT FACULTY */}
+        {/* =====================================================
+            DEPARTMENT FACULTY
+            ===================================================== */}
+
         <section className="w-full space-y-[24px]">
+
           <div className="relative w-full flex flex-col sm:flex-row items-center justify-center pb-[6px] border-b border-[#E2E8F0] gap-2 sm:gap-0">
+
             <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center">
               {facultyHeading}
             </h2>
-            <div className="sm:absolute sm:right-0 sm:bottom-[6px]">
-              <Link
-                to={viewAllFacultyUrl}
-                className="text-[13px] font-bold text-[#0093DD] hover:text-[#0C71C3] uppercase tracking-wider no-underline text-center sm:text-right"
-              >
-                {viewAllFacultyText}
-              </Link>
-            </div>
+
           </div>
 
-          <div className="dept-card-row">
-            {facultyList.slice(0, 4).map((fac: any) => (
+          <div className="dept-card-row dept-faculty-grid">
+            {facultyList.map((fac: any) => (
               <div key={fac.id} className="dept-faculty-wrapper">
-                <DepartmentCard
-                  variant="faculty"
-                  title={fac.name}
-                  role={fac.designation}
-                  imageUrl={fac.photoUrl}
-                  imageLabel={fac.photoPlaceholder || 'FACULTY MEMBER'}
-                />
+                <Link to={`/people/${fac.slug || fac.id}`} className="no-underline block cursor-pointer">
+                  <DepartmentCard
+                    variant="faculty"
+                    title={fac.name}
+                    role={fac.designation}
+                    imageUrl={fac.photoUrl || fac.photo_url || fac.image}
+                    imageLabel={fac.photoPlaceholder || 'FACULTY MEMBER'}
+                  />
+                </Link>
               </div>
             ))}
           </div>
+
         </section>
 
-        {/* SECTION DIVIDER */}
-        <div className="dept-divider w-full max-w-[600px] mx-auto">
-          <div className="dept-divider-line" />
-          <div className="dept-divider-dot" />
-        </div>
+        {/* =====================================================
+            ALLIED FACULTY
+            ===================================================== */}
 
-        {/* RESEARCH GROUPS (CS ONLY) */}
         <section className="w-full space-y-[24px]">
           <div className="relative w-full flex flex-col sm:flex-row items-center justify-center pb-[6px] border-b border-[#E2E8F0] gap-2 sm:gap-0">
             <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center">
-              {researchHeading}
+              {alliedFacultyHeading}
             </h2>
-            <div className="sm:absolute sm:right-0 sm:bottom-[6px]">
-              <Link
-                to={exploreResearchUrl}
-                className="text-[13px] font-bold text-[#0093DD] hover:text-[#0C71C3] uppercase tracking-wider no-underline text-center sm:text-right"
-              >
-                {exploreResearchText}
-              </Link>
-            </div>
           </div>
 
-          <div className="dept-card-row">
-            {researchList.slice(0, 4).map((area: any, idx: number) => (
-              <div
-                key={area.id || idx}
-                className="dept-research-wrapper p-[24px] bg-white border border-[#E2E8F0] rounded-[8px] shadow-xs card-hover-lift text-center flex flex-col items-center"
-              >
-                <h3 className="text-[17px] font-bold text-[#0C71C3] mb-[8px] text-center">{area.title}</h3>
-                <p className="text-[14px] text-[#555555] leading-[1.65] text-center">{area.description}</p>
+          <div className="dept-card-row dept-faculty-grid">
+            {alliedFacultyList.map((fac: any) => (
+              <div key={fac.id} className="dept-faculty-wrapper">
+                <Link to={`/people/${fac.slug || fac.id}`} className="no-underline block cursor-pointer">
+                  <DepartmentCard
+                    variant="faculty"
+                    title={fac.name}
+                    role={fac.designation}
+                    imageUrl={fac.photoUrl}
+                    imageLabel={fac.photoPlaceholder || 'ALLIED FACULTY MEMBER'}
+                  />
+                </Link>
               </div>
             ))}
           </div>
+
         </section>
+
       </div>
+
     </div>
   );
 }

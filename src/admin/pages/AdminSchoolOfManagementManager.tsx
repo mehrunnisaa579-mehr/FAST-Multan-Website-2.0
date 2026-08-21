@@ -9,8 +9,6 @@ import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
 import { cmsService } from '../../services/cmsService';
-import { supabase } from '../../lib/supabase';
-import { mgmtPrograms, mgmtFaculty } from '../../data/departments';
 import {
   Save,
   Plus,
@@ -23,11 +21,11 @@ import {
   Edit2,
   User,
   GraduationCap,
-  Users,
-  Link as LinkIcon,
   Eye,
   EyeOff,
+  ArrowLeft,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface MgmtProgramItem {
   id: string;
@@ -49,11 +47,12 @@ interface MgmtFacultyItem {
   is_visible: boolean;
 }
 
-interface MgmtLinkItem {
+interface MgmtAlliedFacultyItem {
   id: string;
-  title: string;
-  url: string;
-  description?: string;
+  name: string;
+  designation: string;
+  qualification?: string;
+  photoUrl?: string;
   display_order: number;
   is_visible: boolean;
 }
@@ -69,34 +68,15 @@ export default function AdminSchoolOfManagementManager() {
   const [headMessage, setHeadMessage] = useState(
     'Welcome to the FAST School of Management at Multan Campus. Our degree programs foster strategic business leadership, corporate management, marketing, finance, and entrepreneurship.'
   );
+  const [headEmail, setHeadEmail] = useState('');
+  const [headPhone, setHeadPhone] = useState('');
+  const [headEducation, setHeadEducation] = useState('');
+  const [headPublications, setHeadPublications] = useState('');
+  const [headCollaborations, setHeadCollaborations] = useState('');
+  const [headProjects, setHeadProjects] = useState('');
 
-  // Important Links List
-  const [importantLinks, setImportantLinks] = useState<MgmtLinkItem[]>([
-    {
-      id: 'link-1',
-      title: 'Academic Calendar',
-      url: 'https://www.nu.edu.pk/Student/Calender',
-      description: 'View upcoming academic schedules and semester dates',
-      display_order: 1,
-      is_visible: true,
-    },
-    {
-      id: 'link-2',
-      title: 'Fee Structure',
-      url: 'https://nu.edu.pk/Admissions/FeeStructure',
-      description: 'Tuition fees and payment structure',
-      display_order: 2,
-      is_visible: true,
-    },
-    {
-      id: 'link-3',
-      title: 'Eligibility Criteria',
-      url: 'https://nu.edu.pk/Admissions/EligibilityCriteria',
-      description: 'Admission requirements and qualifications',
-      display_order: 3,
-      is_visible: true,
-    },
-  ]);
+  // Allied Faculty List
+  const [alliedFacultyList, setAlliedFacultyList] = useState<MgmtAlliedFacultyItem[]>([]);
 
   // Management Programs List
   const [programsList, setProgramsList] = useState<MgmtProgramItem[]>([
@@ -160,9 +140,9 @@ export default function AdminSchoolOfManagementManager() {
   const [editingFac, setEditingFac] = useState<Partial<MgmtFacultyItem> | null>(null);
   const [deleteFacTarget, setDeleteFacTarget] = useState<MgmtFacultyItem | null>(null);
 
-  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
-  const [editingLink, setEditingLink] = useState<Partial<MgmtLinkItem> | null>(null);
-  const [deleteLinkTarget, setDeleteLinkTarget] = useState<MgmtLinkItem | null>(null);
+  const [isAlliedFacModalOpen, setIsAlliedFacModalOpen] = useState(false);
+  const [editingAlliedFac, setEditingAlliedFac] = useState<Partial<MgmtAlliedFacultyItem> | null>(null);
+  const [deleteAlliedFacTarget, setDeleteAlliedFacTarget] = useState<MgmtAlliedFacultyItem | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -176,14 +156,20 @@ export default function AdminSchoolOfManagementManager() {
       if (savedData.headDesignation) setHeadDesignation(savedData.headDesignation);
       if (savedData.headPhotoUrl) setHeadPhotoUrl(savedData.headPhotoUrl);
       if (savedData.headMessage) setHeadMessage(savedData.headMessage);
+      if (savedData.headEmail || savedData.hodEmail) setHeadEmail(savedData.headEmail || savedData.hodEmail);
+      if (savedData.headPhone || savedData.hodPhone) setHeadPhone(savedData.headPhone || savedData.hodPhone);
+      if (savedData.headEducation || savedData.hodEducation) setHeadEducation(savedData.headEducation || savedData.hodEducation);
+      if (savedData.headPublications || savedData.hodPublications) setHeadPublications(savedData.headPublications || savedData.hodPublications);
+      if (savedData.headCollaborations || savedData.hodCollaborations) setHeadCollaborations(savedData.headCollaborations || savedData.hodCollaborations);
+      if (savedData.headProjects || savedData.hodProjects) setHeadProjects(savedData.headProjects || savedData.hodProjects);
       if (savedData.programsList && savedData.programsList.length > 0) {
         setProgramsList(savedData.programsList);
       }
       if (savedData.facultyList && savedData.facultyList.length > 0) {
         setFacultyList(savedData.facultyList);
       }
-      if (savedData.importantLinks && savedData.importantLinks.length > 0) {
-        setImportantLinks(savedData.importantLinks);
+      if (savedData.alliedFacultyList && savedData.alliedFacultyList.length > 0) {
+        setAlliedFacultyList(savedData.alliedFacultyList);
       }
     }
   };
@@ -204,61 +190,62 @@ export default function AdminSchoolOfManagementManager() {
     }
   };
 
-  // Important Links Handlers
-  const handleOpenAddLink = () => {
-    setEditingLink({
-      id: `link-${Date.now()}`,
-      title: 'New Link',
-      url: '/',
-      description: '',
-      display_order: importantLinks.length + 1,
+  // Allied Faculty Handlers
+  const handleOpenAddAlliedFac = () => {
+    setEditingAlliedFac({
+      id: `allied-mgmt-${Date.now()}`,
+      name: 'New Allied Faculty Member',
+      designation: 'Assistant Professor',
+      qualification: 'PhD Management Sciences',
+      photoUrl: '',
+      display_order: alliedFacultyList.length + 1,
       is_visible: true,
     });
-    setIsLinkModalOpen(true);
+    setIsAlliedFacModalOpen(true);
   };
 
-  const handleOpenEditLink = (link: MgmtLinkItem) => {
-    setEditingLink({ ...link });
-    setIsLinkModalOpen(true);
+  const handleOpenEditAlliedFac = (fac: MgmtAlliedFacultyItem) => {
+    setEditingAlliedFac({ ...fac });
+    setIsAlliedFacModalOpen(true);
   };
 
-  const handleSaveLink = () => {
-    if (!editingLink?.title?.trim() || !editingLink?.url?.trim()) {
-      alert('Please fill in Link Title and Destination URL.');
+  const handleSaveAlliedFac = () => {
+    if (!editingAlliedFac?.name?.trim()) {
+      alert('Please enter a faculty member name.');
       return;
     }
 
-    const updated = [...importantLinks];
-    const idx = updated.findIndex((l) => l.id === editingLink.id);
+    const updated = [...alliedFacultyList];
+    const idx = updated.findIndex((f) => f.id === editingAlliedFac.id);
     if (idx >= 0) {
-      updated[idx] = editingLink as MgmtLinkItem;
+      updated[idx] = editingAlliedFac as MgmtAlliedFacultyItem;
     } else {
-      updated.push(editingLink as MgmtLinkItem);
+      updated.push(editingAlliedFac as MgmtAlliedFacultyItem);
     }
 
-    setImportantLinks(updated);
-    setIsLinkModalOpen(false);
+    setAlliedFacultyList(updated);
+    setIsAlliedFacModalOpen(false);
   };
 
-  const handleDeleteLink = () => {
-    if (!deleteLinkTarget) return;
-    setImportantLinks((prev) => prev.filter((l) => l.id !== deleteLinkTarget.id));
-    setDeleteLinkTarget(null);
+  const handleDeleteAlliedFac = () => {
+    if (!deleteAlliedFacTarget) return;
+    setAlliedFacultyList((prev) => prev.filter((f) => f.id !== deleteAlliedFacTarget.id));
+    setDeleteAlliedFacTarget(null);
   };
 
-  const handleMoveLink = (index: number, direction: 'up' | 'down') => {
-    const newList = [...importantLinks];
+  const handleMoveAlliedFac = (index: number, direction: 'up' | 'down') => {
+    const newList = [...alliedFacultyList];
     const targetIdx = direction === 'up' ? index - 1 : index + 1;
     if (targetIdx < 0 || targetIdx >= newList.length) return;
     const temp = newList[index];
     newList[index] = newList[targetIdx];
     newList[targetIdx] = temp;
-    setImportantLinks(newList);
+    setAlliedFacultyList(newList);
   };
 
-  const handleToggleLinkVisibility = (id: string) => {
-    setImportantLinks((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, is_visible: !l.is_visible } : l))
+  const handleToggleAlliedFacVisibility = (id: string) => {
+    setAlliedFacultyList((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, is_visible: !f.is_visible } : f))
     );
   };
 
@@ -379,9 +366,15 @@ export default function AdminSchoolOfManagementManager() {
       headDesignation,
       headPhotoUrl,
       headMessage,
+      headEmail,
+      headPhone,
+      headEducation,
+      headPublications,
+      headCollaborations,
+      headProjects,
       programsList,
       facultyList,
-      importantLinks,
+      alliedFacultyList,
       updated_at: new Date().toISOString(),
     };
 
@@ -398,15 +391,24 @@ export default function AdminSchoolOfManagementManager() {
 
   return (
     <div className="space-y-6 text-left max-w-[1250px]">
-      <AdminPageHeader
-        title="FAST School of Management Page"
-        subtitle="Manage School of Management page content, Head message, degree programs, and faculty members."
-        action={
-          <AdminButton variant="primary" onClick={handleSaveAll} loading={saving} icon={<Save className="w-4 h-4" />}>
-            Save Changes
-          </AdminButton>
-        }
-      />
+      <div className="flex items-center gap-4 mb-2">
+        <Link
+          to="/admin-panel5463/manage-departments"
+          className="p-2 bg-white border border-[#E5E7EB] rounded-md text-[#4B5563] hover:text-[#0093DD] transition-colors"
+          title="Back to Manage Departments"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <AdminPageHeader
+          title="Department of Management Sciences Page"
+          subtitle="Manage Management Sciences page, HOD message, programs, department faculty and allied faculty."
+          action={
+            <AdminButton variant="primary" onClick={handleSaveAll} loading={saving} icon={<Save className="w-4 h-4" />}>
+              Save Changes
+            </AdminButton>
+          }
+        />
+      </div>
 
       {message && (
         <div
@@ -465,51 +467,88 @@ export default function AdminSchoolOfManagementManager() {
       </AdminSection>
 
       {/* Head of Department Section */}
-      <AdminSection title="Head, Department of Management Sciences" description="Manage HOD details, photograph, and message.">
-        <AdminCard className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <AdminFormGroup label="Head Name">
-              <AdminInput value={headName} onChange={(e) => setHeadName(e.target.value)} placeholder="Dr. Head Name" />
-            </AdminFormGroup>
+      <AdminSection title="Head, Department of Management Sciences" description="Manage HOD details, photograph, contact information, and academic profile.">
+        <AdminCard className="space-y-6">
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Basic Information</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <AdminFormGroup label="Head Name">
+                <AdminInput value={headName} onChange={(e) => setHeadName(e.target.value)} placeholder="Dr. Head Name" />
+              </AdminFormGroup>
 
-            <AdminFormGroup label="Designation">
-              <AdminInput value={headDesignation} onChange={(e) => setHeadDesignation(e.target.value)} placeholder="Head, Department of Management Sciences" />
+              <AdminFormGroup label="Designation">
+                <AdminInput value={headDesignation} onChange={(e) => setHeadDesignation(e.target.value)} placeholder="Head, Department of Management Sciences" />
+              </AdminFormGroup>
+            </div>
+
+            <AdminFormGroup label="Head Photograph Upload">
+              <div className="flex items-center gap-3">
+                <div className="w-16 h-20 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
+                  {headPhotoUrl ? (
+                    <img src={headPhotoUrl} alt={headName} className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-6 h-6 text-[#9CA3AF]" />
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{headPhotoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeadPhotoUrl)} />
+                  </label>
+
+                  {headPhotoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setHeadPhotoUrl('')}
+                      className="px-3 py-1.5 bg-red-50 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200 cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
             </AdminFormGroup>
           </div>
 
-          <AdminFormGroup label="Head Photograph Upload">
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-20 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
-                {headPhotoUrl ? (
-                  <img src={headPhotoUrl} alt={headName} className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-6 h-6 text-[#9CA3AF]" />
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>{headPhotoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeadPhotoUrl)} />
-                </label>
-
-                {headPhotoUrl && (
-                  <button
-                    type="button"
-                    onClick={() => setHeadPhotoUrl('')}
-                    className="px-3 py-1.5 bg-red-50 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200"
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
+          <div className="space-y-4 pt-2">
+            <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Contact Information</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <AdminFormGroup label="Email Address">
+                <AdminInput value={headEmail} onChange={(e) => setHeadEmail(e.target.value)} placeholder="hod.mgmt@multan.nu.edu.pk" />
+              </AdminFormGroup>
+              <AdminFormGroup label="Phone Number">
+                <AdminInput value={headPhone} onChange={(e) => setHeadPhone(e.target.value)} placeholder="+92 (61) 111-128-128" />
+              </AdminFormGroup>
             </div>
-          </AdminFormGroup>
+          </div>
 
-          <AdminFormGroup label="HOD Message">
-            <AdminTextarea rows={4} value={headMessage} onChange={(e) => setHeadMessage(e.target.value)} placeholder="HOD message for Management Sciences..." />
-          </AdminFormGroup>
+          <div className="space-y-4 pt-2">
+            <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Profile Content</h4>
+            <AdminFormGroup label="HOD Message / Overview Paragraph">
+              <AdminTextarea rows={4} value={headMessage} onChange={(e) => setHeadMessage(e.target.value)} placeholder="Welcome message text..." />
+            </AdminFormGroup>
+
+            <AdminFormGroup label="Education">
+              <AdminTextarea rows={3} value={headEducation} onChange={(e) => setHeadEducation(e.target.value)} placeholder="Ph.D. in Management Sciences / Business Administration..." />
+            </AdminFormGroup>
+          </div>
+
+          <div className="space-y-4 pt-2">
+            <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Academic Details</h4>
+            <AdminFormGroup label="Publications">
+              <AdminTextarea rows={4} value={headPublications} onChange={(e) => setHeadPublications(e.target.value)} placeholder="List of journal and conference publications..." />
+            </AdminFormGroup>
+
+            <AdminFormGroup label="Collaborations at National and International Level">
+              <AdminTextarea rows={4} value={headCollaborations} onChange={(e) => setHeadCollaborations(e.target.value)} placeholder="Academic and research collaborations..." />
+            </AdminFormGroup>
+
+            <AdminFormGroup label="Detail of Funded Projects">
+              <AdminTextarea rows={4} value={headProjects} onChange={(e) => setHeadProjects(e.target.value)} placeholder="HEC grants, corporate projects, sponsored research..." />
+            </AdminFormGroup>
+          </div>
         </AdminCard>
       </AdminSection>
 
@@ -648,24 +687,28 @@ export default function AdminSchoolOfManagementManager() {
         </div>
       </AdminSection>
 
-      {/* Important Links Section */}
+      {/* Allied Faculty Section */}
       <AdminSection
-        title="Important Links"
-        description="Add, edit, reorder, or show/hide important links displayed on the School of Management page."
+        title="Allied Faculty"
+        description="Add, edit, reorder, or remove allied faculty members displayed on the Management Sciences page."
       >
         <div className="flex justify-between items-center mb-4">
-          <h4 className="text-sm font-bold text-[#374151]">Important Links List</h4>
-          <AdminButton variant="primary" onClick={handleOpenAddLink} icon={<Plus className="w-4 h-4" />}>
-            Add Link
+          <h4 className="text-sm font-bold text-[#374151]">Allied Faculty List</h4>
+          <AdminButton variant="primary" onClick={handleOpenAddAlliedFac} icon={<Plus className="w-4 h-4" />}>
+            Add Allied Faculty Member
           </AdminButton>
         </div>
 
         <div className="space-y-3">
-          {importantLinks.map((link, idx) => (
-            <AdminCard key={link.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          {alliedFacultyList.map((fac, idx) => (
+            <AdminCard key={fac.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-[#F0F9FF] text-[#0093DD] flex items-center justify-center flex-shrink-0 font-bold border border-[#E5E7EB]">
-                  <LinkIcon className="w-5 h-5" />
+                <div className="w-12 h-14 rounded-md bg-[#F3F4F6] border border-[#E5E7EB] overflow-hidden flex items-center justify-center flex-shrink-0">
+                  {fac.photoUrl ? (
+                    <img src={fac.photoUrl} alt={fac.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-6 h-6 text-[#9CA3AF]" />
+                  )}
                 </div>
 
                 <div>
@@ -673,35 +716,35 @@ export default function AdminSchoolOfManagementManager() {
                     <span className="text-xs font-bold text-[#0093DD] bg-[#F0F9FF] px-2 py-0.5 rounded">
                       Order #{idx + 1}
                     </span>
-                    <span className="text-xs text-[#6B7280] font-mono">{link.url}</span>
-                    {!link.is_visible && (
+                    <span className="text-xs text-[#6B7280]">{fac.qualification}</span>
+                    {!fac.is_visible && (
                       <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
                         Hidden
                       </span>
                     )}
                   </div>
-                  <h4 className="text-base font-bold text-[#1F2937]">{link.title}</h4>
-                  {link.description && <p className="text-xs text-[#6B7280]">{link.description}</p>}
+                  <h4 className="text-base font-bold text-[#1F2937]">{fac.name}</h4>
+                  <p className="text-xs text-[#6B7280]">{fac.designation}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 self-end sm:self-center">
                 <button
                   type="button"
-                  onClick={() => handleToggleLinkVisibility(link.id)}
+                  onClick={() => handleToggleAlliedFacVisibility(fac.id)}
                   className={`p-2 border rounded-md cursor-pointer transition-colors ${
-                    link.is_visible
+                    fac.is_visible
                       ? 'text-[#0093DD] bg-[#F0F9FF] border-[#B9E6FE]'
                       : 'text-[#9CA3AF] bg-[#F9FAFB] border-[#E5E7EB]'
                   }`}
-                  title={link.is_visible ? 'Visible (Click to Hide)' : 'Hidden (Click to Show)'}
+                  title={fac.is_visible ? 'Visible (Click to Hide)' : 'Hidden (Click to Show)'}
                 >
-                  {link.is_visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                  {fac.is_visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => handleMoveLink(idx, 'up')}
+                  onClick={() => handleMoveAlliedFac(idx, 'up')}
                   disabled={idx === 0}
                   className="p-2 text-[#6B7280] hover:text-[#1F2937] disabled:opacity-30 border border-[#E5E7EB] rounded-md bg-white cursor-pointer"
                   title="Move Up"
@@ -711,19 +754,19 @@ export default function AdminSchoolOfManagementManager() {
 
                 <button
                   type="button"
-                  onClick={() => handleMoveLink(idx, 'down')}
-                  disabled={idx === importantLinks.length - 1}
+                  onClick={() => handleMoveAlliedFac(idx, 'down')}
+                  disabled={idx === alliedFacultyList.length - 1}
                   className="p-2 text-[#6B7280] hover:text-[#1F2937] disabled:opacity-30 border border-[#E5E7EB] rounded-md bg-white cursor-pointer"
                   title="Move Down"
                 >
                   <ArrowDown className="w-4 h-4" />
                 </button>
 
-                <AdminButton variant="secondary" onClick={() => handleOpenEditLink(link)} icon={<Edit2 className="w-4 h-4" />}>
-                  Edit Link
+                <AdminButton variant="secondary" onClick={() => handleOpenEditAlliedFac(fac)} icon={<Edit2 className="w-4 h-4" />}>
+                  Edit Allied Faculty
                 </AdminButton>
 
-                <AdminButton variant="danger" onClick={() => setDeleteLinkTarget(link)} icon={<Trash2 className="w-4 h-4" />}>
+                <AdminButton variant="danger" onClick={() => setDeleteAlliedFacTarget(fac)} icon={<Trash2 className="w-4 h-4" />}>
                   Delete
                 </AdminButton>
               </div>
@@ -772,7 +815,7 @@ export default function AdminSchoolOfManagementManager() {
                 {editingProg?.image ? (
                   <img src={editingProg.image} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
-                  <GraduationCap className="w-6 h-6 text-[#9CA3AF]" />
+                  <User className="w-6 h-6 text-[#9CA3AF]" />
                 )}
               </div>
 
@@ -910,61 +953,98 @@ export default function AdminSchoolOfManagementManager() {
         itemTitle={deleteFacTarget?.name}
       />
 
-      {/* Edit Link Modal */}
+      {/* Edit Allied Faculty Modal */}
       <AdminModal
-        isOpen={isLinkModalOpen}
-        onClose={() => setIsLinkModalOpen(false)}
-        title={editingLink?.id ? 'Edit Important Link' : 'Add Important Link'}
+        isOpen={isAlliedFacModalOpen}
+        onClose={() => setIsAlliedFacModalOpen(false)}
+        title={editingAlliedFac?.id ? 'Edit Allied Faculty Member' : 'Add Allied Faculty Member'}
         maxWidth="md"
         footer={
           <>
-            <AdminButton variant="secondary" onClick={() => setIsLinkModalOpen(false)}>
+            <AdminButton variant="secondary" onClick={() => setIsAlliedFacModalOpen(false)}>
               Cancel
             </AdminButton>
-            <AdminButton variant="primary" onClick={handleSaveLink}>
-              Save Link
+            <AdminButton variant="primary" onClick={handleSaveAlliedFac}>
+              Save Allied Faculty
             </AdminButton>
           </>
         }
       >
         <div className="space-y-4 text-left">
-          <AdminFormGroup label="Link Title" required>
+          <AdminFormGroup label="Full Name" required>
             <AdminInput
-              value={editingLink?.title || ''}
-              onChange={(e) => setEditingLink((prev) => ({ ...prev, title: e.target.value }))}
-              placeholder="e.g. Academic Calendar"
+              value={editingAlliedFac?.name || ''}
+              onChange={(e) => setEditingAlliedFac((prev) => ({ ...prev, name: e.target.value }))}
+              placeholder="e.g. Dr. Faculty Name"
             />
           </AdminFormGroup>
 
-          <AdminFormGroup label="Destination URL" required description="Enter internal route (e.g. /admissions/fee-structure) or external URL (e.g. https://nu.edu.pk)">
-            <AdminInput
-              value={editingLink?.url || ''}
-              onChange={(e) => setEditingLink((prev) => ({ ...prev, url: e.target.value }))}
-              placeholder="e.g. https://nu.edu.pk/Admissions/FeeStructure or /admissions/fee-structure"
-            />
-          </AdminFormGroup>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <AdminFormGroup label="Designation">
+              <AdminInput
+                value={editingAlliedFac?.designation || ''}
+                onChange={(e) => setEditingAlliedFac((prev) => ({ ...prev, designation: e.target.value }))}
+                placeholder="e.g. Associate Professor"
+              />
+            </AdminFormGroup>
 
-          <AdminFormGroup label="Short Description (Optional)">
-            <AdminInput
-              value={editingLink?.description || ''}
-              onChange={(e) => setEditingLink((prev) => ({ ...prev, description: e.target.value }))}
-              placeholder="e.g. View fee structure and payment details"
-            />
+            <AdminFormGroup label="Qualification">
+              <AdminInput
+                value={editingAlliedFac?.qualification || ''}
+                onChange={(e) => setEditingAlliedFac((prev) => ({ ...prev, qualification: e.target.value }))}
+                placeholder="e.g. PhD Management Sciences"
+              />
+            </AdminFormGroup>
+          </div>
+
+          <AdminFormGroup label="Photo Upload">
+            <div className="flex items-center gap-3">
+              <div className="w-16 h-20 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
+                {editingAlliedFac?.photoUrl ? (
+                  <img src={editingAlliedFac.photoUrl} alt="Allied Faculty Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-6 h-6 text-[#9CA3AF]" />
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>{editingAlliedFac?.photoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleFileUpload(e, (url) => setEditingAlliedFac((prev) => ({ ...prev, photoUrl: url })))}
+                  />
+                </label>
+
+                {editingAlliedFac?.photoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setEditingAlliedFac((prev) => ({ ...prev, photoUrl: '' }))}
+                    className="px-3 py-1.5 bg-red-50 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            </div>
           </AdminFormGroup>
 
           <AdminToggle
             label="Visible on Website"
-            checked={editingLink?.is_visible ?? true}
-            onChange={(checked) => setEditingLink((prev) => ({ ...prev, is_visible: checked }))}
+            checked={editingAlliedFac?.is_visible ?? true}
+            onChange={(checked) => setEditingAlliedFac((prev) => ({ ...prev, is_visible: checked }))}
           />
         </div>
       </AdminModal>
 
       <DeleteConfirmModal
-        isOpen={!!deleteLinkTarget}
-        onClose={() => setDeleteLinkTarget(null)}
-        onConfirm={handleDeleteLink}
-        itemTitle={deleteLinkTarget?.title}
+        isOpen={!!deleteAlliedFacTarget}
+        onClose={() => setDeleteAlliedFacTarget(null)}
+        onConfirm={handleDeleteAlliedFac}
+        itemTitle={deleteAlliedFacTarget?.name}
       />
     </div>
   );

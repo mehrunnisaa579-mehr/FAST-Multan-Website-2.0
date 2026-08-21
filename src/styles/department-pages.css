@@ -10,8 +10,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 50px 0;
+  margin: 50px auto;
+  margin-inline: auto;
   width: 100%;
+  max-width: 600px;
 }
 
 .dept-divider-line {
@@ -22,11 +24,15 @@
 
 .dept-divider-dot {
   position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 14px;
   height: 14px;
   border-radius: 50%;
   border: 2px solid #0C71C3;
   background-color: #ffffff;
+  z-index: 2;
 }
 
 .dept-section-heading {
@@ -54,7 +60,7 @@
 
 /* Card Wrappers for true centering & correct widths */
 .dept-program-wrapper {
-  width: 340px;
+  width: 310px;
   max-width: 100%;
 }
 
@@ -63,8 +69,278 @@
   max-width: 100%;
 }
 
+.dept-faculty-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 36px 32px;
+  width: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+  box-sizing: border-box;
+}
+
 .dept-research-wrapper {
   width: 480px;
   max-width: 100%;
 }
 
+/* ─── Administration Staff – Split Layout ─────────────────────────────────── */
+
+.admin-staff-layout {
+  display: flex;
+  gap: 0;
+  width: 100%;
+  align-items: flex-start;
+}
+
+/* ── Left Sidebar ─────────────────────────────────────────────────────────── */
+.admin-staff-sidebar {
+  flex-shrink: 0;
+  width: 240px;
+  background-color: #ffffff;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  overflow: hidden;
+  position: sticky;
+  top: 24px;
+}
+
+.admin-staff-sidebar-header {
+  background-color: #0C71C3;
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-staff-office-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+}
+
+.admin-staff-office-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 18px;
+  background: transparent;
+  border: none;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #374151;
+  transition: background-color 250ms ease, color 250ms ease, border-left-color 250ms ease;
+  outline: none;
+  line-height: 1.4;
+}
+
+.admin-staff-office-btn:hover {
+  background-color: rgba(14, 30, 76, 0.07);
+  color: #0E1E4C;
+  border-left-color: #0E1E4C;
+}
+
+.admin-staff-office-btn.active {
+  background-color: rgba(12, 113, 195, 0.08);
+  color: #0C71C3;
+  border-left-color: #0C71C3;
+  font-weight: 700;
+}
+
+.office-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #CBD5E1;
+  flex-shrink: 0;
+  transition: background-color 250ms ease;
+}
+
+.admin-staff-office-btn:hover .office-dot {
+  background-color: #0E1E4C;
+}
+
+.admin-staff-office-btn.active .office-dot {
+  background-color: #0C71C3;
+}
+
+/* ── Right Content Area ───────────────────────────────────────────────────── */
+.admin-staff-content {
+  flex: 1;
+  min-width: 0;
+  padding-left: 32px;
+}
+
+.admin-staff-content-header {
+  padding-bottom: 14px;
+  margin-bottom: 28px;
+  border-bottom: 2px solid #E2E8F0;
+}
+
+.admin-staff-content-title {
+  font-size: 21px;
+  font-weight: 700;
+  color: #0C71C3;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 2px 0;
+}
+
+.admin-staff-content-count {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6B7280;
+  margin: 0;
+}
+
+/* ── Staff Grid ───────────────────────────────────────────────────────────── */
+.admin-staff-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  justify-content: flex-start;
+}
+
+/* ── Staff Card ───────────────────────────────────────────────────────────── */
+.admin-staff-card {
+  width: 162px;
+  max-width: 100%;
+  background: #ffffff;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 20px 14px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  text-decoration: none;
+  transition: border-color 250ms ease, box-shadow 250ms ease, transform 250ms ease;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.admin-staff-card:hover {
+  border-color: #0C71C3;
+  box-shadow: 0 6px 20px rgba(12, 113, 195, 0.13);
+  transform: translateY(-3px);
+}
+
+.admin-staff-card-photo {
+  width: 106px;
+  height: 134px;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F9FAFB;
+  flex-shrink: 0;
+  margin-bottom: 14px;
+  transition: border-color 250ms ease;
+}
+
+.admin-staff-card:hover .admin-staff-card-photo {
+  border-color: #0C71C3;
+}
+
+.admin-staff-card-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-staff-card-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1F2937;
+  line-height: 1.35;
+  margin: 0 0 16px 0;
+  transition: color 250ms ease;
+}
+
+.admin-staff-card:hover .admin-staff-card-name {
+  color: #0C71C3;
+}
+
+.admin-staff-card-role {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #6B7280;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .admin-staff-layout {
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .admin-staff-sidebar {
+    width: 100%;
+    position: static;
+  }
+
+  .admin-staff-office-list {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .admin-staff-office-btn {
+    flex: 1 1 auto;
+    min-width: 110px;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 5px;
+    padding: 9px 12px;
+    font-size: 13px;
+  }
+
+  .admin-staff-office-btn:hover {
+    border-left-color: transparent;
+    border-bottom-color: #0E1E4C;
+  }
+
+  .admin-staff-office-btn.active {
+    border-left-color: transparent;
+    border-bottom-color: #0C71C3;
+  }
+
+  .admin-staff-content {
+    padding-left: 0;
+  }
+
+  .admin-staff-grid {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-staff-card {
+    width: 136px;
+    padding: 14px 10px;
+  }
+
+  .admin-staff-card-photo {
+    width: 88px;
+    height: 110px;
+  }
+
+  .admin-staff-grid {
+    gap: 14px;
+  }
+}

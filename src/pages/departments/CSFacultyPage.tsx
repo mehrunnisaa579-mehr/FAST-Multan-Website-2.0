@@ -39,14 +39,14 @@ export default function CSFacultyPage() {
             {facultyHeading}
           </h2>
 
-          <div className="flex flex-wrap justify-center gap-[24px]">
+          <div className="dept-card-row dept-faculty-grid">
             {facultyList.map((fac: any) => (
-              <div key={fac.id} className="w-full max-w-[240px] sm:w-[230px]">
+              <div key={fac.id} className="dept-faculty-wrapper">
                 <DepartmentCard
                   title={fac.name}
                   role={fac.designation}
                   imageLabel={fac.photoPlaceholder || 'FACULTY MEMBER'}
-                  imageUrl={fac.photoUrl}
+                  imageUrl={fac.photoUrl || fac.photo_url || fac.image}
                   variant="faculty"
                 />
               </div>

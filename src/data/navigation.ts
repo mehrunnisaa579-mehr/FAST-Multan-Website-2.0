@@ -29,46 +29,8 @@ export const navigationData: NavItem[] = [
   {
     label: 'DEPARTMENTS',
     items: [
-      { label: 'All Departments', href: '/departments' },
-      {
-        label: 'FAST School Of Computing',
-        href: '/departments/computing',
-        items: [
-          {
-            label: 'Department Of Computer Science',
-            href: '/departments/computing/computer-science',
-            items: [
-              { label: 'Programs', href: '/departments/computing/computer-science/programs' },
-              { label: 'Faculty', href: '/departments/computing/computer-science/faculty' },
-              { label: 'Research Groups', href: '/departments/computing/computer-science/research-groups' },
-            ],
-          },
-          {
-            label: 'Department Of Software Engineering',
-            href: '/departments/computing/software-engineering',
-            items: [
-              { label: 'Programs', href: '/departments/computing/software-engineering/programs' },
-              { label: 'Faculty', href: '/departments/computing/software-engineering/faculty' },
-            ],
-          },
-          {
-            label: 'Department Of AI',
-            href: '/departments/computing/ai-data-science',
-            items: [
-              { label: 'Programs', href: '/departments/computing/ai-data-science/programs' },
-              { label: 'Faculty', href: '/departments/computing/ai-data-science/faculty' },
-            ],
-          },
-        ],
-      },
-      {
-        label: 'FAST School Of Management',
-        href: '/departments/management',
-        items: [
-          { label: 'Programs', href: '/departments/management/programs' },
-          { label: 'Faculty', href: '/departments/management/faculty' },
-        ],
-      },
+      { label: 'Department Of Computer Science', href: '/departments/computer-science' },
+      { label: 'Department Of Management Science', href: '/departments/management' },
       { label: 'Administration Staff', href: '/departments/administration-staff' },
     ],
   },

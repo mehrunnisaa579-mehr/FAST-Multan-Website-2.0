@@ -1,27 +1,19 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import SiteLayout from './components/layout/SiteLayout';
 import HomePage from './pages/HomePage';
 import MissionPage from './pages/about/MissionPage';
 import CampusIntroductionPage from './pages/about/CampusIntroductionPage';
 import UniversityCharterPage from './pages/about/UniversityCharterPage';
-import AllDepartmentsPage from './pages/departments/AllDepartmentsPage';
-import SchoolOfComputingPage from './pages/departments/SchoolOfComputingPage';
 import CSDepartmentPage from './pages/departments/CSDepartmentPage';
-import SEDepartmentPage from './pages/departments/SEDepartmentPage';
-import AIDSDepartmentPage from './pages/departments/AIDSDepartmentPage';
 import SchoolOfManagementPage from './pages/departments/SchoolOfManagementPage';
 import ManagementProgramsPage from './pages/departments/ManagementProgramsPage';
 import ManagementFacultyPage from './pages/departments/ManagementFacultyPage';
 import AdministrationStaffPage from './pages/departments/AdministrationStaffPage';
-import StaffProfilePage from './pages/departments/StaffProfilePage';
+import PersonProfilePage from './pages/departments/PersonProfilePage';
 import CSProgramsPage from './pages/departments/CSProgramsPage';
 import CSFacultyPage from './pages/departments/CSFacultyPage';
 import CSResearchGroupsPage from './pages/departments/CSResearchGroupsPage';
-import SEProgramsPage from './pages/departments/SEProgramsPage';
-import SEFacultyPage from './pages/departments/SEFacultyPage';
-import AIDSProgramsPage from './pages/departments/AIDSProgramsPage';
-import AIDSFacultyPage from './pages/departments/AIDSFacultyPage';
 import NewsPage from './pages/news/NewsPage';
 import NewsPageTwo from './pages/news/NewsPageTwo';
 import NewsDetailPage from './pages/news/NewsDetailPage';
@@ -37,6 +29,7 @@ import AboutEDCPage from './pages/edc/AboutEDCPage';
 import ConferencesPage from './pages/edc/ConferencesPage';
 import ConferenceSpeakersPage from './pages/edc/ConferenceSpeakersPage';
 import SummerBootcamp2026Page from './pages/edc/SummerBootcamp2026Page';
+import WorkshopDetailPage from './pages/edc/WorkshopDetailPage';
 import HighlightsPage from './pages/edc/HighlightsPage';
 import ContactPage from './pages/ContactPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
@@ -71,6 +64,7 @@ import AdminEDCConferencesManager from './admin/pages/AdminEDCConferencesManager
 import AdminEDCSpeakersManager from './admin/pages/AdminEDCSpeakersManager';
 import AdminEDCWorkshopsHub from './admin/pages/AdminEDCWorkshopsHub';
 import AdminEDCSummerBootcampEditor from './admin/pages/AdminEDCSummerBootcampEditor';
+import AdminWorkshopEditor from './admin/pages/AdminWorkshopEditor';
 import AdminEDCHighlightsManager from './admin/pages/AdminEDCHighlightsManager';
 import AdminUsefulLinksOverview from './admin/pages/AdminUsefulLinksOverview';
 import AdminDisabilityEditor from './admin/pages/AdminDisabilityEditor';
@@ -88,6 +82,7 @@ import AdminUniversityCharterEditor from './admin/pages/AdminUniversityCharterEd
 import AdminAboutManager from './admin/pages/AdminAboutManager';
 import AdminAllDepartmentsManager from './admin/pages/AdminAllDepartmentsManager';
 import AdminDepartmentsManager from './admin/pages/AdminDepartmentsManager';
+import AdminManageDepartmentsHub from './admin/pages/AdminManageDepartmentsHub';
 import AdminCSDepartmentEditor from './admin/pages/AdminCSDepartmentEditor';
 import AdminSEDepartmentEditor from './admin/pages/AdminSEDepartmentEditor';
 import AdminAIDepartmentEditor from './admin/pages/AdminAIDepartmentEditor';
@@ -118,23 +113,17 @@ export default function App() {
             <Route path="about/mission" element={<MissionPage />} />
             <Route path="about/campus-introduction" element={<CampusIntroductionPage />} />
             <Route path="about/university-charter" element={<UniversityCharterPage />} />
-            <Route path="departments" element={<AllDepartmentsPage />} />
-            <Route path="departments/computing" element={<SchoolOfComputingPage />} />
-            <Route path="departments/computing/computer-science" element={<CSDepartmentPage />} />
+            <Route path="departments/computer-science" element={<CSDepartmentPage />} />
+            <Route path="departments/computing/computer-science" element={<Navigate to="/departments/computer-science" replace />} />
             <Route path="departments/computing/computer-science/programs" element={<CSProgramsPage />} />
             <Route path="departments/computing/computer-science/faculty" element={<CSFacultyPage />} />
             <Route path="departments/computing/computer-science/research-groups" element={<CSResearchGroupsPage />} />
-            <Route path="departments/computing/software-engineering" element={<SEDepartmentPage />} />
-            <Route path="departments/computing/software-engineering/programs" element={<SEProgramsPage />} />
-            <Route path="departments/computing/software-engineering/faculty" element={<SEFacultyPage />} />
-            <Route path="departments/computing/ai-data-science" element={<AIDSDepartmentPage />} />
-            <Route path="departments/computing/ai-data-science/programs" element={<AIDSProgramsPage />} />
-            <Route path="departments/computing/ai-data-science/faculty" element={<AIDSFacultyPage />} />
             <Route path="departments/management" element={<SchoolOfManagementPage />} />
             <Route path="departments/management/programs" element={<ManagementProgramsPage />} />
             <Route path="departments/management/faculty" element={<ManagementFacultyPage />} />
             <Route path="departments/administration-staff" element={<AdministrationStaffPage />} />
-            <Route path="staff/:slug" element={<StaffProfilePage />} />
+            <Route path="staff/:slug" element={<PersonProfilePage />} />
+            <Route path="people/:slug" element={<PersonProfilePage />} />
             <Route path="news" element={<NewsPage />} />
             <Route path="news/page/2" element={<NewsPageTwo />} />
             <Route path="news/:slug" element={<NewsDetailPage />} />
@@ -151,6 +140,7 @@ export default function App() {
             <Route path="edc/conferences" element={<ConferencesPage />} />
             <Route path="edc/conferences/speakers" element={<ConferenceSpeakersPage />} />
             <Route path="edc/workshops/summer-bootcamp-2026" element={<SummerBootcamp2026Page />} />
+            <Route path="edc/workshops/:slug" element={<WorkshopDetailPage />} />
             <Route path="edc/highlights" element={<HighlightsPage />} />
             <Route path="contact" element={<ContactPage />} />
             <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
@@ -166,6 +156,7 @@ export default function App() {
               <Route path="about" element={<AdminAboutManager />} />
               <Route path="all-departments" element={<AdminAllDepartmentsManager />} />
               <Route path="departments" element={<AdminDepartmentsManager />} />
+              <Route path="manage-departments" element={<AdminManageDepartmentsHub />} />
               <Route path="departments/cs" element={<AdminCSDepartmentEditor />} />
               <Route path="departments/se" element={<AdminSEDepartmentEditor />} />
               <Route path="departments/ai" element={<AdminAIDepartmentEditor />} />
@@ -197,6 +188,7 @@ export default function App() {
               <Route path="edc/conferences/speakers" element={<AdminEDCSpeakersManager />} />
               <Route path="edc/workshops-hub" element={<AdminEDCWorkshopsHub />} />
               <Route path="edc/workshops/summer-bootcamp-2026" element={<AdminEDCSummerBootcampEditor />} />
+              <Route path="edc/workshops/:slug/edit" element={<AdminWorkshopEditor />} />
               <Route path="edc/highlights" element={<AdminEDCHighlightsManager />} />
               <Route path="useful-links" element={<AdminUsefulLinksOverview />} />
               <Route path="useful-links/disability-accessibility" element={<AdminDisabilityEditor />} />

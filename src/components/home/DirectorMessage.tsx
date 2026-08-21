@@ -1,16 +1,33 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { homepageContent } from '../../data/homepage';
 import { cmsService } from '../../services/cmsService';
+import DecorativeProfileImageFrame from '../ui/DecorativeProfileImageFrame';
 
 export default function DirectorMessage() {
-  const [directorName, setDirectorName] = useState(homepageContent.directorMessage.name);
-  const [directorTitle, setDirectorTitle] = useState(homepageContent.directorMessage.title);
-  const [directorMessage, setDirectorMessage] = useState(homepageContent.directorMessage.message);
-  const [directorPhoto, setDirectorPhoto] = useState(homepageContent.directorMessage.photo || '');
+  const [directorName, setDirectorName] = useState(
+    homepageContent.directorMessage.name
+  );
+
+  const [directorTitle, setDirectorTitle] = useState(
+    homepageContent.directorMessage.title
+  );
+
+  const [directorMessage, setDirectorMessage] = useState(
+    homepageContent.directorMessage.message
+  );
+
+  const [directorPhoto, setDirectorPhoto] = useState(
+    homepageContent.directorMessage.photo || ''
+  );
 
   useEffect(() => {
     const fetchDirectorData = async () => {
-      const data = await cmsService.getSetting<any>('homepage_full_content', null);
+      const data = await cmsService.getSetting<any>(
+        'homepage_full_content',
+        null
+      );
+
       if (data) {
         if (data.directorName) setDirectorName(data.directorName);
         if (data.directorTitle) setDirectorTitle(data.directorTitle);
@@ -18,6 +35,7 @@ export default function DirectorMessage() {
         if (data.directorPhoto) setDirectorPhoto(data.directorPhoto);
       }
     };
+
     fetchDirectorData();
   }, []);
 
@@ -26,36 +44,60 @@ export default function DirectorMessage() {
     : [homepageContent.directorMessage.message];
 
   return (
-    <section className="w-full bg-white py-[60px] min-[700px]:py-[80px]">
-      <div className="w-full max-w-[1040px] mx-auto px-[20px] sm:px-[24px]">
-        {/* Heading */}
-        <h2 className="text-[26px] min-[700px]:text-[30px] font-bold text-[#0C71C3] uppercase mb-[36px] text-center">
-          Director's Message
-        </h2>
+    <section className="w-full bg-white py-[60px] sm:py-[76px]">
+      {/* ── Balanced Container (max-w-[1240px], clean margins) ── */}
+      <div className="w-full max-w-[1240px] mx-auto px-[20px] sm:px-[36px] md:px-[48px]">
 
-        {/* Centered Content Container */}
-        <div className="grid grid-cols-1 min-[700px]:grid-cols-[290px_1fr] gap-[34px] min-[900px]:gap-[40px] items-start">
-          {/* Left Column: Photo Card */}
-          <div className="flex flex-col items-center justify-self-center min-[700px]:justify-self-start w-full max-w-[290px] card-hover-lift rounded-[8px] p-[12px]">
-            <div className={`w-[210px] h-[260px] min-[700px]:w-[240px] min-[700px]:h-[295px] rounded-[4px] mb-[14px] shadow-sm overflow-hidden border border-[#E5E7EB] flex items-center justify-center${directorPhoto ? '' : ' bg-white p-[16px] text-center'}`}>
-              {directorPhoto ? (
-                <img src={directorPhoto} alt={directorName} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-[12px] font-semibold text-[#666666] tracking-wide uppercase">
-                  DIRECTOR PHOTO
-                </span>
+        {/* ── Two-Column Layout ── */}
+        <div className="grid grid-cols-1 md:grid-cols-[290px_1fr] lg:grid-cols-[320px_1fr] gap-[32px] md:gap-[40px] lg:gap-[48px] items-start w-full">
+
+          {/* ════ LEFT COLUMN — PHOTO & NAME (CLICKABLE TO PROFILE) ═════════ */}
+          <div className="w-full max-w-[320px] mx-auto md:mx-0 flex flex-col items-center pt-0 md:pt-[45px]">
+            <Link to="/people/director" className="no-underline block group cursor-pointer w-full text-center">
+              {/* Decorative Architectural Photo Frame */}
+              <DecorativeProfileImageFrame
+                src={directorPhoto}
+                alt={directorName}
+                showBadge={false}
+                fallbackLabel="DIRECTOR PHOTO"
+                className="mb-[10px]"
+              />
+
+              {/* Director Name */}
+              <h3 className="text-[15px] sm:text-[16px] font-bold text-[#1F2937] group-hover:text-[#0093DD] transition-colors text-center leading-snug">
+                {directorName}
+              </h3>
+              {/* Subtle Designation */}
+              {directorTitle && (
+                <p className="text-[12px] font-semibold text-[#0093DD] text-center mt-[2px]">
+                  {directorTitle}
+                </p>
               )}
-            </div>
-            <h3 className="text-[17px] font-bold text-[#333333] text-center">{directorName}</h3>
-            <p className="text-[13px] font-medium text-[#666666] text-center mt-[2px]">{directorTitle}</p>
+            </Link>
           </div>
 
-          {/* Right Column: Message Paragraphs */}
-          <div className="flex-1 text-[15px] min-[700px]:text-[16px] leading-[1.75] text-[#444444] space-y-[18px] text-left pt-[4px]">
-            {messageParagraphs.map((para, idx) => (
-              <p key={idx}>{para}</p>
-            ))}
+          {/* ════ RIGHT COLUMN — HEADING + PARAGRAPH ═══════════════════════ */}
+          <div className="w-full flex flex-col items-start pt-0 gap-[40px]">
+
+            {/* Heading */}
+            <h2 className="text-[28px] sm:text-[34px] lg:text-[38px] font-bold text-[#0C71C3] uppercase tracking-tight text-left leading-tight">
+              Director's Message
+            </h2>
+
+            {/* Paragraph Text */}
+            <div className="w-full text-[14px] leading-[1.7] text-[#4B5563] space-y-[16px] text-justify">
+              {messageParagraphs.map((para, idx) => (
+                <p
+                  key={idx}
+                  className="text-justify [text-justify:inter-word]"
+                >
+                  {para}
+                </p>
+              ))}
+            </div>
+
           </div>
+
         </div>
       </div>
     </section>

@@ -62,24 +62,14 @@ export default function DepartmentCard({
 
   if (variant === 'program') {
     return (
-      <div className="w-full bg-white border border-[#EAEAEA] rounded-[4px] overflow-hidden flex flex-col items-center text-center shadow-sm card-hover-lift">
-        <div className="w-full aspect-[4/3] bg-white flex items-center justify-center overflow-hidden">
+      <div className="w-full h-[160px] bg-white border border-[#EAEAEA] rounded-[8px] overflow-hidden flex items-center justify-center text-center shadow-xs card-hover-lift">
+        <div className="w-full h-full bg-white flex items-center justify-center overflow-hidden">
           <CmsImage
             src={displayImage}
             alt={title}
             fallbackLabel={imageLabel}
             fit="cover"
           />
-        </div>
-        <div className="p-[20px] flex flex-col items-center justify-center w-full">
-          <h4 className="text-[18px] font-bold text-[#333333] uppercase">
-            {title}
-          </h4>
-          {subtitle && (
-            <p className="text-[13px] text-[#666666] mt-[4px]">
-              {subtitle}
-            </p>
-          )}
         </div>
       </div>
     );
@@ -87,8 +77,9 @@ export default function DepartmentCard({
 
   if (variant === 'faculty') {
     return (
-      <div className="w-full bg-white border border-[#EAEAEA] rounded-[4px] overflow-hidden flex flex-col items-center text-center shadow-sm card-hover-lift">
-        <div className="w-full aspect-[3/4] max-h-[220px] bg-white flex items-center justify-center overflow-hidden">
+      <div className="w-full flex flex-col items-center text-center group cursor-pointer">
+        {/* 1. Square Image Container / Placeholder Only */}
+        <div className="w-full aspect-square bg-white border border-[#EAEAEA] rounded-[4px] overflow-hidden shadow-xs card-hover-lift flex items-center justify-center mb-[12px] flex-shrink-0">
           <CmsImage
             src={displayImage}
             alt={title}
@@ -96,16 +87,15 @@ export default function DepartmentCard({
             fit="cover"
           />
         </div>
-        <div className="p-[16px] flex flex-col items-center w-full flex-1 justify-center">
-          <h4 className="text-[15px] font-bold text-[#333333]">
+
+        {/* 2. Plain Text Below Image (No boxed background, no blue bar) */}
+        <div className="w-full text-center px-1">
+          <h4 className="text-[15px] font-bold text-[#1F2937] leading-snug group-hover:text-[#0093DD] transition-colors m-0 text-center">
             {title}
           </h4>
-          <p className="text-[13px] text-[#666666] mt-[2px]">
+          <p className="text-[13px] font-medium text-[#6B7280] leading-snug mt-[3px] m-0 text-center">
             {role || subtitle || 'Faculty Member'}
           </p>
-        </div>
-        <div className="w-full bg-[#0093DD] text-white py-[8px] text-[12px] font-semibold uppercase tracking-wider">
-          FAST FACULTY
         </div>
       </div>
     );
@@ -114,7 +104,7 @@ export default function DepartmentCard({
   if (variant === 'profile') {
     return (
       <div className="w-full bg-white border border-[#EAEAEA] rounded-[4px] p-[20px] flex flex-col items-center text-center shadow-sm card-hover-lift">
-        <div className={`w-[140px] h-[175px] rounded-[4px] overflow-hidden flex items-center justify-center mb-[14px]${displayImage ? '' : ' bg-white p-[4px]'}`}>
+        <div className="w-[140px] h-[175px] rounded-[4px] overflow-hidden flex items-center justify-center mb-[14px] bg-white border border-[#E5E7EB]">
           <CmsImage
             src={displayImage}
             alt={title}

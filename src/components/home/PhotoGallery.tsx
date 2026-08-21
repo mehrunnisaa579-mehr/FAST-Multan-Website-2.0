@@ -40,7 +40,7 @@ function GalleryRow({ items, rowLabel, onImageClick }: GalleryRowProps) {
                 <img
                   src={imgSrc}
                   alt={item.caption || 'Campus Photo'}
-                  className="w-full h-full object-cover select-none"
+                  className="w-full h-full object-cover select-none transition-transform duration-[350ms] ease-out group-hover:scale-[1.028] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                 />
               ) : (
                 <div className="w-full h-full bg-white flex items-center justify-center">
@@ -183,10 +183,10 @@ export default function PhotoGallery() {
     <section className="py-[60px] w-full bg-[#F7F9FC]">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px]">
         {/* Section Heading & Subheading */}
-        <h2 className="text-[28px] font-bold text-[#0C71C3] text-center mb-2">
+        <h2 className="text-[28px] font-bold text-[#0C71C3] text-center mb-2 relative -top-[20px]">
           {heading}
         </h2>
-        <p className="text-[15px] text-[#666666] text-center mb-[36px] font-medium">
+        <p className="text-[15px] text-[#666666] text-center mb-[36px] font-medium relative -top-[20px]">
           {subtitle}
         </p>
 

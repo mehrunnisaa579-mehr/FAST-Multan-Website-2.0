@@ -23,8 +23,10 @@ export const homepageContent = {
     message: "PLACEHOLDER: A warm introductory message from the campus director will go here, describing the university's mission, values, and commitment to students. Replace this with the real message before launch.",
   },
   ourSchools: [
-    { icon: "", name: "FAST School of Computing", href: "/departments/computing" },
-    { icon: "", name: "FAST School of Management", href: "/departments/management" },
+    { name: "BS Business Analytics", href: "https://nu.edu.pk/Program/BS(BA)", destinationUrl: "https://nu.edu.pk/Program/BS(BA)", icon: "" },
+    { name: "BS Artificial Intelligence", href: "https://nu.edu.pk/Program/BS(AI)", destinationUrl: "https://nu.edu.pk/Program/BS(AI)", icon: "" },
+    { name: "BS Computer Science", href: "https://nu.edu.pk/Program/BS(CS)", destinationUrl: "https://nu.edu.pk/Program/BS(CS)", icon: "" },
+    { name: "BS Software Engineering", href: "https://nu.edu.pk/Program/BS(SE)", destinationUrl: "https://nu.edu.pk/Program/BS(SE)", icon: "" },
   ],
   whyChooseUs: [
     { icon: "", title: "Faculty", description: "PLACEHOLDER: Description about qualified faculty and academic excellence." },

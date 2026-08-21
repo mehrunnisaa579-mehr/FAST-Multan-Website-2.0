@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { csFaculty, mgmtFaculty } from '../data/departments';
 
 export interface SiteSetting {
   id?: string;
@@ -8,6 +9,23 @@ export interface SiteSetting {
   setting_value?: any;
   description?: string;
   updated_at?: string;
+}
+
+export interface WorkshopRecord {
+  id: string;
+  title: string;
+  slug: string;
+  subtitle?: string;
+  overview?: string;
+  hero_image?: string;
+  venue?: string;
+  date_label?: string;
+  registration_link?: string;
+  is_visible: boolean;
+  is_archived?: boolean;
+  is_builtin?: boolean;
+  display_order: number;
+  archived_at?: string;
 }
 
 export const cmsService = {
@@ -105,6 +123,20 @@ export const cmsService = {
     try {
       const { data, error } = await supabase
         .from('departments')
+        .select('*')
+        .or('is_archived.eq.false,is_archived.is.null')
+        .order('display_order', { ascending: true });
+      if (error) throw error;
+      return (data || []).filter((item: any) => item.is_archived !== true);
+    } catch {
+      return [];
+    }
+  },
+
+  async getSchools() {
+    try {
+      const { data, error } = await supabase
+        .from('schools')
         .select('*')
         .or('is_archived.eq.false,is_archived.is.null')
         .order('display_order', { ascending: true });
@@ -323,6 +355,208 @@ export const cmsService = {
       return { success: true, publicUrl: data.publicUrl };
     } catch (err: any) {
       return { success: false, error: err?.message || 'File upload failed' };
+    }
+  },
+  // 16. WORKSHOPS LIST CRUD
+  async getWorkshops(): Promise<WorkshopRecord[]> {
+    try {
+      const data = await this.getSetting<{ items?: WorkshopRecord[] }>('workshops_list', { items: [] });
+      const items: WorkshopRecord[] = data?.items || [];
+      return items
+        .filter((w) => w.is_archived !== true)
+        .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+    } catch {
+      return [];
+    }
+  },
+
+  async saveWorkshops(items: WorkshopRecord[]): Promise<{ success: boolean; error?: string }> {
+    return this.saveSetting('workshops_list', { items }, 'Workshops List');
+  },
+
+  // 17. CANONICAL DEPARTMENT FACULTY GET / SAVE
+  async getDepartmentFaculty(dept: 'cs' | 'management'): Promise<any[]> {
+    try {
+      const settingKey = dept === 'cs' ? 'department_cs_content' : 'school_of_management_content';
+      const content = await this.getSetting<any>(settingKey, null);
+
+      // 1. Build canonical HOD record from HOD/head CMS fields
+      let hodRecord: any = null;
+      if (dept === 'cs') {
+        const hodName = content?.hodName || 'Dr. Head of Department';
+        hodRecord = {
+          id: 'cs-hod',
+          slug: 'cs-hod',
+          name: hodName,
+          designation: content?.hodDesignation || 'Head, Department of Computer Science',
+          qualification: content?.hodEducation || 'Ph.D. in Computer Science',
+          biography: content?.hodMessage || '',
+          photo_url: content?.hodPhotoUrl || '',
+          photoUrl: content?.hodPhotoUrl || '',
+          badge_photo_url: content?.hodBadgePhotoUrl || content?.hodBadgePhoto || '',
+          badgePhotoUrl: content?.hodBadgePhotoUrl || content?.hodBadgePhoto || '',
+          email: content?.hodEmail || 'hod.cs@multan.nu.edu.pk',
+          phone: content?.hodPhone || '',
+          school: 'computing',
+          department: 'cs',
+          display_order: 0,
+          visible: true,
+          isHOD: true,
+        };
+      } else {
+        const headName = content?.headName || content?.hodName || 'Dr. Head of Department';
+        hodRecord = {
+          id: 'management-hod',
+          slug: 'management-hod',
+          name: headName,
+          designation: content?.headDesignation || content?.hodDesignation || 'Head, Department of Management Sciences',
+          qualification: content?.headEducation || content?.hodEducation || 'Ph.D. in Management Sciences',
+          biography: content?.headMessage || content?.hodMessage || '',
+          photo_url: content?.headPhotoUrl || content?.hodPhotoUrl || '',
+          photoUrl: content?.headPhotoUrl || content?.hodPhotoUrl || '',
+          badge_photo_url: content?.headBadgePhotoUrl || content?.hodBadgePhotoUrl || '',
+          badgePhotoUrl: content?.headBadgePhotoUrl || content?.hodBadgePhotoUrl || '',
+          email: content?.headEmail || content?.hodEmail || 'hod.mgmt@multan.nu.edu.pk',
+          phone: content?.headPhone || content?.hodPhone || '',
+          school: 'management',
+          department: 'management',
+          display_order: 0,
+          visible: true,
+          isHOD: true,
+        };
+      }
+
+      // 2. Fetch raw faculty list from setting array or fallback data
+      let rawList: any[] = [];
+      if (content && Array.isArray(content.facultyList) && content.facultyList.length > 0) {
+        rawList = content.facultyList.map((item: any, idx: number) => ({
+          ...item,
+          id: item.id || `${dept}-fac-${idx + 1}`,
+          name: item.name || '',
+          designation: item.designation || 'Faculty Member',
+          qualification: item.qualification || '',
+          biography: item.biography || item.introduction || item.bio || '',
+          photo_url: item.photo_url || item.photoUrl || item.image || '',
+          photoUrl: item.photoUrl || item.photo_url || item.image || '',
+          badge_photo_url: item.badge_photo_url || item.badgePhotoUrl || '',
+          badgePhotoUrl: item.badgePhotoUrl || item.badge_photo_url || '',
+          school: dept === 'management' ? 'management' : 'computing',
+          department: dept,
+          display_order: item.display_order ?? item.displayOrder ?? idx + 1,
+          visible: item.visible ?? item.is_visible ?? true,
+          isHOD: false,
+        }));
+      } else {
+        const fallbackSource = dept === 'cs' ? csFaculty : (mgmtFaculty || []);
+        rawList = fallbackSource.map((f, idx) => ({
+          id: f.id,
+          name: f.name,
+          designation: f.designation,
+          qualification: dept === 'cs' ? 'Ph.D. / M.S. Computer Science' : 'Ph.D. / M.S. Management Sciences',
+          biography: `Faculty member in the ${dept === 'cs' ? 'Department of Computer Science' : 'Department of Management Sciences'} at FAST-NUCES Multan Campus.`,
+          photo_url: '',
+          photoUrl: '',
+          school: dept === 'management' ? 'management' : 'computing',
+          department: dept,
+          display_order: idx + 1,
+          visible: true,
+          isHOD: false,
+        }));
+      }
+
+      const normalizeName = (str: string) => (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+      // 3. Deduplicate: Filter raw list to remove any item that matches HOD by id, email, or normalized name
+      const filteredList = rawList.filter((item: any) => {
+        if (item.isHOD) return false;
+        if (item.id && (item.id === hodRecord.id || item.id === 'cs-hod' || item.id === 'management-hod')) return false;
+        if (item.email && hodRecord.email && item.email.toLowerCase().trim() === hodRecord.email.toLowerCase().trim()) return false;
+        if (normalizeName(item.name) === normalizeName(hodRecord.name)) return false;
+        return true;
+      });
+
+      // 4. Return HOD record prepended first
+      return [hodRecord, ...filteredList];
+    } catch {
+      return [];
+    }
+  },
+
+  async saveDepartmentFaculty(dept: 'cs' | 'management', facultyList: any[]): Promise<{ success: boolean; error?: string }> {
+    try {
+      const settingKey = dept === 'cs' ? 'department_cs_content' : 'school_of_management_content';
+      const settingDesc = dept === 'cs' ? 'Department of Computer Science Content' : 'School of Management page content';
+      const existing = (await this.getSetting<any>(settingKey, null)) || {};
+
+      // Separate HOD item from regular faculty
+      const hodRecord = facultyList.find((f: any) => f.isHOD || f.id === 'cs-hod' || f.id === 'management-hod');
+      const regularFaculty = facultyList.filter((f: any) => !f.isHOD && f.id !== 'cs-hod' && f.id !== 'management-hod');
+
+      // Normalize regular faculty items for facultyList array storage
+      const normalizedList = regularFaculty.map((item: any, idx: number) => ({
+        id: item.id || `${dept}-fac-${Date.now()}-${idx}`,
+        name: item.name || '',
+        designation: item.designation || 'Faculty Member',
+        qualification: item.qualification || '',
+        biography: item.biography || item.introduction || '',
+        introduction: item.introduction || item.biography || '',
+        photo_url: item.photo_url || item.photoUrl || '',
+        photoUrl: item.photoUrl || item.photo_url || '',
+        badge_photo_url: item.badge_photo_url || item.badgePhotoUrl || '',
+        badgePhotoUrl: item.badgePhotoUrl || item.badge_photo_url || '',
+        email: item.email || '',
+        phone: item.phone || '',
+        extension: item.extension || '',
+        education: item.education || '',
+        publications: item.publications || '',
+        collaborations: item.collaborations || '',
+        fundedProjects: item.fundedProjects || item.funded_projects || '',
+        funded_projects: item.funded_projects || item.fundedProjects || '',
+        slug: item.slug || '',
+        school: dept === 'management' ? 'management' : 'computing',
+        department: dept,
+        display_order: idx + 1,
+        is_visible: item.visible ?? item.is_visible ?? true,
+        visible: item.visible ?? item.is_visible ?? true,
+      }));
+
+      const updatedPayload = {
+        ...existing,
+        facultyList: normalizedList,
+        updated_at: new Date().toISOString(),
+      };
+
+      // If HOD was edited, update canonical HOD fields in CMS setting
+      if (hodRecord) {
+        if (dept === 'cs') {
+          updatedPayload.hodName = hodRecord.name || existing.hodName;
+          updatedPayload.hodDesignation = hodRecord.designation || existing.hodDesignation;
+          updatedPayload.hodPhotoUrl = hodRecord.photo_url || hodRecord.photoUrl || existing.hodPhotoUrl;
+          updatedPayload.hodEducation = hodRecord.qualification || existing.hodEducation;
+          updatedPayload.hodMessage = hodRecord.biography || existing.hodMessage;
+          updatedPayload.hodEmail = hodRecord.email || existing.hodEmail;
+          updatedPayload.hodPhone = hodRecord.phone || existing.hodPhone;
+        } else {
+          updatedPayload.headName = hodRecord.name || existing.headName || existing.hodName;
+          updatedPayload.hodName = hodRecord.name || existing.hodName || existing.headName;
+          updatedPayload.headDesignation = hodRecord.designation || existing.headDesignation || existing.hodDesignation;
+          updatedPayload.hodDesignation = hodRecord.designation || existing.hodDesignation || existing.headDesignation;
+          updatedPayload.headPhotoUrl = hodRecord.photo_url || hodRecord.photoUrl || existing.headPhotoUrl || existing.hodPhotoUrl;
+          updatedPayload.hodPhotoUrl = hodRecord.photo_url || hodRecord.photoUrl || existing.hodPhotoUrl || existing.headPhotoUrl;
+          updatedPayload.headEducation = hodRecord.qualification || existing.headEducation || existing.hodEducation;
+          updatedPayload.hodEducation = hodRecord.qualification || existing.headEducation || existing.hodEducation;
+          updatedPayload.headMessage = hodRecord.biography || existing.headMessage || existing.hodMessage;
+          updatedPayload.hodMessage = hodRecord.biography || existing.hodMessage || existing.headMessage;
+          updatedPayload.headEmail = hodRecord.email || existing.headEmail || existing.hodEmail;
+          updatedPayload.hodEmail = hodRecord.email || existing.hodEmail || existing.headEmail;
+          updatedPayload.headPhone = hodRecord.phone || existing.headPhone || existing.hodPhone;
+          updatedPayload.hodPhone = hodRecord.phone || existing.headPhone || existing.hodPhone;
+        }
+      }
+
+      return await this.saveSetting(settingKey, updatedPayload, settingDesc);
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Failed to save department faculty' };
     }
   },
 };

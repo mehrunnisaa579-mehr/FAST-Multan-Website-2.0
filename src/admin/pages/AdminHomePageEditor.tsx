@@ -46,6 +46,7 @@ export default function AdminHomePageEditor() {
     events: false,
     highlights: false,
     news: false,
+    campusTour: false,
   });
 
   // Safe defaults
@@ -91,6 +92,14 @@ export default function AdminHomePageEditor() {
   const [directorTitle, setDirectorTitle] = useState(homepageContent.directorMessage?.title || 'Director, FAST-NUCES Multan Campus');
   const [directorMessage, setDirectorMessage] = useState(homepageContent.directorMessage?.message || '');
   const [directorPhoto, setDirectorPhoto] = useState(homepageContent.directorMessage?.photo || '');
+  const [directorBadgePhoto, setDirectorBadgePhoto] = useState('');
+  const [directorEmail, setDirectorEmail] = useState('');
+  const [directorPhone, setDirectorPhone] = useState('');
+  const [directorExt, setDirectorExt] = useState('');
+  const [directorEducation, setDirectorEducation] = useState('');
+  const [directorPublications, setDirectorPublications] = useState('');
+  const [directorCollaborations, setDirectorCollaborations] = useState('');
+  const [directorProjects, setDirectorProjects] = useState('');
 
   const [schoolsHeading, setSchoolsHeading] = useState('Our Schools');
   const [schoolsSubtitle, setSchoolsSubtitle] = useState('Explore the program that matches your interests');
@@ -124,6 +133,11 @@ export default function AdminHomePageEditor() {
   const [newsSubtitle, setNewsSubtitle] = useState('Stay updated with the latest news, announcements, and achievements from FAST-NUCES Multan Campus.');
   const [showNewsSection, setShowNewsSection] = useState<boolean>(true);
 
+  // Campus Tour Video State
+  const [campusTourHeading, setCampusTourHeading] = useState('Campus Tour');
+  const [showCampusTourSection, setShowCampusTourSection] = useState<boolean>(true);
+  const [campusTourVideoUrl, setCampusTourVideoUrl] = useState<string>('');
+
   // UI state
   const [savingSection, setSavingSection] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -139,6 +153,14 @@ export default function AdminHomePageEditor() {
         if (data.directorTitle) setDirectorTitle(data.directorTitle);
         if (data.directorMessage) setDirectorMessage(data.directorMessage);
         if (data.directorPhoto) setDirectorPhoto(data.directorPhoto);
+        if (data.directorBadgePhoto || data.directorBadgePhotoUrl) setDirectorBadgePhoto(data.directorBadgePhoto || data.directorBadgePhotoUrl);
+        if (data.directorEmail) setDirectorEmail(data.directorEmail);
+        if (data.directorPhone) setDirectorPhone(data.directorPhone);
+        if (data.directorExt) setDirectorExt(data.directorExt);
+        if (data.directorEducation) setDirectorEducation(data.directorEducation);
+        if (data.directorPublications) setDirectorPublications(data.directorPublications);
+        if (data.directorCollaborations) setDirectorCollaborations(data.directorCollaborations);
+        if (data.directorProjects) setDirectorProjects(data.directorProjects);
 
         if (data.schoolsHeading) setSchoolsHeading(data.schoolsHeading);
         if (data.schoolsSubtitle) setSchoolsSubtitle(data.schoolsSubtitle);
@@ -165,6 +187,10 @@ export default function AdminHomePageEditor() {
         if (data.newsHeading) setNewsHeading(data.newsHeading);
         if (data.newsSubtitle) setNewsSubtitle(data.newsSubtitle);
         if (data.showNewsSection !== undefined) setShowNewsSection(data.showNewsSection);
+
+        if (data.campusTourHeading) setCampusTourHeading(data.campusTourHeading);
+        if (data.showCampusTourSection !== undefined) setShowCampusTourSection(data.showCampusTourSection);
+        if (data.campusTourVideoUrl || data.campusTourVideo) setCampusTourVideoUrl(data.campusTourVideoUrl || data.campusTourVideo);
       }
 
       // Load homepage photo gallery items from dedicated key
@@ -200,6 +226,14 @@ export default function AdminHomePageEditor() {
       directorTitle,
       directorMessage,
       directorPhoto,
+      directorBadgePhoto,
+      directorEmail,
+      directorPhone,
+      directorExt,
+      directorEducation,
+      directorPublications,
+      directorCollaborations,
+      directorProjects,
       schoolsHeading,
       schoolsSubtitle,
       schoolCards,
@@ -220,6 +254,9 @@ export default function AdminHomePageEditor() {
       newsHeading,
       newsSubtitle,
       showNewsSection,
+      campusTourHeading,
+      showCampusTourSection,
+      campusTourVideoUrl,
     };
 
     const res = await cmsService.saveSetting('homepage_full_content', payload, 'Full Homepage Content Settings');
@@ -553,35 +590,89 @@ export default function AdminHomePageEditor() {
         </button>
 
         {openAccordions.director && (
-          <div className="p-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <AdminFormGroup label="Director Name">
-                <AdminInput value={directorName} onChange={(e) => setDirectorName(e.target.value)} />
-              </AdminFormGroup>
+          <div className="p-6 space-y-6">
+            {/* BASIC INFORMATION */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Basic Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <AdminFormGroup label="Director Name">
+                  <AdminInput value={directorName} onChange={(e) => setDirectorName(e.target.value)} />
+                </AdminFormGroup>
 
-              <AdminFormGroup label="Designation / Title">
-                <AdminInput value={directorTitle} onChange={(e) => setDirectorTitle(e.target.value)} />
+                <AdminFormGroup label="Designation / Title">
+                  <AdminInput value={directorTitle} onChange={(e) => setDirectorTitle(e.target.value)} />
+                </AdminFormGroup>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <AdminFormGroup label="Main Profile Image (Rectangular Frame)">
+                  <div className="flex gap-2">
+                    <AdminInput value={directorPhoto} onChange={(e) => setDirectorPhoto(e.target.value)} placeholder="Main photo URL..." />
+                    <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
+                      <Upload className="w-4 h-4" />
+                      <span>Upload</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setDirectorPhoto(url))} />
+                    </label>
+                  </div>
+                </AdminFormGroup>
+
+                <AdminFormGroup label="Circular Badge Image (Overlapping Frame)">
+                  <div className="flex gap-2">
+                    <AdminInput value={directorBadgePhoto} onChange={(e) => setDirectorBadgePhoto(e.target.value)} placeholder="Badge photo URL (Optional)..." />
+                    <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
+                      <Upload className="w-4 h-4" />
+                      <span>Upload</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setDirectorBadgePhoto(url))} />
+                    </label>
+                  </div>
+                </AdminFormGroup>
+              </div>
+            </div>
+
+            {/* CONTACT INFORMATION */}
+            <div className="space-y-4 pt-2">
+              <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Contact Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <AdminFormGroup label="Email">
+                  <AdminInput value={directorEmail} onChange={(e) => setDirectorEmail(e.target.value)} placeholder="director@multan.nu.edu.pk" />
+                </AdminFormGroup>
+                <AdminFormGroup label="Phone">
+                  <AdminInput value={directorPhone} onChange={(e) => setDirectorPhone(e.target.value)} placeholder="+92 (61) 111-128-128" />
+                </AdminFormGroup>
+                <AdminFormGroup label="Extension">
+                  <AdminInput value={directorExt} onChange={(e) => setDirectorExt(e.target.value)} placeholder="101" />
+                </AdminFormGroup>
+              </div>
+            </div>
+
+            {/* PROFILE CONTENT */}
+            <div className="space-y-4 pt-2">
+              <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Profile Content</h4>
+              <AdminFormGroup label="Introduction / Welcome Message">
+                <AdminTextarea rows={5} value={directorMessage} onChange={(e) => setDirectorMessage(e.target.value)} placeholder="Director welcome message and introduction..." />
+              </AdminFormGroup>
+              <AdminFormGroup label="Education">
+                <AdminTextarea rows={3} value={directorEducation} onChange={(e) => setDirectorEducation(e.target.value)} placeholder="Ph.D. in Computer Science..." />
               </AdminFormGroup>
             </div>
 
-            <AdminFormGroup label="Director Photograph Upload">
-              <div className="flex gap-2">
-                <AdminInput value={directorPhoto} onChange={(e) => setDirectorPhoto(e.target.value)} placeholder="Image URL..." />
-                <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
-                  <Upload className="w-4 h-4" />
-                  <span>Upload</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setDirectorPhoto(url))} />
-                </label>
-              </div>
-            </AdminFormGroup>
-
-            <AdminFormGroup label="Message Content">
-              <AdminTextarea rows={5} value={directorMessage} onChange={(e) => setDirectorMessage(e.target.value)} />
-            </AdminFormGroup>
+            {/* ACADEMIC DETAILS */}
+            <div className="space-y-4 pt-2">
+              <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Academic Details</h4>
+              <AdminFormGroup label="Publications">
+                <AdminTextarea rows={4} value={directorPublications} onChange={(e) => setDirectorPublications(e.target.value)} placeholder="List of journal and conference publications..." />
+              </AdminFormGroup>
+              <AdminFormGroup label="Collaborations at National and International Level">
+                <AdminTextarea rows={4} value={directorCollaborations} onChange={(e) => setDirectorCollaborations(e.target.value)} placeholder="Academic and research collaborations..." />
+              </AdminFormGroup>
+              <AdminFormGroup label="Detail of Funded Projects">
+                <AdminTextarea rows={4} value={directorProjects} onChange={(e) => setDirectorProjects(e.target.value)} placeholder="Grants, research funding, and sponsored projects..." />
+              </AdminFormGroup>
+            </div>
 
             <div className="flex justify-end pt-2">
               <AdminButton variant="primary" onClick={() => handleSaveSection('director')} loading={savingSection === 'director'} icon={<Save className="w-4 h-4" />}>
-                Save Director's Message
+                Save Director's Profile & Message
               </AdminButton>
             </div>
           </div>
@@ -1343,6 +1434,98 @@ export default function AdminHomePageEditor() {
             <div className="flex justify-end pt-2">
               <AdminButton variant="primary" onClick={() => handleSaveSection('news')} loading={savingSection === 'news'} icon={<Save className="w-4 h-4" />}>
                 Save News & Announcements Section
+              </AdminButton>
+            </div>
+          </div>
+        )}
+      </AdminCard>
+
+      {/* 9. CAMPUS TOUR VIDEO ACCORDION */}
+      <AdminCard className="p-0 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => toggleAccordion('campusTour')}
+          className="w-full px-6 py-5 bg-[#F9FAFB] hover:bg-[#F3F4F6] flex items-center justify-between transition-colors border-b border-[#E5E7EB] text-left cursor-pointer"
+        >
+          <div>
+            <h3 className="text-lg font-bold text-[#1F2937]">9. Campus Tour Section</h3>
+            <p className="text-xs text-[#6B7280]">Upload large full-width cinematic video tour, manage heading and section visibility.</p>
+          </div>
+          {openAccordions.campusTour ? <ChevronDown className="w-5 h-5 text-[#6B7280]" /> : <ChevronRight className="w-5 h-5 text-[#6B7280]" />}
+        </button>
+
+        {openAccordions.campusTour && (
+          <div className="p-6 space-y-6">
+            <AdminFormGroup label="Section Heading">
+              <AdminInput
+                value={campusTourHeading}
+                onChange={(e) => setCampusTourHeading(e.target.value)}
+                placeholder="Campus Tour"
+              />
+            </AdminFormGroup>
+
+            <AdminToggle
+              label="Visible on Homepage"
+              checked={showCampusTourSection}
+              onChange={(checked) => setShowCampusTourSection(checked)}
+              description="Show or hide the large Campus Tour video section on the homepage."
+            />
+
+            <AdminFormGroup label="Campus Tour Video Upload (.mp4 / .webm)">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <AdminInput
+                    value={campusTourVideoUrl}
+                    onChange={(e) => setCampusTourVideoUrl(e.target.value)}
+                    placeholder="Video Public URL (or upload via button)..."
+                  />
+
+                  <label className="px-4 py-2.5 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 shadow-xs">
+                    <Video className="w-4 h-4" />
+                    <span>{campusTourVideoUrl ? 'Replace Video' : 'Upload Video'}</span>
+                    <input
+                      type="file"
+                      accept="video/mp4,video/webm,video/*"
+                      className="hidden"
+                      onChange={(e) => handleFileUpload(e, (url) => setCampusTourVideoUrl(url))}
+                    />
+                  </label>
+
+                  {campusTourVideoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setCampusTourVideoUrl('')}
+                      className="px-3.5 py-2.5 bg-red-50 hover:bg-red-100 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200 cursor-pointer flex items-center gap-1"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>Remove</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Video Preview Box */}
+                <div className="w-full max-w-[640px] aspect-[16/9] bg-[#F3F4F6] border border-[#E5E7EB] rounded-lg overflow-hidden flex items-center justify-center relative shadow-xs">
+                  {campusTourVideoUrl ? (
+                    <video controls src={campusTourVideoUrl} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 text-[#9CA3AF]">
+                      <Video className="w-8 h-8 text-[#9CA3AF]" />
+                      <span className="text-xs font-semibold uppercase tracking-wider">No Campus Tour Video Uploaded Yet</span>
+                      <span className="text-[11px]">Upload a video to display it on the homepage.</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </AdminFormGroup>
+
+            <div className="flex justify-end pt-2">
+              <AdminButton
+                variant="primary"
+                onClick={() => handleSaveSection('campusTour')}
+                loading={savingSection === 'campusTour'}
+                icon={<Save className="w-4 h-4" />}
+              >
+                Save Campus Tour Section
               </AdminButton>
             </div>
           </div>

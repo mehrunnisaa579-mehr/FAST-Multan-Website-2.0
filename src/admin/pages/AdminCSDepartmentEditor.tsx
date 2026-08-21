@@ -78,6 +78,12 @@ export default function AdminCSDepartmentEditor() {
   const [hodMessage, setHodMessage] = useState(
     'Welcome to the Department of Computer Science at FAST-NUCES Multan Campus. Our department offers world-class degree programs in computing, software development, artificial intelligence, and cutting-edge research.'
   );
+  const [hodEmail, setHodEmail] = useState('');
+  const [hodPhone, setHodPhone] = useState('');
+  const [hodEducation, setHodEducation] = useState('');
+  const [hodPublications, setHodPublications] = useState('');
+  const [hodCollaborations, setHodCollaborations] = useState('');
+  const [hodProjects, setHodProjects] = useState('');
 
   // Programs Section State
   const [programsHeading, setProgramsHeading] = useState('OUR PROGRAMS');
@@ -112,6 +118,10 @@ export default function AdminCSDepartmentEditor() {
     }))
   );
 
+  // Allied Faculty Section State
+  const [alliedFacultyHeading, setAlliedFacultyHeading] = useState('ALLIED FACULTY');
+  const [alliedFacultyList, setAlliedFacultyList] = useState<CSFacultyItem[]>([]);
+
   // Research Groups Section State (CS ONLY)
   const [researchHeading, setResearchHeading] = useState('RESEARCH GROUPS & AREAS');
   const [exploreResearchText, setExploreResearchText] = useState('EXPLORE RESEARCH GROUPS →');
@@ -133,6 +143,7 @@ export default function AdminCSDepartmentEditor() {
     hod: true,
     programs: false,
     faculty: false,
+    alliedFaculty: false,
     research: false,
   });
 
@@ -148,6 +159,10 @@ export default function AdminCSDepartmentEditor() {
   const [isFacModalOpen, setIsFacModalOpen] = useState(false);
   const [editingFac, setEditingFac] = useState<Partial<CSFacultyItem> | null>(null);
   const [deleteFacTarget, setDeleteFacTarget] = useState<CSFacultyItem | null>(null);
+
+  const [isAlliedModalOpen, setIsAlliedModalOpen] = useState(false);
+  const [editingAllied, setEditingAllied] = useState<Partial<CSFacultyItem> | null>(null);
+  const [deleteAlliedTarget, setDeleteAlliedTarget] = useState<CSFacultyItem | null>(null);
 
   const [isResModalOpen, setIsResModalOpen] = useState(false);
   const [editingRes, setEditingRes] = useState<Partial<CSResearchItem> | null>(null);
@@ -167,6 +182,12 @@ export default function AdminCSDepartmentEditor() {
       if (saved.hodDesignation) setHodDesignation(saved.hodDesignation);
       if (saved.hodPhotoUrl) setHodPhotoUrl(saved.hodPhotoUrl);
       if (saved.hodMessage) setHodMessage(saved.hodMessage);
+      if (saved.hodEmail) setHodEmail(saved.hodEmail);
+      if (saved.hodPhone) setHodPhone(saved.hodPhone);
+      if (saved.hodEducation) setHodEducation(saved.hodEducation);
+      if (saved.hodPublications) setHodPublications(saved.hodPublications);
+      if (saved.hodCollaborations) setHodCollaborations(saved.hodCollaborations);
+      if (saved.hodProjects) setHodProjects(saved.hodProjects);
 
       if (saved.programsHeading) setProgramsHeading(saved.programsHeading);
       if (saved.viewAllProgramsText) setViewAllProgramsText(saved.viewAllProgramsText);
@@ -177,6 +198,9 @@ export default function AdminCSDepartmentEditor() {
       if (saved.viewAllFacultyText) setViewAllFacultyText(saved.viewAllFacultyText);
       if (saved.viewAllFacultyUrl) setViewAllFacultyUrl(saved.viewAllFacultyUrl);
       if (Array.isArray(saved.facultyList)) setFacultyList(saved.facultyList);
+
+      if (saved.alliedFacultyHeading) setAlliedFacultyHeading(saved.alliedFacultyHeading);
+      if (Array.isArray(saved.alliedFacultyList)) setAlliedFacultyList(saved.alliedFacultyList);
 
       if (saved.researchHeading) setResearchHeading(saved.researchHeading);
       if (saved.exploreResearchText) setExploreResearchText(saved.exploreResearchText);
@@ -251,6 +275,46 @@ export default function AdminCSDepartmentEditor() {
     setDeleteProgTarget(null);
   };
 
+  const handleMoveProg = (index: number, direction: 'up' | 'down') => {
+    const newList = [...programsList];
+    const targetIdx = direction === 'up' ? index - 1 : index + 1;
+    if (targetIdx < 0 || targetIdx >= newList.length) return;
+    const temp = newList[index];
+    newList[index] = newList[targetIdx];
+    newList[targetIdx] = temp;
+    setProgramsList(newList);
+  };
+
+  // Regular Faculty CRUD Handlers
+  const handleOpenAddFac = () => {
+    setEditingFac({
+      id: `fac-cs-${Date.now()}`,
+      name: 'Dr. New Faculty Member',
+      designation: 'Assistant Professor',
+      qualification: 'PhD Computer Science',
+      photoUrl: '',
+      display_order: facultyList.length + 1,
+      is_visible: true,
+    });
+    setIsFacModalOpen(true);
+  };
+
+  const handleSaveFac = () => {
+    if (!editingFac?.name?.trim()) {
+      alert('Please enter a faculty name.');
+      return;
+    }
+    const updated = [...facultyList];
+    const idx = updated.findIndex((f) => f.id === editingFac.id);
+    if (idx >= 0) {
+      updated[idx] = editingFac as CSFacultyItem;
+    } else {
+      updated.push(editingFac as CSFacultyItem);
+    }
+    setFacultyList(updated);
+    setIsFacModalOpen(false);
+  };
+
   const handleDeleteFac = async () => {
     if (!deleteFacTarget) return;
     setFacultyList((prev) => prev.filter((f) => f.id !== deleteFacTarget.id));
@@ -268,6 +332,103 @@ export default function AdminCSDepartmentEditor() {
     });
 
     setDeleteFacTarget(null);
+  };
+
+  const handleMoveFac = (index: number, direction: 'up' | 'down') => {
+    const newList = [...facultyList];
+    const targetIdx = direction === 'up' ? index - 1 : index + 1;
+    if (targetIdx < 0 || targetIdx >= newList.length) return;
+    const temp = newList[index];
+    newList[index] = newList[targetIdx];
+    newList[targetIdx] = temp;
+    setFacultyList(newList);
+  };
+
+  // Allied Faculty CRUD Handlers
+  const handleOpenAddAllied = () => {
+    setEditingAllied({
+      id: `allied-cs-${Date.now()}`,
+      name: 'Dr. New Allied Faculty',
+      designation: 'Allied Faculty Member',
+      photoUrl: '',
+      display_order: alliedFacultyList.length + 1,
+      is_visible: true,
+    });
+    setIsAlliedModalOpen(true);
+  };
+
+  const handleSaveAllied = () => {
+    if (!editingAllied?.name?.trim()) {
+      alert('Please enter a faculty name.');
+      return;
+    }
+    const updated = [...alliedFacultyList];
+    const idx = updated.findIndex((f) => f.id === editingAllied.id);
+    if (idx >= 0) {
+      updated[idx] = editingAllied as CSFacultyItem;
+    } else {
+      updated.push(editingAllied as CSFacultyItem);
+    }
+    setAlliedFacultyList(updated);
+    setIsAlliedModalOpen(false);
+  };
+
+  const handleDeleteAllied = async () => {
+    if (!deleteAlliedTarget) return;
+    setAlliedFacultyList((prev) => prev.filter((f) => f.id !== deleteAlliedTarget.id));
+
+    await archiveService.archiveItem({
+      table: 'faculty',
+      settingKey: 'department_cs_content',
+      arrayKey: 'alliedFacultyList',
+      itemId: deleteAlliedTarget.id,
+      moduleName: 'CS Allied Faculty',
+      title: deleteAlliedTarget.name,
+      subtitle: deleteAlliedTarget.designation,
+      image_url: deleteAlliedTarget.photoUrl,
+      itemData: deleteAlliedTarget,
+    });
+
+    setDeleteAlliedTarget(null);
+  };
+
+  const handleMoveAllied = (index: number, direction: 'up' | 'down') => {
+    const newList = [...alliedFacultyList];
+    const targetIdx = direction === 'up' ? index - 1 : index + 1;
+    if (targetIdx < 0 || targetIdx >= newList.length) return;
+    const temp = newList[index];
+    newList[index] = newList[targetIdx];
+    newList[targetIdx] = temp;
+    setAlliedFacultyList(newList);
+  };
+
+  // Research Groups CRUD Handlers
+  const handleOpenAddRes = () => {
+    setEditingRes({
+      id: `res-cs-${Date.now()}`,
+      title: 'New Research Area',
+      description: 'Research focus description...',
+      url: '/departments/computing/computer-science/research-groups',
+      display_order: researchList.length + 1,
+      is_visible: true,
+    });
+    setIsResModalOpen(true);
+  };
+
+  const handleSaveRes = () => {
+    if (!editingRes?.title?.trim()) {
+      alert('Please enter a title.');
+      return;
+    }
+    const updated = [...researchList];
+    const idx = updated.findIndex((r) => r.id === editingRes.id);
+    if (idx >= 0) {
+      updated[idx] = editingRes as CSResearchItem;
+    } else {
+      updated.push(editingRes as CSResearchItem);
+    }
+    setResearchList(updated);
+    setIsResModalOpen(false);
   };
 
   const handleDeleteRes = async () => {
@@ -311,6 +472,12 @@ export default function AdminCSDepartmentEditor() {
       hodDesignation,
       hodPhotoUrl,
       hodMessage,
+      hodEmail,
+      hodPhone,
+      hodEducation,
+      hodPublications,
+      hodCollaborations,
+      hodProjects,
       programsHeading,
       viewAllProgramsText,
       viewAllProgramsUrl,
@@ -319,6 +486,8 @@ export default function AdminCSDepartmentEditor() {
       viewAllFacultyText,
       viewAllFacultyUrl,
       facultyList,
+      alliedFacultyHeading,
+      alliedFacultyList,
       researchHeading,
       exploreResearchText,
       exploreResearchUrl,
@@ -341,15 +510,15 @@ export default function AdminCSDepartmentEditor() {
     <div className="space-y-6 text-left max-w-[1250px]">
       <div className="flex items-center gap-4 mb-2">
         <Link
-          to="/admin-panel5463/school-of-computing"
+          to="/admin-panel5463/manage-departments"
           className="p-2 bg-white border border-[#E5E7EB] rounded-md text-[#4B5563] hover:text-[#0093DD] transition-colors"
-          title="Back to School of Computing"
+          title="Back to Manage Departments"
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <AdminPageHeader
           title="Department of Computer Science Editor"
-          subtitle="No-code control for public Computer Science page, Hero, HOD Message, Programs, Faculty, and Research Groups."
+          subtitle="No-code control for public Computer Science page, Hero, HOD Message, Programs, Faculty, and Allied Faculty."
           action={
             <AdminButton variant="primary" onClick={handleSaveAll} loading={saving} icon={<Save className="w-4 h-4" />}>
               Save Changes
@@ -443,54 +612,88 @@ export default function AdminCSDepartmentEditor() {
         </button>
 
         {accordions.hod && (
-          <div className="p-5 space-y-4">
-            <AdminFormGroup label="Section Heading">
-              <AdminInput value={hodHeading} onChange={(e) => setHodHeading(e.target.value)} placeholder="HOD'S MESSAGE" />
-            </AdminFormGroup>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <AdminFormGroup label="HOD Name">
-                <AdminInput value={hodName} onChange={(e) => setHodName(e.target.value)} placeholder="Dr. Head of Department" />
+          <div className="p-5 space-y-6">
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Basic Information</h4>
+              <AdminFormGroup label="Section Heading">
+                <AdminInput value={hodHeading} onChange={(e) => setHodHeading(e.target.value)} placeholder="HOD'S MESSAGE" />
               </AdminFormGroup>
 
-              <AdminFormGroup label="HOD Designation">
-                <AdminInput value={hodDesignation} onChange={(e) => setHodDesignation(e.target.value)} placeholder="Head, Department of Computer Science" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <AdminFormGroup label="HOD Name">
+                  <AdminInput value={hodName} onChange={(e) => setHodName(e.target.value)} placeholder="Dr. Head of Department" />
+                </AdminFormGroup>
+
+                <AdminFormGroup label="HOD Designation">
+                  <AdminInput value={hodDesignation} onChange={(e) => setHodDesignation(e.target.value)} placeholder="Head, Department of Computer Science" />
+                </AdminFormGroup>
+              </div>
+
+              <AdminFormGroup label="HOD Photograph Upload">
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-24 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
+                    {hodPhotoUrl ? (
+                      <img src={hodPhotoUrl} alt={hodName} className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-8 h-8 text-[#9CA3AF]" />
+                    )}
+                  </div>
+
+                  <div className="flex gap-2">
+                    <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{hodPhotoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHodPhotoUrl)} />
+                    </label>
+
+                    {hodPhotoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setHodPhotoUrl('')}
+                        className="px-3 py-1.5 bg-red-50 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200 cursor-pointer"
+                      >
+                        Remove Photo
+                      </button>
+                    )}
+                  </div>
+                </div>
               </AdminFormGroup>
             </div>
 
-            <AdminFormGroup label="HOD Photograph Upload">
-              <div className="flex items-center gap-4">
-                <div className="w-20 h-24 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
-                  {hodPhotoUrl ? (
-                    <img src={hodPhotoUrl} alt={hodName} className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-8 h-8 text-[#9CA3AF]" />
-                  )}
-                </div>
-
-                <div className="flex gap-2">
-                  <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>{hodPhotoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHodPhotoUrl)} />
-                  </label>
-
-                  {hodPhotoUrl && (
-                    <button
-                      type="button"
-                      onClick={() => setHodPhotoUrl('')}
-                      className="px-3 py-1.5 bg-red-50 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200 cursor-pointer"
-                    >
-                      Remove Photo
-                    </button>
-                  )}
-                </div>
+            <div className="space-y-4 pt-2">
+              <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Contact Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <AdminFormGroup label="HOD Email">
+                  <AdminInput value={hodEmail} onChange={(e) => setHodEmail(e.target.value)} placeholder="hod.cs@multan.nu.edu.pk" />
+                </AdminFormGroup>
+                <AdminFormGroup label="HOD Phone">
+                  <AdminInput value={hodPhone} onChange={(e) => setHodPhone(e.target.value)} placeholder="+92 (61) 111-128-128" />
+                </AdminFormGroup>
               </div>
-            </AdminFormGroup>
+            </div>
 
-            <AdminFormGroup label="HOD Message / Overview Paragraph">
-              <AdminTextarea rows={4} value={hodMessage} onChange={(e) => setHodMessage(e.target.value)} placeholder="Welcome message text..." />
-            </AdminFormGroup>
+            <div className="space-y-4 pt-2">
+              <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Profile Content</h4>
+              <AdminFormGroup label="HOD Message / Overview Paragraph">
+                <AdminTextarea rows={4} value={hodMessage} onChange={(e) => setHodMessage(e.target.value)} placeholder="Welcome message text..." />
+              </AdminFormGroup>
+              <AdminFormGroup label="Education">
+                <AdminTextarea rows={3} value={hodEducation} onChange={(e) => setHodEducation(e.target.value)} placeholder="Ph.D. in Computer Science..." />
+              </AdminFormGroup>
+            </div>
+
+            <div className="space-y-4 pt-2">
+              <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Academic Details</h4>
+              <AdminFormGroup label="Publications">
+                <AdminTextarea rows={4} value={hodPublications} onChange={(e) => setHodPublications(e.target.value)} placeholder="List of journal and conference publications..." />
+              </AdminFormGroup>
+              <AdminFormGroup label="Collaborations at National and International Level">
+                <AdminTextarea rows={4} value={hodCollaborations} onChange={(e) => setHodCollaborations(e.target.value)} placeholder="Academic and research collaborations..." />
+              </AdminFormGroup>
+              <AdminFormGroup label="Detail of Funded Projects">
+                <AdminTextarea rows={4} value={hodProjects} onChange={(e) => setHodProjects(e.target.value)} placeholder="HEC grants, sponsored research projects..." />
+              </AdminFormGroup>
+            </div>
           </div>
         )}
       </div>
@@ -685,7 +888,96 @@ export default function AdminCSDepartmentEditor() {
         )}
       </div>
 
-      {/* 5. RESEARCH GROUPS & AREAS SECTION (CS ONLY) */}
+      {/* 5. ALLIED FACULTY SECTION */}
+      <div className="border border-[#E5E7EB] rounded-lg bg-white overflow-hidden shadow-xs">
+        <button
+          type="button"
+          onClick={() => toggleAccordion('alliedFaculty')}
+          className="w-full p-4 bg-[#F9FAFB] hover:bg-[#F3F4F6] flex items-center justify-between font-bold text-base text-[#1F2937] transition-colors cursor-pointer border-b border-[#E5E7EB]"
+        >
+          <div className="flex items-center gap-2">
+            <span className="w-7 h-7 rounded bg-[#F0F9FF] text-[#0093DD] flex items-center justify-center text-xs font-bold">5</span>
+            <span>Allied Faculty</span>
+          </div>
+          {accordions.alliedFaculty ? <ChevronDown className="w-5 h-5 text-[#6B7280]" /> : <ChevronRight className="w-5 h-5 text-[#6B7280]" />}
+        </button>
+
+        {accordions.alliedFaculty && (
+          <div className="p-5 space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              <AdminFormGroup label="Section Heading">
+                <AdminInput value={alliedFacultyHeading} onChange={(e) => setAlliedFacultyHeading(e.target.value)} />
+              </AdminFormGroup>
+            </div>
+
+            <div className="flex justify-between items-center pt-2">
+              <h4 className="text-sm font-bold text-[#374151]">CS Allied Faculty List</h4>
+              <AdminButton variant="primary" onClick={handleOpenAddAllied} icon={<Plus className="w-4 h-4" />}>
+                Add Allied Faculty Member
+              </AdminButton>
+            </div>
+
+            <div className="space-y-3">
+              {alliedFacultyList.map((fac, idx) => (
+                <AdminCard key={fac.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-14 rounded-md bg-[#F3F4F6] border border-[#E5E7EB] overflow-hidden flex items-center justify-center flex-shrink-0">
+                      {fac.photoUrl ? (
+                        <img src={fac.photoUrl} alt={fac.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-6 h-6 text-[#9CA3AF]" />
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold text-[#0093DD] bg-[#F0F9FF] px-2 py-0.5 rounded">Order #{idx + 1}</span>
+                        {!fac.is_visible && (
+                          <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">Hidden</span>
+                        )}
+                      </div>
+                      <h4 className="text-base font-bold text-[#1F2937]">{fac.name}</h4>
+                      <p className="text-xs text-[#6B7280]">{fac.designation}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-end sm:self-center">
+                    <button
+                      type="button"
+                      onClick={() => handleMoveAllied(idx, 'up')}
+                      disabled={idx === 0}
+                      className="p-2 text-[#6B7280] hover:text-[#1F2937] disabled:opacity-30 border border-[#E5E7EB] rounded-md bg-white cursor-pointer"
+                      title="Move Up"
+                    >
+                      <ArrowUp className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleMoveAllied(idx, 'down')}
+                      disabled={idx === alliedFacultyList.length - 1}
+                      className="p-2 text-[#6B7280] hover:text-[#1F2937] disabled:opacity-30 border border-[#E5E7EB] rounded-md bg-white cursor-pointer"
+                      title="Move Down"
+                    >
+                      <ArrowDown className="w-4 h-4" />
+                    </button>
+
+                    <AdminButton variant="secondary" onClick={() => { setEditingAllied({ ...fac }); setIsAlliedModalOpen(true); }} icon={<Edit2 className="w-4 h-4" />}>
+                      Edit
+                    </AdminButton>
+
+                    <AdminButton variant="danger" onClick={() => setDeleteAlliedTarget(fac)} icon={<Trash2 className="w-4 h-4" />}>
+                      Remove
+                    </AdminButton>
+                  </div>
+                </AdminCard>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 6. RESEARCH GROUPS & AREAS SECTION (CS ONLY) */}
       <div className="border border-[#E5E7EB] rounded-lg bg-white overflow-hidden shadow-xs">
         <button
           type="button"
@@ -693,7 +985,7 @@ export default function AdminCSDepartmentEditor() {
           className="w-full p-4 bg-[#F9FAFB] hover:bg-[#F3F4F6] flex items-center justify-between font-bold text-base text-[#1F2937] transition-colors cursor-pointer border-b border-[#E5E7EB]"
         >
           <div className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded bg-[#F0F9FF] text-[#0093DD] flex items-center justify-center text-xs font-bold">5</span>
+            <span className="w-7 h-7 rounded bg-[#F0F9FF] text-[#0093DD] flex items-center justify-center text-xs font-bold">6</span>
             <span>Research Groups & Areas (CS Only)</span>
           </div>
           {accordions.research ? <ChevronDown className="w-5 h-5 text-[#6B7280]" /> : <ChevronRight className="w-5 h-5 text-[#6B7280]" />}
@@ -987,11 +1279,95 @@ export default function AdminCSDepartmentEditor() {
         itemTitle={deleteFacTarget?.name}
       />
 
+      {/* Allied Faculty Edit Modal */}
+      <AdminModal
+        isOpen={isAlliedModalOpen}
+        onClose={() => setIsAlliedModalOpen(false)}
+        title={editingAllied?.id ? 'Edit CS Allied Faculty' : 'Add CS Allied Faculty'}
+        maxWidth="md"
+        footer={
+          <>
+            <AdminButton variant="secondary" onClick={() => setIsAlliedModalOpen(false)}>
+              Cancel
+            </AdminButton>
+            <AdminButton variant="primary" onClick={handleSaveAllied}>
+              Save Allied Faculty
+            </AdminButton>
+          </>
+        }
+      >
+        <div className="space-y-4 text-left">
+          <AdminFormGroup label="Faculty Name" required>
+            <AdminInput
+              value={editingAllied?.name || ''}
+              onChange={(e) => setEditingAllied((prev) => ({ ...prev, name: e.target.value }))}
+              placeholder="e.g. Dr. Name"
+            />
+          </AdminFormGroup>
+
+          <AdminFormGroup label="Designation">
+            <AdminInput
+              value={editingAllied?.designation || ''}
+              onChange={(e) => setEditingAllied((prev) => ({ ...prev, designation: e.target.value }))}
+              placeholder="e.g. Allied Faculty Member"
+            />
+          </AdminFormGroup>
+
+          <AdminFormGroup label="Faculty Photo Upload">
+            <div className="flex items-center gap-3">
+              <div className="w-16 h-20 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
+                {editingAllied?.photoUrl ? (
+                  <img src={editingAllied.photoUrl} alt="Faculty Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-6 h-6 text-[#9CA3AF]" />
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1 shadow-xs">
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>{editingAllied?.photoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleFileUpload(e, (url) => setEditingAllied((prev) => ({ ...prev, photoUrl: url })))}
+                  />
+                </label>
+
+                {editingAllied?.photoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setEditingAllied((prev) => ({ ...prev, photoUrl: '' }))}
+                    className="px-3 py-1.5 bg-red-50 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200"
+                  >
+                    Remove Photo
+                  </button>
+                )}
+              </div>
+            </div>
+          </AdminFormGroup>
+
+          <AdminToggle
+            label="Visible on Website"
+            checked={editingAllied?.is_visible ?? true}
+            onChange={(checked) => setEditingAllied((prev) => ({ ...prev, is_visible: checked }))}
+          />
+        </div>
+      </AdminModal>
+
       <DeleteConfirmModal
         isOpen={!!deleteResTarget}
         onClose={() => setDeleteResTarget(null)}
         onConfirm={handleDeleteRes}
         itemTitle={deleteResTarget?.title}
+      />
+
+      <DeleteConfirmModal
+        isOpen={!!deleteAlliedTarget}
+        onClose={() => setDeleteAlliedTarget(null)}
+        onConfirm={handleDeleteAllied}
+        itemTitle={deleteAlliedTarget?.name}
       />
     </div>
   );

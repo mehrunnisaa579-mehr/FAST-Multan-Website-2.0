@@ -76,10 +76,6 @@ export default function CSProgramsPage() {
           </div>
         </div>
 
-        <div className="dept-divider my-[40px]">
-          <div className="dept-divider-dot" />
-        </div>
-
         {/* Our Programs Section */}
         <div className="mb-[45px]">
           <h2 className="text-[22px] min-[700px]:text-[24px] font-bold text-[#0C71C3] uppercase mb-[24px]">

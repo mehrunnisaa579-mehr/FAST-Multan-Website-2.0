@@ -61,9 +61,9 @@ export default function ManagementFacultyPage() {
             DEPARTMENT FACULTY
           </h2>
 
-          <div className="dept-card-row flex flex-wrap justify-center gap-[24px]">
+          <div className="dept-card-row dept-faculty-grid">
             {facultyList.map((fac) => (
-              <div key={fac.id} className="w-full max-w-[240px] sm:w-[230px]">
+              <div key={fac.id} className="dept-faculty-wrapper">
                 <DepartmentCard
                   key={fac.id}
                   variant="faculty"

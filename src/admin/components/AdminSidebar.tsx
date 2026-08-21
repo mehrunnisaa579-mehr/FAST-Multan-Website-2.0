@@ -42,9 +42,7 @@ const sidebarNavigation: MenuItem[] = [
     icon: GraduationCap,
     children: [
       { label: 'All Departments', path: '/admin-panel5463/all-departments' },
-      { label: 'FAST School of Computing', path: '/admin-panel5463/school-of-computing' },
-      { label: 'FAST School of Management', path: '/admin-panel5463/school-of-management' },
-      { label: 'Administration Staff', path: '/admin-panel5463/administration-staff' },
+      { label: 'Manage Departments', path: '/admin-panel5463/manage-departments' },
       { label: 'Schools & Academics', path: '/admin-panel5463/schools' },
       { label: 'Degree Programs', path: '/admin-panel5463/programs' },
       { label: 'Faculty Members', path: '/admin-panel5463/faculty' },

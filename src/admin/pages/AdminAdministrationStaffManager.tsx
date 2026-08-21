@@ -25,7 +25,9 @@ import {
   User,
   Building2,
   Image as ImageIcon,
+  ArrowLeft,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface OfficeItem {
   id: string;
@@ -344,20 +346,29 @@ export default function AdminAdministrationStaffManager() {
 
   return (
     <div className="space-y-6 text-left max-w-[1250px]">
-      <AdminPageHeader
-        title="Administration Staff Page"
-        subtitle="Manage administration offices, staff member cards, photo uploads, and individual profile details."
-        action={
-          <div className="flex gap-2">
-            <AdminButton variant="secondary" onClick={handleOpenAddOffice} icon={<Plus className="w-4 h-4" />}>
-              Add Office Category
-            </AdminButton>
-            <AdminButton variant="primary" onClick={handleOpenAddStaff} icon={<Plus className="w-4 h-4" />}>
-              Add Staff Member
-            </AdminButton>
-          </div>
-        }
-      />
+      <div className="flex items-center gap-4 mb-2">
+        <Link
+          to="/admin-panel5463/manage-departments"
+          className="p-2 bg-white border border-[#E5E7EB] rounded-md text-[#4B5563] hover:text-[#0093DD] transition-colors"
+          title="Back to Manage Departments"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <AdminPageHeader
+          title="Administration Staff Page"
+          subtitle="Manage administration offices, staff member cards, photo uploads, and individual profile details."
+          action={
+            <div className="flex gap-2">
+              <AdminButton variant="secondary" onClick={handleOpenAddOffice} icon={<Plus className="w-4 h-4" />}>
+                Add Office Category
+              </AdminButton>
+              <AdminButton variant="primary" onClick={handleOpenAddStaff} icon={<Plus className="w-4 h-4" />}>
+                Add Staff Member
+              </AdminButton>
+            </div>
+          }
+        />
+      </div>
 
       {message && (
         <div
@@ -565,122 +576,148 @@ export default function AdminAdministrationStaffManager() {
           </>
         }
       >
-        <div className="space-y-4 text-left">
-          <AdminFormGroup label="Full Name" required>
-            <AdminInput
-              value={editingStaff?.name || ''}
-              onChange={(e) => setEditingStaff((prev) => ({ ...prev, name: e.target.value }))}
-              placeholder="Full Name"
-            />
-          </AdminFormGroup>
+        <div className="space-y-6">
+          {/* BASIC INFORMATION */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Basic Information</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <AdminFormGroup label="Full Name" required>
+                <AdminInput
+                  value={editingStaff?.name || ''}
+                  onChange={(e) => setEditingStaff((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="Full Name"
+                />
+              </AdminFormGroup>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <AdminFormGroup label="Designation / Role">
-              <AdminInput
-                value={editingStaff?.designation || ''}
-                onChange={(e) => setEditingStaff((prev) => ({ ...prev, designation: e.target.value }))}
-                placeholder="e.g. Officer / Manager"
-              />
-            </AdminFormGroup>
-
-            <AdminFormGroup label="Assigned Office">
-              <select
-                value={editingStaff?.office || selectedOffice}
-                onChange={(e) => setEditingStaff((prev) => ({ ...prev, office: e.target.value }))}
-                className="w-full px-3.5 py-2.5 bg-white border border-[#E5E7EB] rounded-md text-sm text-[#1F2937]"
-              >
-                {offices.map((off) => (
-                  <option key={off.id} value={off.id}>
-                    {off.title}
-                  </option>
-                ))}
-              </select>
-            </AdminFormGroup>
-          </div>
-
-          <AdminFormGroup label="Staff Photograph Upload">
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-20 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
-                {editingStaff?.photo_url ? (
-                  <img src={editingStaff.photo_url} alt="Staff Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-6 h-6 text-[#9CA3AF]" />
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>{editingStaff?.photo_url ? 'Replace Photo' : 'Upload Photo'}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleFileUpload(e, (url) => setEditingStaff((prev) => ({ ...prev, photo_url: url })))}
-                  />
-                </label>
-
-                {editingStaff?.photo_url && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingStaff((prev) => ({ ...prev, photo_url: '' }))}
-                    className="px-3 py-1.5 bg-red-50 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200"
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
+              <AdminFormGroup label="Profile Slug (Optional)">
+                <AdminInput
+                  value={editingStaff?.slug || ''}
+                  onChange={(e) => setEditingStaff((prev) => ({ ...prev, slug: e.target.value }))}
+                  placeholder="e.g. staff-member-name"
+                />
+              </AdminFormGroup>
             </div>
-          </AdminFormGroup>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <AdminFormGroup label="Email Address">
-              <AdminInput
-                value={editingStaff?.email || ''}
-                onChange={(e) => setEditingStaff((prev) => ({ ...prev, email: e.target.value }))}
-                placeholder="name@multan.nu.edu.pk"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <AdminFormGroup label="Designation / Role">
+                <AdminInput
+                  value={editingStaff?.designation || ''}
+                  onChange={(e) => setEditingStaff((prev) => ({ ...prev, designation: e.target.value }))}
+                  placeholder="e.g. Officer / Manager"
+                />
+              </AdminFormGroup>
+
+              <AdminFormGroup label="Assigned Office">
+                <select
+                  value={editingStaff?.office || selectedOffice}
+                  onChange={(e) => setEditingStaff((prev) => ({ ...prev, office: e.target.value }))}
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#E5E7EB] rounded-md text-sm text-[#1F2937]"
+                >
+                  {offices.map((off) => (
+                    <option key={off.id} value={off.id}>
+                      {off.title}
+                    </option>
+                  ))}
+                </select>
+              </AdminFormGroup>
+            </div>
+
+            <AdminFormGroup label="Staff Photograph Upload">
+              <div className="flex items-center gap-3">
+                <div className="w-16 h-20 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
+                  {editingStaff?.photo_url ? (
+                    <img src={editingStaff.photo_url} alt="Staff Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-6 h-6 text-[#9CA3AF]" />
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>{editingStaff?.photo_url ? 'Replace Photo' : 'Upload Photo'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleFileUpload(e, (url) => setEditingStaff((prev) => ({ ...prev, photo_url: url })))}
+                    />
+                  </label>
+
+                  {editingStaff?.photo_url && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingStaff((prev) => ({ ...prev, photo_url: '' }))}
+                      className="px-3 py-1.5 bg-red-50 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200 cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+            </AdminFormGroup>
+          </div>
+
+          {/* CONTACT INFORMATION */}
+          <div className="space-y-4 pt-2">
+            <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Contact Information</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <AdminFormGroup label="Email Address">
+                <AdminInput
+                  value={editingStaff?.email || ''}
+                  onChange={(e) => setEditingStaff((prev) => ({ ...prev, email: e.target.value }))}
+                  placeholder="name@multan.nu.edu.pk"
+                />
+              </AdminFormGroup>
+
+              <AdminFormGroup label="Phone Number">
+                <AdminInput
+                  value={editingStaff?.phone || ''}
+                  onChange={(e) => setEditingStaff((prev) => ({ ...prev, phone: e.target.value }))}
+                  placeholder="+92 (61) 111-128-128"
+                />
+              </AdminFormGroup>
+
+              <AdminFormGroup label="Extension">
+                <AdminInput
+                  value={editingStaff?.extension || ''}
+                  onChange={(e) => setEditingStaff((prev) => ({ ...prev, extension: e.target.value }))}
+                  placeholder="101"
+                />
+              </AdminFormGroup>
+            </div>
+          </div>
+
+          {/* PROFILE CONTENT */}
+          <div className="space-y-4 pt-2">
+            <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Profile Content</h4>
+            <AdminFormGroup label="Introduction / Overview">
+              <AdminTextarea
+                rows={4}
+                value={editingStaff?.introduction || ''}
+                onChange={(e) => setEditingStaff((prev) => ({ ...prev, introduction: e.target.value }))}
+                placeholder="Staff member biography, responsibilities, and role overview..."
               />
             </AdminFormGroup>
 
-            <AdminFormGroup label="Phone Number">
-              <AdminInput
-                value={editingStaff?.phone || ''}
-                onChange={(e) => setEditingStaff((prev) => ({ ...prev, phone: e.target.value }))}
-                placeholder="+92 (61) 111-128-128"
-              />
-            </AdminFormGroup>
-
-            <AdminFormGroup label="Extension">
-              <AdminInput
-                value={editingStaff?.extension || ''}
-                onChange={(e) => setEditingStaff((prev) => ({ ...prev, extension: e.target.value }))}
-                placeholder="101"
+            <AdminFormGroup label="Education / Qualifications">
+              <AdminTextarea
+                rows={3}
+                value={editingStaff?.education || ''}
+                onChange={(e) => setEditingStaff((prev) => ({ ...prev, education: e.target.value }))}
+                placeholder="Master Degree / Bachelor Degree in relevant discipline..."
               />
             </AdminFormGroup>
           </div>
 
-          <AdminFormGroup label="Introduction / Biography">
-            <AdminTextarea
-              rows={3}
-              value={editingStaff?.introduction || ''}
-              onChange={(e) => setEditingStaff((prev) => ({ ...prev, introduction: e.target.value }))}
-              placeholder="Staff member biography and role overview..."
+          {/* SETTINGS */}
+          <div className="pt-2">
+            <AdminToggle
+              label="Visible on Website"
+              checked={editingStaff?.is_visible ?? true}
+              onChange={(checked) => setEditingStaff((prev) => ({ ...prev, is_visible: checked }))}
             />
-          </AdminFormGroup>
-
-          <AdminFormGroup label="Education / Qualifications">
-            <AdminInput
-              value={editingStaff?.education || ''}
-              onChange={(e) => setEditingStaff((prev) => ({ ...prev, education: e.target.value }))}
-              placeholder="e.g. Master Degree / Bachelor Degree in relevant field"
-            />
-          </AdminFormGroup>
-
-          <AdminToggle
-            label="Visible on Website"
-            checked={editingStaff?.is_visible ?? true}
-            onChange={(checked) => setEditingStaff((prev) => ({ ...prev, is_visible: checked }))}
-          />
+          </div>
         </div>
       </AdminModal>
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import AboutPageHero from '../../components/about/AboutPageHero';
 import { csResearchAreas, csResearchTeam } from '../../data/departments';
 import { cmsService } from '../../services/cmsService';
+import CmsImage from '../../components/ui/CmsImage';
 import '../../styles/department-pages.css';
 
 export default function CSResearchGroupsPage() {
@@ -90,11 +91,14 @@ export default function CSResearchGroupsPage() {
                 key={member.id}
                 className="flex flex-col sm:flex-row gap-[20px] items-start p-[20px] bg-white border border-[#EAEAEA] rounded-[4px] shadow-sm card-hover-lift"
               >
-                {/* Researcher Portrait Placeholder */}
-                <div className="w-full sm:w-[140px] h-[175px] bg-white border border-[#CCCCCC] rounded-[4px] flex items-center justify-center p-[12px] flex-shrink-0">
-                  <span className="text-[10px] font-semibold text-[#666666] tracking-wide uppercase text-center">
-                    {member.photoPlaceholder}
-                  </span>
+                {/* Researcher Portrait */}
+                <div className="w-full sm:w-[140px] h-[175px] bg-white border border-[#E5E7EB] rounded-[4px] overflow-hidden flex items-center justify-center flex-shrink-0">
+                  <CmsImage
+                    src={(member as any).photoUrl}
+                    alt={member.name}
+                    fallbackLabel={member.photoPlaceholder || 'RESEARCHER PHOTO'}
+                    fit="cover"
+                  />
                 </div>
 
                 {/* Details */}
