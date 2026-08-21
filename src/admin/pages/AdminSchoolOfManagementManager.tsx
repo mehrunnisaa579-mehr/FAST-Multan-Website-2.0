@@ -48,15 +48,6 @@ interface MgmtFacultyItem extends FacultyMemberData {
   is_visible: boolean;
 }
 
-interface MgmtAlliedFacultyItem extends FacultyMemberData {
-  id: string;
-  name: string;
-  designation: string;
-  qualification?: string;
-  photoUrl?: string;
-  display_order: number;
-  is_visible: boolean;
-}
 
 export default function AdminSchoolOfManagementManager() {
   const [heroTitle, setHeroTitle] = useState('FAST School Of Management');
@@ -76,8 +67,6 @@ export default function AdminSchoolOfManagementManager() {
   const [headCollaborations, setHeadCollaborations] = useState('');
   const [headProjects, setHeadProjects] = useState('');
 
-  // Allied Faculty List
-  const [alliedFacultyList, setAlliedFacultyList] = useState<MgmtAlliedFacultyItem[]>([]);
 
   // Management Programs List
   const [programsList, setProgramsList] = useState<MgmtProgramItem[]>([
@@ -141,9 +130,6 @@ export default function AdminSchoolOfManagementManager() {
   const [editingFac, setEditingFac] = useState<Partial<MgmtFacultyItem> | null>(null);
   const [deleteFacTarget, setDeleteFacTarget] = useState<MgmtFacultyItem | null>(null);
 
-  const [isAlliedFacModalOpen, setIsAlliedFacModalOpen] = useState(false);
-  const [editingAlliedFac, setEditingAlliedFac] = useState<Partial<MgmtAlliedFacultyItem> | null>(null);
-  const [deleteAlliedFacTarget, setDeleteAlliedFacTarget] = useState<MgmtAlliedFacultyItem | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -169,9 +155,7 @@ export default function AdminSchoolOfManagementManager() {
       if (savedData.facultyList && savedData.facultyList.length > 0) {
         setFacultyList(savedData.facultyList);
       }
-      if (savedData.alliedFacultyList && savedData.alliedFacultyList.length > 0) {
-        setAlliedFacultyList(savedData.alliedFacultyList);
-      }
+
     }
   };
 
@@ -191,60 +175,6 @@ export default function AdminSchoolOfManagementManager() {
     }
   };
 
-  // Allied Faculty Handlers
-  const handleOpenAddAlliedFac = () => {
-    setEditingAlliedFac({
-      id: `allied-mgmt-${Date.now()}`,
-      name: 'New Allied Faculty Member',
-      designation: 'Assistant Professor',
-      qualification: 'PhD Management Sciences',
-      photoUrl: '',
-      display_order: alliedFacultyList.length + 1,
-      is_visible: true,
-    });
-    setIsAlliedFacModalOpen(true);
-  };
-
-  const handleOpenEditAlliedFac = (fac: MgmtAlliedFacultyItem) => {
-    setEditingAlliedFac({ ...fac });
-    setIsAlliedFacModalOpen(true);
-  };
-
-  const handleSaveAlliedFacModal = (savedData: FacultyMemberData) => {
-    const updated = [...alliedFacultyList];
-    const itemToSave = { ...editingAlliedFac, ...savedData } as MgmtAlliedFacultyItem;
-    const idx = updated.findIndex((f) => f.id === itemToSave.id);
-    if (idx >= 0) {
-      updated[idx] = itemToSave;
-    } else {
-      updated.push(itemToSave);
-    }
-
-    setAlliedFacultyList(updated);
-    setIsAlliedFacModalOpen(false);
-  };
-
-  const handleDeleteAlliedFac = () => {
-    if (!deleteAlliedFacTarget) return;
-    setAlliedFacultyList((prev) => prev.filter((f) => f.id !== deleteAlliedFacTarget.id));
-    setDeleteAlliedFacTarget(null);
-  };
-
-  const handleMoveAlliedFac = (index: number, direction: 'up' | 'down') => {
-    const newList = [...alliedFacultyList];
-    const targetIdx = direction === 'up' ? index - 1 : index + 1;
-    if (targetIdx < 0 || targetIdx >= newList.length) return;
-    const temp = newList[index];
-    newList[index] = newList[targetIdx];
-    newList[targetIdx] = temp;
-    setAlliedFacultyList(newList);
-  };
-
-  const handleToggleAlliedFacVisibility = (id: string) => {
-    setAlliedFacultyList((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, is_visible: !f.is_visible } : f))
-    );
-  };
 
   // Program CRUD Handlers
   const handleOpenAddProg = () => {
@@ -367,7 +297,6 @@ export default function AdminSchoolOfManagementManager() {
       headProjects,
       programsList,
       facultyList,
-      alliedFacultyList,
       updated_at: new Date().toISOString(),
     };
 
@@ -680,93 +609,6 @@ export default function AdminSchoolOfManagementManager() {
         </div>
       </AdminSection>
 
-      {/* Allied Faculty Section */}
-      <AdminSection
-        title="Allied Faculty"
-        description="Add, edit, reorder, or remove allied faculty members displayed on the Management Sciences page."
-      >
-        <div className="flex justify-between items-center mb-4">
-          <h4 className="text-sm font-bold text-[#374151]">Allied Faculty List</h4>
-          <AdminButton variant="primary" onClick={handleOpenAddAlliedFac} icon={<Plus className="w-4 h-4" />}>
-            Add Allied Faculty Member
-          </AdminButton>
-        </div>
-
-        <div className="space-y-3">
-          {alliedFacultyList.map((fac, idx) => (
-            <AdminCard key={fac.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-14 rounded-md bg-[#F3F4F6] border border-[#E5E7EB] overflow-hidden flex items-center justify-center flex-shrink-0">
-                  {fac.photoUrl ? (
-                    <img src={fac.photoUrl} alt={fac.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-6 h-6 text-[#9CA3AF]" />
-                  )}
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-bold text-[#0093DD] bg-[#F0F9FF] px-2 py-0.5 rounded">
-                      Order #{idx + 1}
-                    </span>
-                    <span className="text-xs text-[#6B7280]">{fac.qualification}</span>
-                    {!fac.is_visible && (
-                      <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                        Hidden
-                      </span>
-                    )}
-                  </div>
-                  <h4 className="text-base font-bold text-[#1F2937]">{fac.name}</h4>
-                  <p className="text-xs text-[#6B7280]">{fac.designation}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 self-end sm:self-center">
-                <button
-                  type="button"
-                  onClick={() => handleToggleAlliedFacVisibility(fac.id)}
-                  className={`p-2 border rounded-md cursor-pointer transition-colors ${
-                    fac.is_visible
-                      ? 'text-[#0093DD] bg-[#F0F9FF] border-[#B9E6FE]'
-                      : 'text-[#9CA3AF] bg-[#F9FAFB] border-[#E5E7EB]'
-                  }`}
-                  title={fac.is_visible ? 'Visible (Click to Hide)' : 'Hidden (Click to Show)'}
-                >
-                  {fac.is_visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleMoveAlliedFac(idx, 'up')}
-                  disabled={idx === 0}
-                  className="p-2 text-[#6B7280] hover:text-[#1F2937] disabled:opacity-30 border border-[#E5E7EB] rounded-md bg-white cursor-pointer"
-                  title="Move Up"
-                >
-                  <ArrowUp className="w-4 h-4" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleMoveAlliedFac(idx, 'down')}
-                  disabled={idx === alliedFacultyList.length - 1}
-                  className="p-2 text-[#6B7280] hover:text-[#1F2937] disabled:opacity-30 border border-[#E5E7EB] rounded-md bg-white cursor-pointer"
-                  title="Move Down"
-                >
-                  <ArrowDown className="w-4 h-4" />
-                </button>
-
-                <AdminButton variant="secondary" onClick={() => handleOpenEditAlliedFac(fac)} icon={<Edit2 className="w-4 h-4" />}>
-                  Edit Allied Faculty
-                </AdminButton>
-
-                <AdminButton variant="danger" onClick={() => setDeleteAlliedFacTarget(fac)} icon={<Trash2 className="w-4 h-4" />}>
-                  Delete
-                </AdminButton>
-              </div>
-            </AdminCard>
-          ))}
-        </div>
-      </AdminSection>
 
       {/* Edit Program Modal */}
       <AdminModal
@@ -868,21 +710,6 @@ export default function AdminSchoolOfManagementManager() {
         itemTitle={deleteFacTarget?.name}
       />
 
-      {/* Edit Allied Faculty Modal */}
-      <FacultyEditModal
-        isOpen={isAlliedFacModalOpen}
-        onClose={() => setIsAlliedFacModalOpen(false)}
-        onSave={handleSaveAlliedFacModal}
-        title={editingAlliedFac?.id ? 'Edit Allied Faculty Member' : 'Add Allied Faculty Member'}
-        initialData={editingAlliedFac}
-      />
-
-      <DeleteConfirmModal
-        isOpen={!!deleteAlliedFacTarget}
-        onClose={() => setDeleteAlliedFacTarget(null)}
-        onConfirm={handleDeleteAlliedFac}
-        itemTitle={deleteAlliedFacTarget?.name}
-      />
     </div>
   );
 }
