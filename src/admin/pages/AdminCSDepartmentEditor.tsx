@@ -8,6 +8,7 @@ import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
+import FacultyEditModal, { FacultyMemberData } from '../components/ui/FacultyEditModal';
 import { cmsService } from '../../services/cmsService';
 import { archiveService } from '../../services/archiveService';
 import { csPrograms, csFaculty, csResearchAreas } from '../../data/departments';
@@ -45,7 +46,7 @@ interface CSProgramItem {
   is_visible: boolean;
 }
 
-interface CSFacultyItem {
+interface CSFacultyItem extends FacultyMemberData {
   id: string;
   name: string;
   designation: string;
@@ -299,17 +300,14 @@ export default function AdminCSDepartmentEditor() {
     setIsFacModalOpen(true);
   };
 
-  const handleSaveFac = () => {
-    if (!editingFac?.name?.trim()) {
-      alert('Please enter a faculty name.');
-      return;
-    }
+  const handleSaveFacModal = (savedData: FacultyMemberData) => {
     const updated = [...facultyList];
-    const idx = updated.findIndex((f) => f.id === editingFac.id);
+    const itemToSave = { ...editingFac, ...savedData } as CSFacultyItem;
+    const idx = updated.findIndex((f) => f.id === itemToSave.id);
     if (idx >= 0) {
-      updated[idx] = editingFac as CSFacultyItem;
+      updated[idx] = itemToSave;
     } else {
-      updated.push(editingFac as CSFacultyItem);
+      updated.push(itemToSave);
     }
     setFacultyList(updated);
     setIsFacModalOpen(false);
@@ -357,17 +355,14 @@ export default function AdminCSDepartmentEditor() {
     setIsAlliedModalOpen(true);
   };
 
-  const handleSaveAllied = () => {
-    if (!editingAllied?.name?.trim()) {
-      alert('Please enter a faculty name.');
-      return;
-    }
+  const handleSaveAlliedModal = (savedData: FacultyMemberData) => {
     const updated = [...alliedFacultyList];
-    const idx = updated.findIndex((f) => f.id === editingAllied.id);
+    const itemToSave = { ...editingAllied, ...savedData } as CSFacultyItem;
+    const idx = updated.findIndex((f) => f.id === itemToSave.id);
     if (idx >= 0) {
-      updated[idx] = editingAllied as CSFacultyItem;
+      updated[idx] = itemToSave;
     } else {
-      updated.push(editingAllied as CSFacultyItem);
+      updated.push(itemToSave);
     }
     setAlliedFacultyList(updated);
     setIsAlliedModalOpen(false);
@@ -1146,81 +1141,13 @@ export default function AdminCSDepartmentEditor() {
       </AdminModal>
 
       {/* Faculty Edit Modal */}
-      <AdminModal
+      <FacultyEditModal
         isOpen={isFacModalOpen}
         onClose={() => setIsFacModalOpen(false)}
+        onSave={handleSaveFacModal}
         title={editingFac?.id ? 'Edit CS Faculty Member' : 'Add CS Faculty Member'}
-        maxWidth="md"
-        footer={
-          <>
-            <AdminButton variant="secondary" onClick={() => setIsFacModalOpen(false)}>
-              Cancel
-            </AdminButton>
-            <AdminButton variant="primary" onClick={handleSaveFac}>
-              Save Faculty Member
-            </AdminButton>
-          </>
-        }
-      >
-        <div className="space-y-4 text-left">
-          <AdminFormGroup label="Faculty Name" required>
-            <AdminInput
-              value={editingFac?.name || ''}
-              onChange={(e) => setEditingFac((prev) => ({ ...prev, name: e.target.value }))}
-              placeholder="e.g. Dr. Name"
-            />
-          </AdminFormGroup>
-
-          <AdminFormGroup label="Designation">
-            <AdminInput
-              value={editingFac?.designation || ''}
-              onChange={(e) => setEditingFac((prev) => ({ ...prev, designation: e.target.value }))}
-              placeholder="e.g. Assistant Professor"
-            />
-          </AdminFormGroup>
-
-          <AdminFormGroup label="Faculty Photo Upload">
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-20 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
-                {editingFac?.photoUrl ? (
-                  <img src={editingFac.photoUrl} alt="Faculty Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-6 h-6 text-[#9CA3AF]" />
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1 shadow-xs">
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>{editingFac?.photoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleFileUpload(e, (url) => setEditingFac((prev) => ({ ...prev, photoUrl: url })))}
-                  />
-                </label>
-
-                {editingFac?.photoUrl && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingFac((prev) => ({ ...prev, photoUrl: '' }))}
-                    className="px-3 py-1.5 bg-red-50 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200"
-                  >
-                    Remove Photo
-                  </button>
-                )}
-              </div>
-            </div>
-          </AdminFormGroup>
-
-          <AdminToggle
-            label="Visible on Website"
-            checked={editingFac?.is_visible ?? true}
-            onChange={(checked) => setEditingFac((prev) => ({ ...prev, is_visible: checked }))}
-          />
-        </div>
-      </AdminModal>
+        initialData={editingFac}
+      />
 
       {/* Research Area Edit Modal */}
       <AdminModal
@@ -1280,81 +1207,13 @@ export default function AdminCSDepartmentEditor() {
       />
 
       {/* Allied Faculty Edit Modal */}
-      <AdminModal
+      <FacultyEditModal
         isOpen={isAlliedModalOpen}
         onClose={() => setIsAlliedModalOpen(false)}
+        onSave={handleSaveAlliedModal}
         title={editingAllied?.id ? 'Edit CS Allied Faculty' : 'Add CS Allied Faculty'}
-        maxWidth="md"
-        footer={
-          <>
-            <AdminButton variant="secondary" onClick={() => setIsAlliedModalOpen(false)}>
-              Cancel
-            </AdminButton>
-            <AdminButton variant="primary" onClick={handleSaveAllied}>
-              Save Allied Faculty
-            </AdminButton>
-          </>
-        }
-      >
-        <div className="space-y-4 text-left">
-          <AdminFormGroup label="Faculty Name" required>
-            <AdminInput
-              value={editingAllied?.name || ''}
-              onChange={(e) => setEditingAllied((prev) => ({ ...prev, name: e.target.value }))}
-              placeholder="e.g. Dr. Name"
-            />
-          </AdminFormGroup>
-
-          <AdminFormGroup label="Designation">
-            <AdminInput
-              value={editingAllied?.designation || ''}
-              onChange={(e) => setEditingAllied((prev) => ({ ...prev, designation: e.target.value }))}
-              placeholder="e.g. Allied Faculty Member"
-            />
-          </AdminFormGroup>
-
-          <AdminFormGroup label="Faculty Photo Upload">
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-20 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
-                {editingAllied?.photoUrl ? (
-                  <img src={editingAllied.photoUrl} alt="Faculty Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-6 h-6 text-[#9CA3AF]" />
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1 shadow-xs">
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>{editingAllied?.photoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleFileUpload(e, (url) => setEditingAllied((prev) => ({ ...prev, photoUrl: url })))}
-                  />
-                </label>
-
-                {editingAllied?.photoUrl && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingAllied((prev) => ({ ...prev, photoUrl: '' }))}
-                    className="px-3 py-1.5 bg-red-50 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200"
-                  >
-                    Remove Photo
-                  </button>
-                )}
-              </div>
-            </div>
-          </AdminFormGroup>
-
-          <AdminToggle
-            label="Visible on Website"
-            checked={editingAllied?.is_visible ?? true}
-            onChange={(checked) => setEditingAllied((prev) => ({ ...prev, is_visible: checked }))}
-          />
-        </div>
-      </AdminModal>
+        initialData={editingAllied}
+      />
 
       <DeleteConfirmModal
         isOpen={!!deleteResTarget}

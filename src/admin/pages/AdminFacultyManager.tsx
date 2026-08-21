@@ -2,16 +2,13 @@ import React, { useState, useEffect } from 'react';
 import AdminPageHeader from '../components/ui/AdminPageHeader';
 import AdminCard from '../components/ui/AdminCard';
 import AdminButton from '../components/ui/AdminButton';
-import AdminFormGroup from '../components/ui/AdminFormGroup';
-import AdminInput from '../components/ui/AdminInput';
-import AdminTextarea from '../components/ui/AdminTextarea';
-import AdminToggle from '../components/ui/AdminToggle';
-import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
+import { DeleteConfirmModal } from '../components/ui/AdminModal';
+import FacultyEditModal, { FacultyMemberData } from '../components/ui/FacultyEditModal';
 import { cmsService } from '../../services/cmsService';
 import { supabase } from '../../lib/supabase';
-import { Plus, Edit2, Trash2, CheckCircle2, AlertCircle, Upload, Users } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckCircle2, AlertCircle, Users } from 'lucide-react';
 
-interface FacultyMember {
+interface FacultyMember extends FacultyMemberData {
   id: string;
   name: string;
   designation: string;
@@ -36,7 +33,7 @@ export default function AdminFacultyManager() {
   const [loading, setLoading] = useState(true);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<Partial<FacultyMember>>({});
+  const [editingItem, setEditingItem] = useState<Partial<FacultyMember> | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const [deleteTarget, setDeleteTarget] = useState<FacultyMember | null>(null);
@@ -75,36 +72,41 @@ export default function AdminFacultyManager() {
     setIsModalOpen(true);
   };
 
-  const handleSave = async () => {
-    if (!editingItem?.name?.trim()) {
-      alert('Please enter faculty member name.');
-      return;
-    }
-
+  const handleSaveModal = async (savedData: FacultyMemberData) => {
     setIsSaving(true);
     try {
       const newItem: FacultyMember = {
-        id: editingItem.id || `${selectedDept}-fac-${Date.now()}`,
-        name: editingItem.name.trim(),
-        designation: editingItem.designation || (editingItem.isHOD ? 'Head of Department' : 'Lecturer'),
-        qualification: editingItem.qualification || '',
-        biography: editingItem.biography || (editingItem as any).introduction || '',
-        photo_url: editingItem.photo_url || (editingItem as any).photoUrl || '',
-        photoUrl: editingItem.photo_url || (editingItem as any).photoUrl || '',
-        badge_photo_url: (editingItem as any).badge_photo_url || (editingItem as any).badgePhotoUrl || '',
-        badgePhotoUrl: (editingItem as any).badgePhotoUrl || (editingItem as any).badge_photo_url || '',
+        id: savedData.id || editingItem?.id || `${selectedDept}-fac-${Date.now()}`,
+        name: savedData.name?.trim() || '',
+        designation: savedData.designation || (savedData.isHOD ? 'Head of Department' : 'Lecturer'),
+        qualification: savedData.qualification || '',
+        biography: savedData.biography || savedData.introduction || '',
+        photo_url: savedData.photo_url || savedData.photoUrl || '',
+        photoUrl: savedData.photo_url || savedData.photoUrl || '',
+        badge_photo_url: savedData.badge_photo_url || savedData.badgePhotoUrl || '',
+        badgePhotoUrl: savedData.badgePhotoUrl || savedData.badge_photo_url || '',
+        email: savedData.email || '',
+        phone: savedData.phone || '',
+        extension: savedData.extension || '',
+        education: savedData.education || '',
+        publications: savedData.publications || '',
+        collaborations: savedData.collaborations || '',
+        funded_projects: savedData.funded_projects || savedData.fundedProjects || '',
+        fundedProjects: savedData.fundedProjects || savedData.funded_projects || '',
+        slug: savedData.slug || '',
         school: selectedDept === 'management' ? 'management' : 'computing',
         department: selectedDept,
-        display_order: editingItem.display_order ?? (editingItem.isHOD ? 0 : facultyList.length + 1),
-        visible: editingItem.visible ?? editingItem.is_visible ?? true,
-        isHOD: !!editingItem.isHOD,
+        display_order: savedData.display_order ?? (savedData.isHOD ? 0 : facultyList.length + 1),
+        visible: savedData.visible ?? savedData.is_visible ?? true,
+        is_visible: savedData.visible ?? savedData.is_visible ?? true,
+        isHOD: !!savedData.isHOD,
       };
 
       const updatedList = [...facultyList];
       const existingIdx = updatedList.findIndex((f) => f.id === newItem.id);
 
       if (existingIdx >= 0) {
-        updatedList[existingIdx] = { ...updatedList[existingIdx], ...editingItem, ...newItem };
+        updatedList[existingIdx] = { ...updatedList[existingIdx], ...newItem };
       } else {
         updatedList.push(newItem);
       }
@@ -127,8 +129,8 @@ export default function AdminFacultyManager() {
             visible: newItem.visible,
             updated_at: new Date().toISOString(),
           };
-          if (editingItem.id && !editingItem.id.startsWith('cs-fac-') && !editingItem.id.startsWith('mgmt-fac-')) {
-            await supabase.from('faculty').update(payload).eq('id', editingItem.id);
+          if (newItem.id && !newItem.id.startsWith('cs-fac-') && !newItem.id.startsWith('mgmt-fac-')) {
+            await supabase.from('faculty').update(payload).eq('id', newItem.id);
           } else {
             await supabase.from('faculty').insert([payload]);
           }
@@ -177,18 +179,6 @@ export default function AdminFacultyManager() {
       setMessage({ type: 'error', text: err?.message || 'Failed to delete record.' });
     } finally {
       setIsDeleting(false);
-    }
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setEditingItem((prev) => ({ ...prev, photo_url: res.publicUrl, photoUrl: res.publicUrl }));
-    } else {
-      alert(`Upload failed: ${res.error}`);
     }
   };
 
@@ -312,200 +302,14 @@ export default function AdminFacultyManager() {
         </div>
       )}
 
-      {/* Edit Modal */}
-      <AdminModal
+      {/* Edit Modal Reused Component */}
+      <FacultyEditModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingItem?.id ? (editingItem.isHOD ? 'Edit Department Head / HOD Profile' : 'Edit Faculty Profile') : 'Add Faculty Member'}
-        maxWidth="lg"
-        footer={
-          <>
-            <AdminButton variant="secondary" onClick={() => setIsModalOpen(false)}>
-              Cancel
-            </AdminButton>
-            <AdminButton variant="primary" onClick={handleSave} loading={isSaving}>
-              Save Profile
-            </AdminButton>
-          </>
-        }
-      >
-        <div className="space-y-6">
-          {/* BASIC INFORMATION */}
-          <div className="space-y-4">
-            <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Basic Information</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <AdminFormGroup label="Full Name" required>
-                <AdminInput
-                  value={editingItem?.name || ''}
-                  onChange={(e) => setEditingItem((prev) => ({ ...prev, name: e.target.value }))}
-                  placeholder="e.g. Dr. [Faculty Name]"
-                />
-              </AdminFormGroup>
-              <AdminFormGroup label="Designation">
-                <AdminInput
-                  value={editingItem?.designation || ''}
-                  onChange={(e) => setEditingItem((prev) => ({ ...prev, designation: e.target.value }))}
-                  placeholder="Assistant Professor / Lecturer"
-                />
-              </AdminFormGroup>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <AdminFormGroup label="Qualification / Degree">
-                <AdminInput
-                  value={editingItem?.qualification || ''}
-                  onChange={(e) => setEditingItem((prev) => ({ ...prev, qualification: e.target.value }))}
-                  placeholder="Ph.D. / M.S. Computer Science"
-                />
-              </AdminFormGroup>
-
-              <AdminFormGroup label="Profile Slug (Optional)">
-                <AdminInput
-                  value={(editingItem as any)?.slug || ''}
-                  onChange={(e) => setEditingItem((prev) => ({ ...prev, slug: e.target.value } as any))}
-                  placeholder="dr-faculty-name"
-                />
-              </AdminFormGroup>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <AdminFormGroup label="Main Profile Image (Rectangular Frame)">
-                <div className="flex gap-2 items-center">
-                  <AdminInput
-                    value={editingItem?.photo_url || (editingItem as any)?.photoUrl || ''}
-                    onChange={(e) => setEditingItem((prev) => ({ ...prev, photo_url: e.target.value, photoUrl: e.target.value }))}
-                    placeholder="Main photo URL..."
-                  />
-                  <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
-                    <Upload className="w-4 h-4" />
-                    <span>Upload</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
-                  </label>
-                </div>
-              </AdminFormGroup>
-
-              <AdminFormGroup label="Circular Badge Image (Overlapping Frame)">
-                <div className="flex gap-2 items-center">
-                  <AdminInput
-                    value={(editingItem as any)?.badge_photo_url || (editingItem as any)?.badgePhotoUrl || ''}
-                    onChange={(e) => setEditingItem((prev) => ({ ...prev, badge_photo_url: e.target.value, badgePhotoUrl: e.target.value } as any))}
-                    placeholder="Badge photo URL (Optional)..."
-                  />
-                  <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
-                    <Upload className="w-4 h-4" />
-                    <span>Upload</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        const res = await cmsService.uploadMedia(file);
-                        if (res.success && res.publicUrl) {
-                          setEditingItem((prev) => ({ ...prev, badge_photo_url: res.publicUrl, badgePhotoUrl: res.publicUrl } as any));
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-              </AdminFormGroup>
-            </div>
-          </div>
-
-          {/* CONTACT INFORMATION */}
-          <div className="space-y-4 pt-2">
-            <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Contact Information</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <AdminFormGroup label="Email">
-                <AdminInput
-                  value={(editingItem as any)?.email || ''}
-                  onChange={(e) => setEditingItem((prev) => ({ ...prev, email: e.target.value } as any))}
-                  placeholder="faculty@multan.nu.edu.pk"
-                />
-              </AdminFormGroup>
-
-              <AdminFormGroup label="Phone">
-                <AdminInput
-                  value={(editingItem as any)?.phone || ''}
-                  onChange={(e) => setEditingItem((prev) => ({ ...prev, phone: e.target.value } as any))}
-                  placeholder="+92 (61) 111-128-128"
-                />
-              </AdminFormGroup>
-
-              <AdminFormGroup label="Extension">
-                <AdminInput
-                  value={(editingItem as any)?.extension || ''}
-                  onChange={(e) => setEditingItem((prev) => ({ ...prev, extension: e.target.value } as any))}
-                  placeholder="205"
-                />
-              </AdminFormGroup>
-            </div>
-          </div>
-
-          {/* PROFILE CONTENT */}
-          <div className="space-y-4 pt-2">
-            <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Profile Content</h4>
-            <AdminFormGroup label="Introduction / Biography">
-              <AdminTextarea
-                rows={4}
-                value={editingItem?.biography || (editingItem as any)?.introduction || ''}
-                onChange={(e) => setEditingItem((prev) => ({ ...prev, biography: e.target.value, introduction: e.target.value }))}
-                placeholder="Faculty member biography and academic background..."
-              />
-            </AdminFormGroup>
-
-            <AdminFormGroup label="Education">
-              <AdminTextarea
-                rows={3}
-                value={(editingItem as any)?.education || ''}
-                onChange={(e) => setEditingItem((prev) => ({ ...prev, education: e.target.value } as any))}
-                placeholder="Ph.D. in Computer Science (University, Year)..."
-              />
-            </AdminFormGroup>
-          </div>
-
-          {/* ACADEMIC DETAILS */}
-          <div className="space-y-4 pt-2">
-            <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">Academic Details</h4>
-            <AdminFormGroup label="Publications">
-              <AdminTextarea
-                rows={4}
-                value={(editingItem as any)?.publications || ''}
-                onChange={(e) => setEditingItem((prev) => ({ ...prev, publications: e.target.value } as any))}
-                placeholder="List of journal articles, conference papers, and patents..."
-              />
-            </AdminFormGroup>
-
-            <AdminFormGroup label="Collaborations at National and International Level">
-              <AdminTextarea
-                rows={4}
-                value={(editingItem as any)?.collaborations || ''}
-                onChange={(e) => setEditingItem((prev) => ({ ...prev, collaborations: e.target.value } as any))}
-                placeholder="Joint research initiatives, university collaborations..."
-              />
-            </AdminFormGroup>
-
-            <AdminFormGroup label="Detail of Funded Projects">
-              <AdminTextarea
-                rows={4}
-                value={(editingItem as any)?.funded_projects || (editingItem as any)?.fundedProjects || ''}
-                onChange={(e) => setEditingItem((prev) => ({ ...prev, funded_projects: e.target.value, fundedProjects: e.target.value } as any))}
-                placeholder="HEC grants, industry sponsored projects, research funding..."
-              />
-            </AdminFormGroup>
-          </div>
-
-          {/* SETTINGS */}
-          <div className="pt-2">
-            <AdminToggle
-              label="Visible on Website"
-              checked={editingItem?.visible ?? editingItem?.is_visible ?? true}
-              onChange={(checked) => setEditingItem((prev) => ({ ...prev, visible: checked, is_visible: checked }))}
-            />
-          </div>
-        </div>
-      </AdminModal>
+        onSave={handleSaveModal}
+        initialData={editingItem}
+        loading={isSaving}
+      />
 
       <DeleteConfirmModal
         isOpen={!!deleteTarget}
@@ -517,3 +321,4 @@ export default function AdminFacultyManager() {
     </div>
   );
 }
+

@@ -8,6 +8,7 @@ import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
+import FacultyEditModal, { FacultyMemberData } from '../components/ui/FacultyEditModal';
 import { cmsService } from '../../services/cmsService';
 import {
   Save,
@@ -37,7 +38,7 @@ interface MgmtProgramItem {
   is_visible: boolean;
 }
 
-interface MgmtFacultyItem {
+interface MgmtFacultyItem extends FacultyMemberData {
   id: string;
   name: string;
   designation: string;
@@ -47,7 +48,7 @@ interface MgmtFacultyItem {
   is_visible: boolean;
 }
 
-interface MgmtAlliedFacultyItem {
+interface MgmtAlliedFacultyItem extends FacultyMemberData {
   id: string;
   name: string;
   designation: string;
@@ -209,18 +210,14 @@ export default function AdminSchoolOfManagementManager() {
     setIsAlliedFacModalOpen(true);
   };
 
-  const handleSaveAlliedFac = () => {
-    if (!editingAlliedFac?.name?.trim()) {
-      alert('Please enter a faculty member name.');
-      return;
-    }
-
+  const handleSaveAlliedFacModal = (savedData: FacultyMemberData) => {
     const updated = [...alliedFacultyList];
-    const idx = updated.findIndex((f) => f.id === editingAlliedFac.id);
+    const itemToSave = { ...editingAlliedFac, ...savedData } as MgmtAlliedFacultyItem;
+    const idx = updated.findIndex((f) => f.id === itemToSave.id);
     if (idx >= 0) {
-      updated[idx] = editingAlliedFac as MgmtAlliedFacultyItem;
+      updated[idx] = itemToSave;
     } else {
-      updated.push(editingAlliedFac as MgmtAlliedFacultyItem);
+      updated.push(itemToSave);
     }
 
     setAlliedFacultyList(updated);
@@ -321,18 +318,14 @@ export default function AdminSchoolOfManagementManager() {
     setIsFacModalOpen(true);
   };
 
-  const handleSaveFac = () => {
-    if (!editingFac?.name?.trim()) {
-      alert('Please enter a faculty member name.');
-      return;
-    }
-
+  const handleSaveFacModal = (savedData: FacultyMemberData) => {
     const updated = [...facultyList];
-    const idx = updated.findIndex((f) => f.id === editingFac.id);
+    const itemToSave = { ...editingFac, ...savedData } as MgmtFacultyItem;
+    const idx = updated.findIndex((f) => f.id === itemToSave.id);
     if (idx >= 0) {
-      updated[idx] = editingFac as MgmtFacultyItem;
+      updated[idx] = itemToSave;
     } else {
-      updated.push(editingFac as MgmtFacultyItem);
+      updated.push(itemToSave);
     }
 
     setFacultyList(updated);
@@ -853,91 +846,13 @@ export default function AdminSchoolOfManagementManager() {
       </AdminModal>
 
       {/* Edit Faculty Modal */}
-      <AdminModal
+      <FacultyEditModal
         isOpen={isFacModalOpen}
         onClose={() => setIsFacModalOpen(false)}
-        title={editingFac?.id ? 'Edit Faculty Member' : 'Add Faculty Member'}
-        maxWidth="md"
-        footer={
-          <>
-            <AdminButton variant="secondary" onClick={() => setIsFacModalOpen(false)}>
-              Cancel
-            </AdminButton>
-            <AdminButton variant="primary" onClick={handleSaveFac}>
-              Save Faculty Member
-            </AdminButton>
-          </>
-        }
-      >
-        <div className="space-y-4 text-left">
-          <AdminFormGroup label="Faculty Member Name" required>
-            <AdminInput
-              value={editingFac?.name || ''}
-              onChange={(e) => setEditingFac((prev) => ({ ...prev, name: e.target.value }))}
-              placeholder="e.g. Dr. Faculty Name"
-            />
-          </AdminFormGroup>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <AdminFormGroup label="Designation">
-              <AdminInput
-                value={editingFac?.designation || ''}
-                onChange={(e) => setEditingFac((prev) => ({ ...prev, designation: e.target.value }))}
-                placeholder="e.g. Professor / Associate Professor"
-              />
-            </AdminFormGroup>
-
-            <AdminFormGroup label="Qualification">
-              <AdminInput
-                value={editingFac?.qualification || ''}
-                onChange={(e) => setEditingFac((prev) => ({ ...prev, qualification: e.target.value }))}
-                placeholder="e.g. PhD Management Sciences"
-              />
-            </AdminFormGroup>
-          </div>
-
-          <AdminFormGroup label="Faculty Photograph Upload">
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-20 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
-                {editingFac?.photoUrl ? (
-                  <img src={editingFac.photoUrl} alt="Faculty Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-6 h-6 text-[#9CA3AF]" />
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>{editingFac?.photoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleFileUpload(e, (url) => setEditingFac((prev) => ({ ...prev, photoUrl: url })))}
-                  />
-                </label>
-
-                {editingFac?.photoUrl && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingFac((prev) => ({ ...prev, photoUrl: '' }))}
-                    className="px-3 py-1.5 bg-red-50 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200"
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-            </div>
-          </AdminFormGroup>
-
-          <AdminToggle
-            label="Visible on Website"
-            checked={editingFac?.is_visible ?? true}
-            onChange={(checked) => setEditingFac((prev) => ({ ...prev, is_visible: checked }))}
-          />
-        </div>
-      </AdminModal>
+        onSave={handleSaveFacModal}
+        title={editingFac?.id ? 'Edit Management Faculty Member' : 'Add Management Faculty Member'}
+        initialData={editingFac}
+      />
 
       <DeleteConfirmModal
         isOpen={!!deleteProgTarget}
@@ -954,91 +869,13 @@ export default function AdminSchoolOfManagementManager() {
       />
 
       {/* Edit Allied Faculty Modal */}
-      <AdminModal
+      <FacultyEditModal
         isOpen={isAlliedFacModalOpen}
         onClose={() => setIsAlliedFacModalOpen(false)}
+        onSave={handleSaveAlliedFacModal}
         title={editingAlliedFac?.id ? 'Edit Allied Faculty Member' : 'Add Allied Faculty Member'}
-        maxWidth="md"
-        footer={
-          <>
-            <AdminButton variant="secondary" onClick={() => setIsAlliedFacModalOpen(false)}>
-              Cancel
-            </AdminButton>
-            <AdminButton variant="primary" onClick={handleSaveAlliedFac}>
-              Save Allied Faculty
-            </AdminButton>
-          </>
-        }
-      >
-        <div className="space-y-4 text-left">
-          <AdminFormGroup label="Full Name" required>
-            <AdminInput
-              value={editingAlliedFac?.name || ''}
-              onChange={(e) => setEditingAlliedFac((prev) => ({ ...prev, name: e.target.value }))}
-              placeholder="e.g. Dr. Faculty Name"
-            />
-          </AdminFormGroup>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <AdminFormGroup label="Designation">
-              <AdminInput
-                value={editingAlliedFac?.designation || ''}
-                onChange={(e) => setEditingAlliedFac((prev) => ({ ...prev, designation: e.target.value }))}
-                placeholder="e.g. Associate Professor"
-              />
-            </AdminFormGroup>
-
-            <AdminFormGroup label="Qualification">
-              <AdminInput
-                value={editingAlliedFac?.qualification || ''}
-                onChange={(e) => setEditingAlliedFac((prev) => ({ ...prev, qualification: e.target.value }))}
-                placeholder="e.g. PhD Management Sciences"
-              />
-            </AdminFormGroup>
-          </div>
-
-          <AdminFormGroup label="Photo Upload">
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-20 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
-                {editingAlliedFac?.photoUrl ? (
-                  <img src={editingAlliedFac.photoUrl} alt="Allied Faculty Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-6 h-6 text-[#9CA3AF]" />
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>{editingAlliedFac?.photoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleFileUpload(e, (url) => setEditingAlliedFac((prev) => ({ ...prev, photoUrl: url })))}
-                  />
-                </label>
-
-                {editingAlliedFac?.photoUrl && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingAlliedFac((prev) => ({ ...prev, photoUrl: '' }))}
-                    className="px-3 py-1.5 bg-red-50 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200"
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-            </div>
-          </AdminFormGroup>
-
-          <AdminToggle
-            label="Visible on Website"
-            checked={editingAlliedFac?.is_visible ?? true}
-            onChange={(checked) => setEditingAlliedFac((prev) => ({ ...prev, is_visible: checked }))}
-          />
-        </div>
-      </AdminModal>
+        initialData={editingAlliedFac}
+      />
 
       <DeleteConfirmModal
         isOpen={!!deleteAlliedFacTarget}
