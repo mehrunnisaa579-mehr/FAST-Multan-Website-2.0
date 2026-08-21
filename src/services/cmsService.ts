@@ -199,8 +199,9 @@ export const cmsService = {
         .from('news')
         .select('*')
         .or('is_archived.eq.false,is_archived.is.null')
-        .order('display_order', { ascending: true })
-        .order('created_at', { ascending: false });
+        .order('updated_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false, nullsFirst: false })
+        .order('display_order', { ascending: true, nullsFirst: false });
       if (error) throw error;
       return (data || []).filter((item: any) => item.is_archived !== true);
     } catch {

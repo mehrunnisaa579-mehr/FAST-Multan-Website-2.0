@@ -95,6 +95,7 @@ export default function AdminNewsManager() {
       const heroImg = editingItem.hero_image || editingItem.image_url || '';
       const longDesc = editingItem.long_description || editingItem.content || '';
 
+      const now = new Date().toISOString();
       const payload = {
         title: editingItem.title.trim(),
         excerpt: editingItem.excerpt || '',
@@ -104,7 +105,8 @@ export default function AdminNewsManager() {
         hero_image: heroImg,
         category: editingItem.category || 'Campus News',
         published: editingItem.published ?? true,
-        updated_at: new Date().toISOString(),
+        published_at: editingItem.published_at || now,
+        updated_at: now,
       };
 
       if (editingItem.id) {

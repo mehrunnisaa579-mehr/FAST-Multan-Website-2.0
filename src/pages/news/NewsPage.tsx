@@ -33,27 +33,38 @@ export default function NewsPage() {
         if (settings.articlesPerPage) setArticlesPerPage(Number(settings.articlesPerPage));
       }
 
-      const { data: dbNews } = await supabase.from('news').select('*');
+      const dbNews = await cmsService.getNews();
       if (dbNews && dbNews.length > 0) {
-        const publishedArticles = dbNews.filter((item: any) => item.published ?? true);
+        const publishedArticles = dbNews.filter(
+          (item: any) => item.published !== false && item.is_archived !== true
+        );
         if (publishedArticles.length > 0) {
-          const sorted = [...publishedArticles].sort((a: any, b: any) => (a.display_order ?? 1) - (b.display_order ?? 1));
-          const formatted = sorted.map((item: any) => ({
-            id: item.id,
-            slug: item.slug || createSlug(item.title, item.id),
-            title: item.title,
-            excerpt: item.excerpt || '',
-            content: item.long_description || item.content || item.excerpt || '',
-            date: new Date(item.published_at || item.created_at).toLocaleDateString('en-US', {
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric',
-            }),
-            author: item.author || 'Admin',
-            category: item.category || 'Academic Announcements',
-            imageLabel: 'NEWS IMAGE',
-            image: item.hero_image || item.image_url || '',
-          }));
+          const sorted = [...publishedArticles].sort((a: any, b: any) => {
+            const timeA = new Date(a.updated_at || a.published_at || a.created_at || 0).getTime();
+            const timeB = new Date(b.updated_at || b.published_at || b.created_at || 0).getTime();
+            return timeB - timeA;
+          });
+
+          const formatted = sorted.map((item: any) => {
+            const rawDate = item.published_at || item.updated_at || item.created_at;
+            const parsedDate = rawDate ? new Date(rawDate) : null;
+            const dateStr = parsedDate && !isNaN(parsedDate.getTime())
+              ? parsedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+              : 'January 1, 2026';
+
+            return {
+              id: item.id,
+              slug: item.slug || createSlug(item.title, item.id),
+              title: item.title,
+              excerpt: item.excerpt || '',
+              content: item.long_description || item.content || item.excerpt || '',
+              date: dateStr,
+              author: item.author || 'Admin',
+              category: item.category || 'Academic Announcements',
+              imageLabel: 'NEWS IMAGE',
+              image: item.hero_image || item.image_url || '',
+            };
+          });
           setNewsItems(formatted);
           setLoading(false);
           return;

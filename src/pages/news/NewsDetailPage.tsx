@@ -18,30 +18,41 @@ export default function NewsDetailPage() {
     const fetchArticleDetail = async () => {
       setLoading(true);
 
-      // Fetch all published articles from Supabase news table
-      const { data: dbNews } = await supabase.from('news').select('*');
+      // Fetch all published articles from Supabase news table via central cmsService
+      const dbNews = await cmsService.getNews();
 
       let combinedArticles: any[] = [];
 
       if (dbNews && dbNews.length > 0) {
-        const publishedOnly = dbNews.filter((n: any) => n.published ?? true);
+        const publishedOnly = dbNews.filter(
+          (n: any) => n.published !== false && n.is_archived !== true
+        );
         if (publishedOnly.length > 0) {
-          const sorted = [...publishedOnly].sort((a: any, b: any) => (a.display_order ?? 1) - (b.display_order ?? 1));
-          combinedArticles = sorted.map((n: any) => ({
-            id: n.id,
-            slug: n.slug || createSlug(n.title, n.id),
-            title: n.title,
-            excerpt: n.excerpt || '',
-            content: n.long_description || n.content || n.excerpt || 'No detailed content available.',
-            category: n.category || 'Academic Announcements',
-            author: n.author || 'FAST-NUCES Multan Campus',
-            date: new Date(n.published_at || n.created_at).toLocaleDateString('en-US', {
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric',
-            }),
-            image: n.hero_image || n.image_url || '',
-          }));
+          const sorted = [...publishedOnly].sort((a: any, b: any) => {
+            const timeA = new Date(a.updated_at || a.published_at || a.created_at || 0).getTime();
+            const timeB = new Date(b.updated_at || b.published_at || b.created_at || 0).getTime();
+            return timeB - timeA;
+          });
+
+          combinedArticles = sorted.map((n: any) => {
+            const rawDate = n.published_at || n.updated_at || n.created_at;
+            const parsedDate = rawDate ? new Date(rawDate) : null;
+            const dateStr = parsedDate && !isNaN(parsedDate.getTime())
+              ? parsedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+              : 'January 1, 2026';
+
+            return {
+              id: n.id,
+              slug: n.slug || createSlug(n.title, n.id),
+              title: n.title,
+              excerpt: n.excerpt || '',
+              content: n.long_description || n.content || n.excerpt || 'No detailed content available.',
+              category: n.category || 'Academic Announcements',
+              author: n.author || 'FAST-NUCES Multan Campus',
+              date: dateStr,
+              image: n.hero_image || n.image_url || '',
+            };
+          });
         }
       }
 
