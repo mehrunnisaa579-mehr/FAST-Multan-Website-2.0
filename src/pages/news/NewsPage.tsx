@@ -43,7 +43,7 @@ export default function NewsPage() {
             slug: item.slug || createSlug(item.title, item.id),
             title: item.title,
             excerpt: item.excerpt || '',
-            content: item.content || item.excerpt || '',
+            content: item.long_description || item.content || item.excerpt || '',
             date: new Date(item.published_at || item.created_at).toLocaleDateString('en-US', {
               month: 'long',
               day: 'numeric',
@@ -52,7 +52,7 @@ export default function NewsPage() {
             author: item.author || 'Admin',
             category: item.category || 'Academic Announcements',
             imageLabel: 'NEWS IMAGE',
-            image: item.image_url || '',
+            image: item.hero_image || item.image_url || '',
           }));
           setNewsItems(formatted);
           setLoading(false);

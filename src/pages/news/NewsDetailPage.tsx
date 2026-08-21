@@ -32,7 +32,7 @@ export default function NewsDetailPage() {
             slug: n.slug || createSlug(n.title, n.id),
             title: n.title,
             excerpt: n.excerpt || '',
-            content: n.content || n.excerpt || 'No detailed content available.',
+            content: n.long_description || n.content || n.excerpt || 'No detailed content available.',
             category: n.category || 'Academic Announcements',
             author: n.author || 'FAST-NUCES Multan Campus',
             date: new Date(n.published_at || n.created_at).toLocaleDateString('en-US', {
@@ -40,7 +40,7 @@ export default function NewsDetailPage() {
               day: 'numeric',
               year: 'numeric',
             }),
-            image: n.image_url || '',
+            image: n.hero_image || n.image_url || '',
           }));
         }
       }

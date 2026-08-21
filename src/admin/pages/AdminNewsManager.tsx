@@ -17,7 +17,9 @@ interface NewsItem {
   title: string;
   excerpt: string;
   content: string;
+  long_description?: string;
   image_url: string;
+  hero_image?: string;
   category: string;
   published: boolean;
   published_at?: string;
@@ -60,7 +62,9 @@ export default function AdminNewsManager() {
       title: '',
       excerpt: '',
       content: '',
+      long_description: '',
       image_url: '',
+      hero_image: '',
       category: 'Campus News',
       published: true,
     });
@@ -68,7 +72,15 @@ export default function AdminNewsManager() {
   };
 
   const handleOpenEdit = (item: NewsItem) => {
-    setEditingItem(item);
+    const heroImg = item.hero_image || item.image_url || '';
+    const longDesc = item.long_description || item.content || '';
+    setEditingItem({
+      ...item,
+      hero_image: heroImg,
+      image_url: heroImg,
+      long_description: longDesc,
+      content: longDesc,
+    });
     setIsEditModalOpen(true);
   };
 
@@ -80,11 +92,16 @@ export default function AdminNewsManager() {
 
     setIsSaving(true);
     try {
+      const heroImg = editingItem.hero_image || editingItem.image_url || '';
+      const longDesc = editingItem.long_description || editingItem.content || '';
+
       const payload = {
         title: editingItem.title.trim(),
         excerpt: editingItem.excerpt || '',
-        content: editingItem.content || '',
-        image_url: editingItem.image_url || '',
+        content: longDesc,
+        long_description: longDesc,
+        image_url: heroImg,
+        hero_image: heroImg,
         category: editingItem.category || 'Campus News',
         published: editingItem.published ?? true,
         updated_at: new Date().toISOString(),
@@ -115,13 +132,14 @@ export default function AdminNewsManager() {
     if (!deleteTarget) return;
     setIsDeleting(true);
     try {
+      const heroImg = deleteTarget.hero_image || deleteTarget.image_url || '';
       const res = await archiveService.archiveItem({
         table: 'news',
         itemId: deleteTarget.id,
         moduleName: 'Campus News & Announcements',
         title: deleteTarget.title,
         subtitle: deleteTarget.category || deleteTarget.excerpt,
-        image_url: deleteTarget.image_url,
+        image_url: heroImg,
         itemData: deleteTarget,
       });
 
@@ -138,26 +156,23 @@ export default function AdminNewsManager() {
     }
   };
 
-  const [uploadingImage, setUploadingImage] = useState(false);
-
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploadingImage(true);
     const res = await cmsService.uploadMedia(file);
-    setUploadingImage(false);
-
     if (res.success && res.publicUrl) {
-      setEditingItem((prev) => ({ ...prev, image_url: res.publicUrl }));
+      setEditingItem((prev) => ({
+        ...prev,
+        image_url: res.publicUrl,
+        hero_image: res.publicUrl,
+      }));
     } else {
       alert(`Upload failed: ${res.error}`);
     }
   };
 
-  const handleRemoveImage = () => {
-    setEditingItem((prev) => ({ ...prev, image_url: '' }));
-  };
+  const currentHeroImage = editingItem?.hero_image || editingItem?.image_url || '';
 
   return (
     <div className="space-y-6 text-left max-w-[1300px]">
@@ -205,38 +220,41 @@ export default function AdminNewsManager() {
         </div>
       ) : (
         <div className="space-y-4">
-          {newsList.map((item) => (
-            <AdminCard key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-4">
-                {item.image_url ? (
-                  <img src={item.image_url} alt={item.title} className="w-16 h-16 object-cover rounded-md flex-shrink-0 border border-[#E5E7EB]" />
-                ) : (
-                  <div className="w-16 h-16 bg-[#F3F4F6] rounded-md flex items-center justify-center text-[10px] font-bold text-[#9CA3AF] flex-shrink-0">
-                    NO IMAGE
+          {newsList.map((item) => {
+            const img = item.hero_image || item.image_url;
+            return (
+              <AdminCard key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  {img ? (
+                    <img src={img} alt={item.title} className="w-16 h-16 object-cover rounded-md flex-shrink-0 border border-[#E5E7EB]" />
+                  ) : (
+                    <div className="w-16 h-16 bg-[#F3F4F6] rounded-md flex items-center justify-center text-[10px] font-bold text-[#9CA3AF] flex-shrink-0">
+                      NO IMAGE
+                    </div>
+                  )}
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${item.published ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                        {item.published ? 'Published' : 'Draft'}
+                      </span>
+                      <span className="text-xs text-[#6B7280]">{item.category}</span>
+                    </div>
+                    <h3 className="text-base font-bold text-[#1F2937]">{item.title}</h3>
+                    <p className="text-xs text-[#6B7280] line-clamp-1 mt-0.5">{item.excerpt}</p>
                   </div>
-                )}
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${item.published ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
-                      {item.published ? 'Published' : 'Draft'}
-                    </span>
-                    <span className="text-xs text-[#6B7280]">{item.category}</span>
-                  </div>
-                  <h3 className="text-base font-bold text-[#1F2937]">{item.title}</h3>
-                  <p className="text-xs text-[#6B7280] line-clamp-1 mt-0.5">{item.excerpt}</p>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-2 self-end sm:self-center">
-                <AdminButton variant="secondary" onClick={() => handleOpenEdit(item)} icon={<Edit2 className="w-4 h-4" />}>
-                  Edit
-                </AdminButton>
-                <AdminButton variant="danger" onClick={() => setDeleteTarget(item)} icon={<Trash2 className="w-4 h-4" />}>
-                  Delete
-                </AdminButton>
-              </div>
-            </AdminCard>
-          ))}
+                <div className="flex items-center gap-2 self-end sm:self-center">
+                  <AdminButton variant="secondary" onClick={() => handleOpenEdit(item)} icon={<Edit2 className="w-4 h-4" />}>
+                    Edit
+                  </AdminButton>
+                  <AdminButton variant="danger" onClick={() => setDeleteTarget(item)} icon={<Trash2 className="w-4 h-4" />}>
+                    Delete
+                  </AdminButton>
+                </div>
+              </AdminCard>
+            );
+          })}
         </div>
       )}
 
@@ -274,59 +292,70 @@ export default function AdminNewsManager() {
             />
           </AdminFormGroup>
 
-          <AdminFormGroup label="Short Summary / Excerpt (Displayed on News Listing Cards)">
+          <AdminFormGroup label="Short Summary / Excerpt (Shown on News Cards & Previews)">
             <AdminTextarea
-              rows={3}
+              rows={2}
               value={editingItem?.excerpt || ''}
               onChange={(e) => setEditingItem((prev) => ({ ...prev, excerpt: e.target.value }))}
-              placeholder="Brief summary snippet shown on news cards..."
+              placeholder="Brief overview preview shown on news cards..."
             />
           </AdminFormGroup>
 
-          <AdminFormGroup label="Long Description / Full Article Body (Displayed on /news/:id Detail Page)">
+          <AdminFormGroup label="Long Description (Full Article Content on /news/:id Detail Page)">
             <AdminTextarea
-              rows={8}
-              value={editingItem?.content || ''}
-              onChange={(e) => setEditingItem((prev) => ({ ...prev, content: e.target.value }))}
-              placeholder="Full detailed article text. Use double linebreaks between paragraphs..."
+              rows={7}
+              value={editingItem?.long_description || editingItem?.content || ''}
+              onChange={(e) =>
+                setEditingItem((prev) => ({
+                  ...prev,
+                  long_description: e.target.value,
+                  content: e.target.value,
+                }))
+              }
+              placeholder="Write the full long-form article text here..."
             />
           </AdminFormGroup>
 
-          <AdminFormGroup label="Hero / Featured Image">
+          <AdminFormGroup label="Hero / Featured Image Upload">
             <div className="space-y-3">
-              <div className="flex items-center gap-4">
-                <div className="w-24 h-16 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
-                  {editingItem?.image_url ? (
-                    <img src={editingItem.image_url} alt="Hero Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="text-[10px] font-bold text-[#9CA3AF] text-center px-1">NO HERO IMAGE</div>
-                  )}
+              {currentHeroImage && (
+                <div className="relative w-full h-36 bg-[#F3F4F6] rounded-md border border-[#E5E7EB] overflow-hidden flex items-center justify-center">
+                  <img src={currentHeroImage} alt="Hero Preview" className="w-full h-full object-cover" />
                 </div>
-
-                <div className="flex gap-2">
-                  <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs transition-colors">
-                    <Upload className="w-4 h-4" />
-                    <span>{uploadingImage ? 'Uploading...' : editingItem?.image_url ? 'Replace Hero Image' : 'Upload Hero Image'}</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={uploadingImage} />
-                  </label>
-
-                  {editingItem?.image_url && (
-                    <button
-                      type="button"
-                      onClick={handleRemoveImage}
-                      className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200 cursor-pointer transition-colors"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
+              )}
+              <div className="flex gap-2 items-center">
+                <AdminInput
+                  value={currentHeroImage}
+                  onChange={(e) =>
+                    setEditingItem((prev) => ({
+                      ...prev,
+                      hero_image: e.target.value,
+                      image_url: e.target.value,
+                    }))
+                  }
+                  placeholder="https://..."
+                />
+                <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
+                  <Upload className="w-4 h-4" />
+                  <span>{currentHeroImage ? 'Replace Image' : 'Upload Image'}</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                </label>
+                {currentHeroImage && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setEditingItem((prev) => ({
+                        ...prev,
+                        hero_image: '',
+                        image_url: '',
+                      }))
+                    }
+                    className="px-3 py-2 bg-red-50 hover:bg-red-100 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200 cursor-pointer flex-shrink-0"
+                  >
+                    Remove
+                  </button>
+                )}
               </div>
-
-              <AdminInput
-                value={editingItem?.image_url || ''}
-                onChange={(e) => setEditingItem((prev) => ({ ...prev, image_url: e.target.value }))}
-                placeholder="Or paste direct image URL (https://...)"
-              />
             </div>
           </AdminFormGroup>
 
