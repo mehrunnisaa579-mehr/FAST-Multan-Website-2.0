@@ -27,7 +27,7 @@ export default function AboutPageHero({ title, backgroundImage }: AboutPageHeroP
 
       {/* Page Title Centered */}
       <div className="relative z-20 w-full max-w-[1300px] mx-auto px-[20px] min-[700px]:px-[36px] min-[1100px]:px-[40px] text-center">
-        <h1 className="text-[25px] min-[700px]:text-[30px] min-[1100px]:text-[36px] font-bold text-white leading-[1.15] text-center">
+        <h1 className="text-[22px] sm:text-[26px] min-[700px]:text-[30px] min-[1100px]:text-[36px] font-bold text-white leading-[1.2] text-center break-words max-w-full">
           {title}
         </h1>
       </div>

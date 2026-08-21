@@ -178,7 +178,7 @@ export default function FacultyEditModal({
         </>
       }
     >
-      <div className="space-y-6 text-left max-h-[70vh] overflow-y-auto pr-1">
+      <div className="space-y-5 sm:space-y-6 text-left pr-1 sm:pr-2">
         {/* BASIC INFORMATION */}
         <div className="space-y-4">
           <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">
@@ -222,7 +222,7 @@ export default function FacultyEditModal({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <AdminFormGroup label="Main Profile Image (Rectangular Frame)">
-              <div className="flex gap-2 items-center">
+              <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center">
                 <AdminInput
                   value={item.photo_url || item.photoUrl || ''}
                   onChange={(e) =>
@@ -230,7 +230,7 @@ export default function FacultyEditModal({
                   }
                   placeholder="https://..."
                 />
-                <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
+                <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB] self-stretch sm:self-auto justify-center">
                   <Upload className="w-4 h-4" />
                   <span>{uploadingMain ? 'Uploading...' : 'Upload'}</span>
                   <input
@@ -245,7 +245,7 @@ export default function FacultyEditModal({
             </AdminFormGroup>
 
             <AdminFormGroup label="Circular Badge Image (Overlapping Frame)">
-              <div className="flex gap-2 items-center">
+              <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center">
                 <AdminInput
                   value={item.badge_photo_url || item.badgePhotoUrl || ''}
                   onChange={(e) =>
@@ -257,7 +257,7 @@ export default function FacultyEditModal({
                   }
                   placeholder="Badge photo URL (Optional)..."
                 />
-                <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
+                <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB] self-stretch sm:self-auto justify-center">
                   <Upload className="w-4 h-4" />
                   <span>{uploadingBadge ? 'Uploading...' : 'Upload'}</span>
                   <input

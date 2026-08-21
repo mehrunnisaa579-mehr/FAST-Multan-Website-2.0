@@ -29,26 +29,28 @@ export default function AdminModal({
   }[maxWidth];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 flex items-center justify-center p-4 sm:p-6">
-      <div className={`bg-white rounded-lg border border-[#E5E7EB] shadow-lg w-full ${maxWidthClasses} text-left overflow-hidden transform transition-all`}>
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 flex items-center justify-center p-3 sm:p-6">
+      <div
+        className={`bg-white rounded-lg border border-[#E5E7EB] shadow-lg w-full ${maxWidthClasses} text-left overflow-hidden transform transition-all max-h-[90vh] flex flex-col my-auto`}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB]">
-          <h3 className="text-base font-bold text-[#1F2937]">{title}</h3>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[#E5E7EB] bg-[#F9FAFB] flex-shrink-0">
+          <h3 className="text-sm sm:text-base font-bold text-[#1F2937] truncate pr-2">{title}</h3>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-md text-[#6B7280] hover:text-[#1F2937] hover:bg-[#E5E7EB] transition-colors cursor-pointer"
+            className="p-1 rounded-md text-[#6B7280] hover:text-[#1F2937] hover:bg-[#E5E7EB] transition-colors cursor-pointer flex-shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-6">{children}</div>
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1">{children}</div>
 
         {/* Footer */}
         {footer && (
-          <div className="flex items-center justify-end gap-3 px-6 py-3.5 border-t border-[#E5E7EB] bg-[#F9FAFB]">
+          <div className="flex flex-wrap sm:flex-nowrap items-center justify-end gap-2.5 sm:gap-3 px-4 sm:px-6 py-3 sm:py-3.5 border-t border-[#E5E7EB] bg-[#F9FAFB] flex-shrink-0">
             {footer}
           </div>
         )}

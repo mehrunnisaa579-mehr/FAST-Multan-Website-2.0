@@ -248,38 +248,38 @@ export default function AdminFacultyManager() {
           </AdminButton>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {facultyList.map((fac) => {
             const photo = fac.photo_url || fac.photoUrl;
             return (
               <AdminCard key={fac.id} className="flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-14 h-14 rounded-full bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#F3F4F6] border border-[#E5E7EB] flex items-center justify-center flex-shrink-0 overflow-hidden">
                       {photo ? (
                         <img src={photo} alt={fac.name} className="w-full h-full object-cover" />
                       ) : (
-                        <Users className="w-6 h-6 text-[#9CA3AF]" />
+                        <Users className="w-5 h-5 sm:w-6 sm:h-6 text-[#9CA3AF]" />
                       )}
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {fac.isHOD && (
                           <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200">
                             HEAD / HOD
                           </span>
                         )}
-                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-sky-100 text-sky-800">
+                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-sky-100 text-sky-800 truncate">
                           {fac.designation}
                         </span>
                       </div>
-                      <h3 className="text-base font-bold text-[#1F2937] mt-1">{fac.name}</h3>
-                      <p className="text-xs text-[#6B7280]">{fac.qualification}</p>
+                      <h3 className="text-sm sm:text-base font-bold text-[#1F2937] mt-1 truncate">{fac.name}</h3>
+                      <p className="text-xs text-[#6B7280] line-clamp-1">{fac.qualification}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-[#F3F4F6] flex items-center justify-end gap-2">
+                <div className="pt-3 border-t border-[#F3F4F6] flex flex-wrap items-center justify-end gap-2">
                   <AdminButton variant="secondary" onClick={() => handleOpenEdit(fac)} icon={<Edit2 className="w-3.5 h-3.5" />}>
                     Edit
                   </AdminButton>

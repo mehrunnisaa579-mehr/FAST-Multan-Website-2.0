@@ -847,7 +847,7 @@ export default function AdminCSDepartmentEditor() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 self-end sm:self-center">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 self-end sm:self-center justify-end">
                     <button
                       type="button"
                       onClick={() => handleMoveFac(idx, 'up')}
