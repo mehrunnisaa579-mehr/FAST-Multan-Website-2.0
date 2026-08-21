@@ -194,11 +194,33 @@ export default function PersonProfilePage() {
               name: foundFac.name,
               designation: foundFac.designation || 'Faculty Member',
               departmentOrOffice: 'Department of Management Sciences',
-              photoUrl: foundFac.photoUrl || '',
+              photoUrl: foundFac.photoUrl || foundFac.photo_url || '',
               badgePhotoUrl: foundFac.badgePhotoUrl || foundFac.badge_photo_url || foundFac.photoUrl || '',
               email: foundFac.email || `${toSlug(foundFac.name)}@multan.nu.edu.pk`,
               introduction: foundFac.introduction || '',
               education: foundFac.education || 'Master / Ph.D. in Management Sciences',
+            });
+            setLoading(false);
+            return;
+          }
+        }
+
+        if (Array.isArray(mgmtData.alliedFacultyList)) {
+          const foundAllied = mgmtData.alliedFacultyList.find(
+            (f: any) => f.slug === cleanSlug || f.id === cleanSlug || toSlug(f.name) === cleanSlug
+          );
+          if (foundAllied) {
+            setPerson({
+              id: foundAllied.id,
+              slug: foundAllied.slug || toSlug(foundAllied.name),
+              name: foundAllied.name,
+              designation: foundAllied.designation || 'Allied Faculty Member',
+              departmentOrOffice: 'Department of Management Sciences',
+              photoUrl: foundAllied.photoUrl || foundAllied.photo_url || '',
+              badgePhotoUrl: foundAllied.badgePhotoUrl || foundAllied.badge_photo_url || foundAllied.photoUrl || '',
+              email: foundAllied.email || `${toSlug(foundAllied.name)}@multan.nu.edu.pk`,
+              introduction: foundAllied.introduction || '',
+              education: foundAllied.education || foundAllied.qualification || 'Master / Ph.D. in Management Sciences',
             });
             setLoading(false);
             return;
@@ -402,8 +424,8 @@ export default function PersonProfilePage() {
       {/* Hero Header with Person Name */}
       <AboutPageHero title={person.name} />
 
-      {/* Main Content Container matching CS Master Layout */}
-      <div className="w-full max-w-[1480px] mx-auto px-[28px] sm:px-[40px] md:px-[56px] py-[64px] sm:py-[72px]">
+      {/* Main Content Container matching Master Layout */}
+      <div className="w-full max-w-[1320px] mx-auto px-[20px] sm:px-[36px] md:px-[48px] py-[56px] md:py-[72px] lg:py-[80px]">
         {/* Back Button */}
         <div className="relative -top-[20px] mb-[8px]">
           <button

@@ -126,7 +126,7 @@ export default function CSDepartmentPage() {
       />
 
       {/* Main Department Content */}
-      <div className="w-full max-w-[1480px] mx-auto px-[28px] sm:px-[40px] md:px-[56px] py-[64px] sm:py-[72px] space-y-[48px] sm:space-y-[56px]">
+      <div className="w-full max-w-[1320px] mx-auto px-[20px] sm:px-[36px] md:px-[48px] py-[56px] md:py-[72px] lg:py-[80px] space-y-[64px] md:space-y-[76px] lg:space-y-[88px]">
 
         {/* =====================================================
             HOD'S MESSAGE
@@ -136,16 +136,16 @@ export default function CSDepartmentPage() {
         <section className="w-full">
 
           {/* Desktop: heading aligned with message column */}
-          <div className="hidden md:grid grid-cols-[320px_minmax(0,1fr)] gap-[30px] lg:gap-[38px] mb-[40px]">
+          <div className="hidden md:grid grid-cols-[320px_minmax(0,1fr)] gap-[30px] lg:gap-[38px] mb-[36px]">
             <div />
 
-            <h2 className="m-0 text-[40px] lg:text-[46px] leading-[1.1] font-bold text-[#0C71C3] uppercase tracking-[-1px] text-left relative -top-[30px]">
+            <h2 className="m-0 text-[36px] lg:text-[42px] leading-[1.15] font-bold text-[#0C71C3] uppercase tracking-[-1px] text-left relative -top-[20px]">
               {hodHeading}
             </h2>
           </div>
 
           {/* Mobile Heading */}
-          <h2 className="md:hidden text-[32px] sm:text-[38px] leading-[1.1] font-bold text-[#0C71C3] uppercase tracking-tight text-center mb-[34px]">
+          <h2 className="md:hidden text-[28px] sm:text-[34px] leading-[1.2] font-bold text-[#0C71C3] uppercase tracking-tight text-center mb-[28px]">
             {hodHeading}
           </h2>
 
@@ -162,14 +162,14 @@ export default function CSDepartmentPage() {
                   fallbackLabel="CS HOD PHOTO"
                 />
 
-                <h3 className="m-0 mt-[6px] text-[18px] sm:text-[19px] leading-[1.3] font-bold text-black group-hover:text-[#0093DD] transition-colors text-center">
+                <h3 className="m-0 mt-[10px] text-[18px] sm:text-[19px] leading-[1.35] font-bold text-black group-hover:text-[#0093DD] transition-colors text-center">
                   {hodName}
                 </h3>
               </Link>
             </div>
 
             {/* RIGHT — MESSAGE */}
-            <div className="w-full text-[14px] lg:text-[14.5px] leading-[1.7] text-[#26384A] text-left">
+            <div className="w-full text-[15px] lg:text-[16px] leading-[1.8] text-[#374151] text-left">
 
               <p className="m-0 text-justify">
                 {hodMessage}
@@ -186,9 +186,9 @@ export default function CSDepartmentPage() {
             OUR DEGREE PROGRAMS
             ===================================================== */}
 
-        <section className="w-full space-y-[24px]">
+        <section className="w-full space-y-[32px] md:space-y-[40px]">
 
-          <div className="relative w-full flex items-center justify-center pb-[6px] border-b border-[#E2E8F0]">
+          <div className="relative w-full flex items-center justify-center pb-[8px] border-b border-[#E2E8F0]">
 
             <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center">
               {programsHeading}
@@ -239,9 +239,9 @@ export default function CSDepartmentPage() {
             DEPARTMENT FACULTY
             ===================================================== */}
 
-        <section className="w-full space-y-[24px]">
+        <section className="w-full space-y-[32px] md:space-y-[40px]">
 
-          <div className="relative w-full flex flex-col sm:flex-row items-center justify-center pb-[6px] border-b border-[#E2E8F0] gap-2 sm:gap-0">
+          <div className="relative w-full flex flex-col sm:flex-row items-center justify-center pb-[8px] border-b border-[#E2E8F0] gap-2 sm:gap-0">
 
             <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center">
               {facultyHeading}
@@ -271,7 +271,7 @@ export default function CSDepartmentPage() {
             ALLIED FACULTY
             ===================================================== */}
 
-        <section className="w-full space-y-[24px]">
+        <section className="w-full space-y-[32px] md:space-y-[40px]">
           <div className="relative w-full flex flex-col sm:flex-row items-center justify-center pb-[6px] border-b border-[#E2E8F0] gap-2 sm:gap-0">
             <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center">
               {alliedFacultyHeading}

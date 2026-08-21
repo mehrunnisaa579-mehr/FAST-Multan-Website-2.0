@@ -180,7 +180,7 @@ export default function AdministrationStaffPage() {
       {/* =====================================================
           MAIN CONTENT
           ===================================================== */}
-      <div className="w-full max-w-[1480px] mx-auto px-[28px] sm:px-[40px] md:px-[56px] py-[64px] sm:py-[72px]">
+      <div className="w-full max-w-[1320px] mx-auto px-[20px] sm:px-[36px] md:px-[48px] py-[56px] md:py-[72px] lg:py-[80px]">
 
         <div className="admin-staff-layout">
 

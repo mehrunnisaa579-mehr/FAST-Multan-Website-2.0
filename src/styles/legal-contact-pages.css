@@ -22,7 +22,7 @@
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
-  text-align: center;
+  text-align: left;
 }
 
 .legal-content-column h1 {
@@ -32,26 +32,26 @@
 }
 
 .legal-content-column h2 {
-  text-align: center;
-  margin-top: 34px;
-  margin-bottom: 16px;
-}
-
-.legal-content-column h3 {
-  text-align: center;
-  margin-top: 24px;
+  text-align: left;
+  margin-top: 32px;
   margin-bottom: 12px;
 }
 
+.legal-content-column h3 {
+  text-align: left;
+  margin-top: 24px;
+  margin-bottom: 10px;
+}
+
 .legal-content-column p {
-  text-align: center;
-  margin-bottom: 18px;
+  text-align: left;
+  margin-bottom: 16px;
   line-height: 1.75;
 }
 
 .legal-content-column ul,
 .legal-content-column ol {
-  text-align: center;
+  text-align: left;
   margin-top: 10px;
   margin-bottom: 20px;
   list-style-type: none;
@@ -59,7 +59,7 @@
 }
 
 .legal-content-column li {
-  text-align: center;
+  text-align: left;
   margin-top: 8px;
   margin-bottom: 8px;
 }
