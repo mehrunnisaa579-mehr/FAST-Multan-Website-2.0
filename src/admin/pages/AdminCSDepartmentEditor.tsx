@@ -8,7 +8,7 @@ import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
-import FacultyEditModal, { FacultyMemberData } from '../components/ui/FacultyEditModal';
+import FacultyEditModal, { type FacultyMemberData } from '../components/ui/FacultyEditModal';
 import { cmsService } from '../../services/cmsService';
 import { archiveService } from '../../services/archiveService';
 import { csPrograms, csFaculty, csResearchAreas } from '../../data/departments';

@@ -3,7 +3,7 @@ import AdminPageHeader from '../components/ui/AdminPageHeader';
 import AdminCard from '../components/ui/AdminCard';
 import AdminButton from '../components/ui/AdminButton';
 import { DeleteConfirmModal } from '../components/ui/AdminModal';
-import FacultyEditModal, { FacultyMemberData } from '../components/ui/FacultyEditModal';
+import FacultyEditModal, { type FacultyMemberData } from '../components/ui/FacultyEditModal';
 import { cmsService } from '../../services/cmsService';
 import { supabase } from '../../lib/supabase';
 import { Plus, Edit2, Trash2, CheckCircle2, AlertCircle, Users } from 'lucide-react';
