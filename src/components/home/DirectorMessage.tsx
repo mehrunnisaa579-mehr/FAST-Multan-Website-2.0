@@ -45,8 +45,8 @@ export default function DirectorMessage() {
 
   return (
     <section className="w-full bg-white py-[60px] sm:py-[76px]">
-      {/* ── Balanced Container (max-w-[1240px], clean margins) ── */}
-      <div className="w-full max-w-[1240px] mx-auto px-[20px] sm:px-[36px] md:px-[48px]">
+      {/* ── Balanced Container (max-w-[1300px], clean margins) ── */}
+      <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[36px] md:px-[48px]">
 
         {/* ── Two-Column Layout ── */}
         <div className="grid grid-cols-1 md:grid-cols-[290px_1fr] lg:grid-cols-[320px_1fr] gap-[32px] md:gap-[40px] lg:gap-[48px] items-start w-full">

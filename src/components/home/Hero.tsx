@@ -80,7 +80,7 @@ export default function Hero() {
             )}
 
             {/* Slide Content */}
-            <div className="relative z-20 w-full max-w-[1300px] mx-auto px-[20px] sm:px-[40px] text-center flex flex-col items-center justify-center h-full">
+            <div className="relative z-20 w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px] text-center flex flex-col items-center justify-center h-full">
               <h1 className="text-[26px] sm:text-[42px] font-extrabold text-white leading-tight max-w-[700px] w-full mx-auto uppercase">
                 {slide.heading}
               </h1>
