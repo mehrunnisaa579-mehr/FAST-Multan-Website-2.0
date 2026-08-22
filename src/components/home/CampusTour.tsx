@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { cmsService } from '../../services/cmsService';
 import CmsImage from '../ui/CmsImage';
+import { getYouTubeEmbedUrl } from '../../utils/youtube';
 
 export default function CampusTour() {
   const [heading, setHeading] = useState('Campus Tour');
@@ -24,7 +25,7 @@ export default function CampusTour() {
 
   if (!isVisible) return null;
 
-  const hasVideo = !!videoUrl && videoUrl.trim().length > 0;
+  const embedUrl = getYouTubeEmbedUrl(videoUrl);
 
   return (
     <section className="py-[50px] sm:py-[64px] w-full bg-white">
@@ -36,13 +37,13 @@ export default function CampusTour() {
 
         {/* Large Hero-Sized Video Container (~16:9 Cinematic Aspect Ratio) */}
         <div className="w-full aspect-[16/9] max-h-[640px] rounded-[12px] overflow-hidden shadow-lg border border-[#E2E8F0] bg-white relative flex items-center justify-center">
-          {hasVideo ? (
-            <video
-              src={videoUrl}
-              controls
-              playsInline
-              preload="metadata"
-              className="w-full h-full object-cover block"
+          {embedUrl ? (
+            <iframe
+              src={embedUrl}
+              title={heading || 'Campus Tour Video'}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full border-0 block"
             />
           ) : (
             <CmsImage

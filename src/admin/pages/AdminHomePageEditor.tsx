@@ -26,6 +26,7 @@ import {
   Edit2,
 } from 'lucide-react';
 import { homepageContent } from '../../data/homepage';
+import { getYouTubeEmbedUrl } from '../../utils/youtube';
 
 interface GalleryItem {
   id: string;
@@ -1449,7 +1450,7 @@ export default function AdminHomePageEditor() {
         >
           <div>
             <h3 className="text-lg font-bold text-[#1F2937]">9. Campus Tour Section</h3>
-            <p className="text-xs text-[#6B7280]">Upload large full-width cinematic video tour, manage heading and section visibility.</p>
+            <p className="text-xs text-[#6B7280]">Manage YouTube embed URL, heading, and section visibility.</p>
           </div>
           {openAccordions.campusTour ? <ChevronDown className="w-5 h-5 text-[#6B7280]" /> : <ChevronRight className="w-5 h-5 text-[#6B7280]" />}
         </button>
@@ -1471,31 +1472,20 @@ export default function AdminHomePageEditor() {
               description="Show or hide the large Campus Tour video section on the homepage."
             />
 
-            <AdminFormGroup label="Campus Tour Video Upload (.mp4 / .webm)">
+            <AdminFormGroup label="YouTube Video URL">
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <AdminInput
                     value={campusTourVideoUrl}
                     onChange={(e) => setCampusTourVideoUrl(e.target.value)}
-                    placeholder="Video Public URL (or upload via button)..."
+                    placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
                   />
-
-                  <label className="px-4 py-2.5 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 shadow-xs">
-                    <Video className="w-4 h-4" />
-                    <span>{campusTourVideoUrl ? 'Replace Video' : 'Upload Video'}</span>
-                    <input
-                      type="file"
-                      accept="video/mp4,video/webm,video/*"
-                      className="hidden"
-                      onChange={(e) => handleFileUpload(e, (url) => setCampusTourVideoUrl(url))}
-                    />
-                  </label>
 
                   {campusTourVideoUrl && (
                     <button
                       type="button"
                       onClick={() => setCampusTourVideoUrl('')}
-                      className="px-3.5 py-2.5 bg-red-50 hover:bg-red-100 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200 cursor-pointer flex items-center gap-1"
+                      className="px-3.5 py-2.5 bg-red-50 hover:bg-red-100 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200 cursor-pointer flex items-center gap-1 flex-shrink-0"
                     >
                       <Trash2 className="w-4 h-4" />
                       <span>Remove</span>
@@ -1505,13 +1495,19 @@ export default function AdminHomePageEditor() {
 
                 {/* Video Preview Box */}
                 <div className="w-full max-w-[640px] aspect-[16/9] bg-[#F3F4F6] border border-[#E5E7EB] rounded-lg overflow-hidden flex items-center justify-center relative shadow-xs">
-                  {campusTourVideoUrl ? (
-                    <video controls src={campusTourVideoUrl} className="w-full h-full object-cover" />
+                  {getYouTubeEmbedUrl(campusTourVideoUrl) ? (
+                    <iframe
+                      src={getYouTubeEmbedUrl(campusTourVideoUrl)!}
+                      title="Campus Tour Preview"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full border-0"
+                    />
                   ) : (
-                    <div className="flex flex-col items-center gap-2 text-[#9CA3AF]">
+                    <div className="flex flex-col items-center gap-2 text-[#9CA3AF] p-4 text-center">
                       <Video className="w-8 h-8 text-[#9CA3AF]" />
-                      <span className="text-xs font-semibold uppercase tracking-wider">No Campus Tour Video Uploaded Yet</span>
-                      <span className="text-[11px]">Upload a video to display it on the homepage.</span>
+                      <span className="text-xs font-semibold uppercase tracking-wider">No Valid YouTube URL Provided</span>
+                      <span className="text-[11px]">Enter a YouTube video URL above to preview and display it on the homepage.</span>
                     </div>
                   )}
                 </div>
