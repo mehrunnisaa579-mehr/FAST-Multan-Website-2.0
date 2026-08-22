@@ -8,6 +8,8 @@ import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import AdminSection from '../components/ui/AdminSection';
 import { cmsService } from '../../services/cmsService';
 import { archiveService } from '../../services/archiveService';
@@ -126,15 +128,21 @@ export default function AdminEDCWorkshopsHub() {
     setNewSlugManual(true);
   };
 
-  const handleNewHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setNewHeroImage(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const { cropperProps, openCropper } = useImageCropper();
+
+  const handleNewHeroUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setNewHeroImage(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      { aspectRatio: 16 / 9, title: 'Crop Workshop Hero Image (16:9 Wide)' }
+    );
   };
 
   const handleSaveNew = async () => {
@@ -574,6 +582,8 @@ export default function AdminEDCWorkshopsHub() {
         confirmLabel="Archive Workshop"
         message="This workshop will be hidden from the CMS and public website. You can restore it from the Archive at any time."
       />
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

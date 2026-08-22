@@ -9,6 +9,8 @@ import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
 import FacultyEditModal, { type FacultyMemberData } from '../components/ui/FacultyEditModal';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import {
   Save,
@@ -121,6 +123,11 @@ export default function AdminSchoolOfManagementManager() {
     },
   ]);
 
+  // Allied Faculty State
+  const [showAlliedFacultySection, setShowAlliedFacultySection] = useState(true);
+  const [alliedFacultyHeading, setAlliedFacultyHeading] = useState('ALLIED FACULTY');
+  const [alliedFacultyList, setAlliedFacultyList] = useState<MgmtFacultyItem[]>([]);
+
   // Modals state
   const [isProgModalOpen, setIsProgModalOpen] = useState(false);
   const [editingProg, setEditingProg] = useState<Partial<MgmtProgramItem> | null>(null);
@@ -129,6 +136,10 @@ export default function AdminSchoolOfManagementManager() {
   const [isFacModalOpen, setIsFacModalOpen] = useState(false);
   const [editingFac, setEditingFac] = useState<Partial<MgmtFacultyItem> | null>(null);
   const [deleteFacTarget, setDeleteFacTarget] = useState<MgmtFacultyItem | null>(null);
+
+  const [isAlliedModalOpen, setIsAlliedModalOpen] = useState(false);
+  const [editingAllied, setEditingAllied] = useState<Partial<MgmtFacultyItem> | null>(null);
+  const [deleteAlliedTarget, setDeleteAlliedTarget] = useState<MgmtFacultyItem | null>(null);
 
 
   const [saving, setSaving] = useState(false);
@@ -155,6 +166,12 @@ export default function AdminSchoolOfManagementManager() {
       if (savedData.facultyList && savedData.facultyList.length > 0) {
         setFacultyList(savedData.facultyList);
       }
+      if (savedData.showAlliedFacultySection !== undefined) setShowAlliedFacultySection(savedData.showAlliedFacultySection);
+      else if (savedData.alliedFacultyVisible !== undefined) setShowAlliedFacultySection(savedData.alliedFacultyVisible);
+      if (savedData.alliedFacultyHeading) setAlliedFacultyHeading(savedData.alliedFacultyHeading);
+      if (savedData.alliedFacultyList && Array.isArray(savedData.alliedFacultyList)) {
+        setAlliedFacultyList(savedData.alliedFacultyList);
+      }
 
     }
   };
@@ -163,16 +180,25 @@ export default function AdminSchoolOfManagementManager() {
     fetchData();
   }, []);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, setUrlFn: (url: string) => void) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setUrlFn(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setUrlFn: (url: string) => void,
+    opts?: { aspectRatio?: number; cropShape?: 'rect' | 'round'; title?: string }
+  ) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setUrlFn(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      opts
+    );
   };
 
 
@@ -278,6 +304,54 @@ export default function AdminSchoolOfManagementManager() {
     setFacultyList(newList);
   };
 
+  // Allied Faculty CRUD Handlers
+  const handleOpenAddAllied = () => {
+    setEditingAllied({
+      id: `allied-mgmt-${Date.now()}`,
+      name: 'Dr. New Allied Faculty Member',
+      designation: 'Associated Professor',
+      qualification: 'PhD Management Sciences',
+      photoUrl: '',
+      display_order: alliedFacultyList.length + 1,
+      is_visible: true,
+    });
+    setIsAlliedModalOpen(true);
+  };
+
+  const handleOpenEditAllied = (fac: MgmtFacultyItem) => {
+    setEditingAllied({ ...fac });
+    setIsAlliedModalOpen(true);
+  };
+
+  const handleSaveAlliedModal = (savedData: FacultyMemberData) => {
+    const updated = [...alliedFacultyList];
+    const itemToSave = { ...editingAllied, ...savedData } as MgmtFacultyItem;
+    const idx = updated.findIndex((f) => f.id === itemToSave.id);
+    if (idx >= 0) {
+      updated[idx] = itemToSave;
+    } else {
+      updated.push(itemToSave);
+    }
+    setAlliedFacultyList(updated);
+    setIsAlliedModalOpen(false);
+  };
+
+  const handleDeleteAllied = () => {
+    if (!deleteAlliedTarget) return;
+    setAlliedFacultyList((prev) => prev.filter((f) => f.id !== deleteAlliedTarget.id));
+    setDeleteAlliedTarget(null);
+  };
+
+  const handleMoveAllied = (index: number, direction: 'up' | 'down') => {
+    const newList = [...alliedFacultyList];
+    const targetIdx = direction === 'up' ? index - 1 : index + 1;
+    if (targetIdx < 0 || targetIdx >= newList.length) return;
+    const temp = newList[index];
+    newList[index] = newList[targetIdx];
+    newList[targetIdx] = temp;
+    setAlliedFacultyList(newList);
+  };
+
   const handleSaveAll = async () => {
     setSaving(true);
     setMessage(null);
@@ -297,6 +371,9 @@ export default function AdminSchoolOfManagementManager() {
       headProjects,
       programsList,
       facultyList,
+      showAlliedFacultySection,
+      alliedFacultyHeading,
+      alliedFacultyList,
       updated_at: new Date().toISOString(),
     };
 
@@ -370,7 +447,7 @@ export default function AdminSchoolOfManagementManager() {
                 <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
                   <Upload className="w-3.5 h-3.5" />
                   <span>{heroImageUrl ? 'Replace Hero' : 'Upload Hero'}</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeroImageUrl)} />
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeroImageUrl, { aspectRatio: 16 / 9, title: 'Crop Hero Banner Image (16:9 Wide)' })} />
                 </label>
 
                 {heroImageUrl && (
@@ -417,7 +494,7 @@ export default function AdminSchoolOfManagementManager() {
                   <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
                     <Upload className="w-3.5 h-3.5" />
                     <span>{headPhotoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeadPhotoUrl)} />
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeadPhotoUrl, { aspectRatio: 3 / 4, title: 'Crop Head Photograph (3:4 Rectangle)' })} />
                   </label>
 
                   {headPhotoUrl && (
@@ -610,6 +687,95 @@ export default function AdminSchoolOfManagementManager() {
       </AdminSection>
 
 
+      {/* Allied Faculty Section */}
+      <AdminSection
+        title="Allied Faculty Section"
+        description="Manage Allied Faculty members and section visibility on the public website."
+        action={
+          <AdminButton variant="primary" onClick={handleOpenAddAllied} icon={<Plus className="w-4 h-4" />}>
+            Add Allied Faculty Member
+          </AdminButton>
+        }
+      >
+        <AdminCard className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            <AdminFormGroup label="Section Heading">
+              <AdminInput
+                value={alliedFacultyHeading}
+                onChange={(e) => setAlliedFacultyHeading(e.target.value)}
+                placeholder="ALLIED FACULTY"
+              />
+            </AdminFormGroup>
+
+            <AdminFormGroup label="Show Section on Public Website">
+              <AdminToggle
+                checked={showAlliedFacultySection}
+                onChange={(val) => setShowAlliedFacultySection(val)}
+                label={showAlliedFacultySection ? "Show on Website (ON)" : "Show on Website (OFF)"}
+                description="Toggle whether the Allied Faculty section appears on the public website."
+              />
+            </AdminFormGroup>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            {alliedFacultyList.map((fac, idx) => (
+              <AdminCard key={fac.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-14 rounded-md bg-[#F3F4F6] border border-[#E5E7EB] overflow-hidden flex items-center justify-center flex-shrink-0">
+                    {fac.photoUrl ? (
+                      <img src={fac.photoUrl} alt={fac.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-6 h-6 text-[#9CA3AF]" />
+                    )}
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold text-[#0093DD] bg-[#F0F9FF] px-2 py-0.5 rounded">Order #{idx + 1}</span>
+                      {!fac.is_visible && (
+                        <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">Hidden</span>
+                      )}
+                    </div>
+                    <h4 className="text-base font-bold text-[#1F2937]">{fac.name}</h4>
+                    <p className="text-xs text-[#6B7280]">{fac.designation}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-end sm:self-center">
+                  <button
+                    type="button"
+                    onClick={() => handleMoveAllied(idx, 'up')}
+                    disabled={idx === 0}
+                    className="p-2 text-[#6B7280] hover:text-[#1F2937] disabled:opacity-30 border border-[#E5E7EB] rounded-md bg-white cursor-pointer"
+                    title="Move Up"
+                  >
+                    <ArrowUp className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleMoveAllied(idx, 'down')}
+                    disabled={idx === alliedFacultyList.length - 1}
+                    className="p-2 text-[#6B7280] hover:text-[#1F2937] disabled:opacity-30 border border-[#E5E7EB] rounded-md bg-white cursor-pointer"
+                    title="Move Down"
+                  >
+                    <ArrowDown className="w-4 h-4" />
+                  </button>
+
+                  <AdminButton variant="secondary" onClick={() => handleOpenEditAllied(fac)} icon={<Edit2 className="w-4 h-4" />}>
+                    Edit Faculty Member
+                  </AdminButton>
+
+                  <AdminButton variant="danger" onClick={() => setDeleteAlliedTarget(fac)} icon={<Trash2 className="w-4 h-4" />}>
+                    Delete
+                  </AdminButton>
+                </div>
+              </AdminCard>
+            ))}
+          </div>
+        </AdminCard>
+      </AdminSection>
+
       {/* Edit Program Modal */}
       <AdminModal
         isOpen={isProgModalOpen}
@@ -710,6 +876,23 @@ export default function AdminSchoolOfManagementManager() {
         itemTitle={deleteFacTarget?.name}
       />
 
+      {/* Edit Allied Faculty Modal */}
+      <FacultyEditModal
+        isOpen={isAlliedModalOpen}
+        onClose={() => setIsAlliedModalOpen(false)}
+        onSave={handleSaveAlliedModal}
+        title={editingAllied?.id ? 'Edit Management Allied Faculty Member' : 'Add Management Allied Faculty Member'}
+        initialData={editingAllied}
+      />
+
+      <DeleteConfirmModal
+        isOpen={!!deleteAlliedTarget}
+        onClose={() => setDeleteAlliedTarget(null)}
+        onConfirm={handleDeleteAllied}
+        itemTitle={deleteAlliedTarget?.name}
+      />
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

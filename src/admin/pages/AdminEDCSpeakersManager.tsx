@@ -8,6 +8,8 @@ import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { conferenceSpeakers as defaultSpeakers } from '../../data/edc';
 import { Save, Plus, Trash2, CheckCircle2, AlertCircle, Upload, ArrowUp, ArrowDown, Edit2, User, Eye, EyeOff, ArrowLeft, ImageIcon } from 'lucide-react';
@@ -75,16 +77,25 @@ export default function AdminEDCSpeakersManager() {
     fetchSpeakers();
   }, []);
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, setUrlFn: (url: string) => void) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setUrlFn(res.publicUrl);
-    } else {
-      alert(`Photo upload failed: ${res.error}`);
-    }
+  const handlePhotoUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setUrlFn: (url: string) => void,
+    opts?: { aspectRatio?: number; cropShape?: 'rect' | 'round'; title?: string }
+  ) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setUrlFn(res.publicUrl);
+        } else {
+          alert(`Photo upload failed: ${res.error}`);
+        }
+      },
+      opts
+    );
   };
 
   const handleOpenAdd = () => {
@@ -253,7 +264,7 @@ export default function AdminEDCSpeakersManager() {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => handlePhotoUpload(e, (url) => setHeroImage(url))}
+                  onChange={(e) => handlePhotoUpload(e, (url) => setHeroImage(url), { aspectRatio: 16 / 9, title: 'Crop Speakers Page Hero Image (16:9 Wide)' })}
                 />
               </label>
 
@@ -414,7 +425,7 @@ export default function AdminEDCSpeakersManager() {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => handlePhotoUpload(e, (url) => setEditingSpeaker((prev) => ({ ...prev, photo_url: url })))}
+                    onChange={(e) => handlePhotoUpload(e, (url) => setEditingSpeaker((prev) => ({ ...prev, photo_url: url })), { aspectRatio: 3 / 4, title: 'Crop Speaker Photo (3:4 Rectangle)' })}
                   />
                 </label>
 
@@ -439,7 +450,6 @@ export default function AdminEDCSpeakersManager() {
         </div>
       </AdminModal>
 
-      {/* Delete Modal */}
       <DeleteConfirmModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
@@ -447,6 +457,8 @@ export default function AdminEDCSpeakersManager() {
         title="Delete Speaker Profile?"
         message={`Are you sure you want to delete speaker "${deleteTarget?.name}"? This action cannot be undone.`}
       />
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

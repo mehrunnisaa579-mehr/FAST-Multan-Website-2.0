@@ -9,6 +9,9 @@ import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
+import FacultyEditModal, { type FacultyMemberData } from '../components/ui/FacultyEditModal';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { supabase } from '../../lib/supabase';
 import {
@@ -166,16 +169,25 @@ export default function AdminSchoolOfComputingManager() {
     fetchData();
   }, []);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, setUrlFn: (url: string) => void) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setUrlFn(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setUrlFn: (url: string) => void,
+    opts?: { aspectRatio?: number; cropShape?: 'rect' | 'round'; title?: string }
+  ) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setUrlFn(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      opts
+    );
   };
 
   // Department Heads Handlers
@@ -368,7 +380,7 @@ export default function AdminSchoolOfComputingManager() {
                 <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
                   <Upload className="w-3.5 h-3.5" />
                   <span>{heroImageUrl ? 'Replace Hero' : 'Upload Hero'}</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeroImageUrl)} />
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeroImageUrl, { aspectRatio: 16 / 9, title: 'Crop Hero Banner Image (16:9 Wide)' })} />
                 </label>
 
                 {heroImageUrl && (
@@ -413,7 +425,7 @@ export default function AdminSchoolOfComputingManager() {
                 <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
                   <Upload className="w-3.5 h-3.5" />
                   <span>{headPhotoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeadPhotoUrl)} />
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeadPhotoUrl, { aspectRatio: 3 / 4, title: 'Crop Head Photograph (3:4 Rectangle)' })} />
                 </label>
 
                 {headPhotoUrl && (
@@ -902,6 +914,8 @@ export default function AdminSchoolOfComputingManager() {
         onConfirm={handleDeleteHead}
         itemTitle={deleteHeadTarget ? `${deleteHeadTarget.headName} (${deleteHeadTarget.department})` : ''}
       />
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

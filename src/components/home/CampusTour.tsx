@@ -36,7 +36,7 @@ export default function CampusTour() {
         </h2>
 
         {/* Large Hero-Sized Video Container (~16:9 Cinematic Aspect Ratio) */}
-        <div className="w-full aspect-[16/9] max-h-[640px] rounded-[12px] overflow-hidden shadow-lg border border-[#E2E8F0] bg-white relative flex items-center justify-center">
+        <div className="w-full max-w-[1240px] mx-auto aspect-[16/9] max-h-[640px] rounded-[12px] overflow-hidden shadow-lg border border-[#E2E8F0] bg-white relative flex items-center justify-center">
           {embedUrl ? (
             <iframe
               src={embedUrl}

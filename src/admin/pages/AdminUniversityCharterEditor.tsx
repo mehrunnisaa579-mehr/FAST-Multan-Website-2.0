@@ -6,6 +6,8 @@ import AdminSection from '../components/ui/AdminSection';
 import AdminButton from '../components/ui/AdminButton';
 import AdminFormGroup from '../components/ui/AdminFormGroup';
 import AdminInput from '../components/ui/AdminInput';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { Save, ArrowLeft, CheckCircle2, AlertCircle, Upload, ImageIcon, FileText, Download } from 'lucide-react';
 
@@ -41,16 +43,21 @@ export default function AdminUniversityCharterEditor() {
     fetchData();
   }, []);
 
-  const handleHeroFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setHeroImageUrl(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error || 'Unknown error'}`);
-    }
+  const handleHeroFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setHeroImageUrl(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error || 'Unknown error'}`);
+        }
+      },
+      { aspectRatio: 16 / 9, title: 'Crop University Charter Hero Image (16:9 Wide)' }
+    );
   };
 
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -248,6 +255,8 @@ export default function AdminUniversityCharterEditor() {
           Save Page Changes
         </AdminButton>
       </div>
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

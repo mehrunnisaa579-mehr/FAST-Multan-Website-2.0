@@ -76,10 +76,10 @@ export default function DepartmentCard({
   }
 
   if (variant === 'faculty') {
-    return (
-      <div className="w-full flex flex-col items-center text-center group cursor-pointer">
-        {/* 1. Square Image Container / Placeholder Only */}
-        <div className="w-full aspect-square bg-white border border-[#EAEAEA] rounded-[4px] overflow-hidden shadow-xs card-hover-lift flex items-center justify-center mb-[12px] flex-shrink-0">
+    const cardContent = (
+      <div className="w-full flex flex-col items-center text-center group cursor-pointer h-full">
+        {/* 1. Bordered Photo Box ONLY */}
+        <div className="w-full aspect-square bg-[#F3F4F6] border border-[#E5E7EB] rounded-[8px] overflow-hidden shadow-xs card-hover-lift flex items-center justify-center flex-shrink-0 mb-[12px]">
           <CmsImage
             src={displayImage}
             alt={title}
@@ -88,17 +88,25 @@ export default function DepartmentCard({
           />
         </div>
 
-        {/* 2. Plain Text Below Image (No boxed background, no blue bar) */}
+        {/* 2. Text below photo box - floating freely with no border/background box */}
         <div className="w-full text-center px-1">
-          <h4 className="text-[15px] font-bold text-[#1F2937] leading-snug group-hover:text-[#0093DD] transition-colors m-0 text-center">
+          <h4 className="text-[15px] min-[700px]:text-[16px] font-bold text-[#1F2937] leading-snug group-hover:text-[#0093DD] transition-colors m-0 text-center">
             {title}
           </h4>
-          <p className="text-[13px] font-medium text-[#6B7280] leading-snug mt-[3px] m-0 text-center">
+          <p className="text-[12.5px] min-[700px]:text-[13px] font-medium text-[#6B7280] leading-snug mt-[4px] m-0 text-center">
             {role || subtitle || 'Faculty Member'}
           </p>
         </div>
       </div>
     );
+
+    if (isDummyLink) {
+      return <div onClick={handleClick} className="h-full">{cardContent}</div>;
+    }
+    if (isExternal) {
+      return <a href={href} className="h-full">{cardContent}</a>;
+    }
+    return <Link to={href} className="h-full">{cardContent}</Link>;
   }
 
   if (variant === 'profile') {

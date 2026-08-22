@@ -16,6 +16,7 @@ export default function OurSchools() {
   const [subtitle, setSubtitle] = useState('Explore the program that matches your interests');
   const [schools, setSchools] = useState<any[]>(homepageContent.ourSchools);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const fetchSchoolsData = async () => {
@@ -53,16 +54,56 @@ export default function OurSchools() {
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
       const scrollAmount = 330; // Exactly 310px card width + 20px gap
-      const offset = direction === 'left' ? -scrollAmount : scrollAmount;
-      scrollRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+
+      if (direction === 'right') {
+        // Forward loop: when reaching the end, loop back to start (0)
+        if (scrollLeft + clientWidth >= scrollWidth - 10) {
+          scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+      } else {
+        // Backward manual step: when at or near start, wrap to end
+        if (scrollLeft <= 10) {
+          scrollRef.current.scrollTo({ left: scrollWidth - clientWidth, behavior: 'smooth' });
+        } else {
+          scrollRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        }
+      }
     }
+  };
+
+  const startAutoSlide = () => {
+    stopAutoSlide();
+    timerRef.current = setInterval(() => {
+      scroll('right');
+    }, 5000);
+  };
+
+  const stopAutoSlide = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    startAutoSlide();
+    return () => {
+      stopAutoSlide();
+    };
+  }, [displaySchools.length]);
+
+  const handleManualScroll = (direction: 'left' | 'right') => {
+    scroll(direction);
+    startAutoSlide(); // Reset 5s timer on manual click
   };
 
   const getProgramTargetUrl = (school: any): string => {
     const nameLower = (school.name || '').toLowerCase().trim();
     const hrefLower = (school.href || school.destinationUrl || '').toLowerCase().trim();
 
-    // 1. BS Business Analytics
     if (
       nameLower.includes('business analytics') ||
       nameLower.includes('bs(ba)') ||
@@ -71,7 +112,6 @@ export default function OurSchools() {
       return 'https://nu.edu.pk/Program/BS(BA)';
     }
 
-    // 2. BS Artificial Intelligence
     if (
       nameLower.includes('artificial intelligence') ||
       nameLower.includes('bs(ai)') ||
@@ -81,7 +121,6 @@ export default function OurSchools() {
       return 'https://nu.edu.pk/Program/BS(AI)';
     }
 
-    // 3. BS Software Engineering
     if (
       nameLower.includes('software engineering') ||
       nameLower.includes('bs(se)') ||
@@ -90,7 +129,6 @@ export default function OurSchools() {
       return 'https://nu.edu.pk/Program/BS(SE)';
     }
 
-    // 4. BS Computer Science
     if (
       nameLower.includes('computer science') ||
       nameLower.includes('computing') ||
@@ -100,12 +138,10 @@ export default function OurSchools() {
       return 'https://nu.edu.pk/Program/BS(CS)';
     }
 
-    // Exact dictionary match if present
     if (OFFICIAL_PROGRAM_MAPPINGS[nameLower]) {
       return OFFICIAL_PROGRAM_MAPPINGS[nameLower];
     }
 
-    // Fallback to record property if valid http(s) URL
     const recordUrl = school.destinationUrl || school.href;
     if (recordUrl && (recordUrl.startsWith('http://') || recordUrl.startsWith('https://'))) {
       return recordUrl;
@@ -120,10 +156,6 @@ export default function OurSchools() {
     window.location.assign(url);
   };
 
-  // Determine dynamic justification to center cards when they fit, and left-align when they overflow
-  const totalCardsWidth = displaySchools.length * 310 + (displaySchools.length - 1) * 20;
-  const justifyClass = totalCardsWidth <= 970 ? 'justify-start md:justify-center' : 'justify-start';
-
   return (
     <section className="py-[60px] w-full bg-[#F7F9FC]">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px]">
@@ -135,12 +167,12 @@ export default function OurSchools() {
           {subtitle}
         </p>
 
-        {/* Centered Carousel Viewport Wrapper */}
+        {/* Centered Carousel Viewport Wrapper — Exactly 3 Full Cards (970px = 3*310px + 2*20px) */}
         <div className="w-full flex justify-center">
           <div className="w-full max-w-[970px] overflow-hidden relative">
             <div
               ref={scrollRef}
-              className={`flex gap-[20px] overflow-x-auto scroll-smooth no-scrollbar w-full py-4 flex-nowrap ${justifyClass}`}
+              className="flex gap-[20px] overflow-x-auto scroll-smooth no-scrollbar w-full py-4 flex-nowrap justify-start"
               style={{
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none',
@@ -164,7 +196,7 @@ export default function OurSchools() {
 
                 const targetUrl = getProgramTargetUrl(school);
 
-                // Card Layout (equal dimensions, scroll-snap-align, dynamic padding, whole card clickable)
+                // Card Layout (310px width fits exactly 3 full cards in 970px viewport)
                 const cardClassName = `group w-[310px] h-[160px] flex-shrink-0 bg-white border border-[#E5E7EB] rounded-[8px] overflow-hidden shadow-xs card-hover-lift flex items-center justify-center relative cursor-pointer ${mediaUrl ? 'p-0' : 'p-6'}`;
 
                 if (school.isPlaceholder) {
@@ -198,12 +230,9 @@ export default function OurSchools() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center text-center w-full h-full pointer-events-none">
-                    {/* Centered icon */}
                     <div className="mb-3 text-[#0C71C3] group-hover:scale-[1.08] transition-transform duration-300 pointer-events-none">
                       <IconComponent className="w-[40px] h-[40px]" strokeWidth={1.5} />
                     </div>
-
-                    {/* Centered title */}
                     <h3 className="text-[14px] font-bold text-[#0C71C3] uppercase tracking-wider leading-snug w-full pointer-events-none">
                       {school.name}
                     </h3>
@@ -228,17 +257,17 @@ export default function OurSchools() {
           </div>
         </div>
 
-        {/* Carousel controls - bottom-centered */}
+        {/* Carousel controls — Previous & Next Buttons */}
         <div className="flex justify-center items-center gap-4 mt-8">
           <button
-            onClick={() => scroll('left')}
+            onClick={() => handleManualScroll('left')}
             className="carousel-arrow-btn w-10 h-10 rounded-full border flex items-center justify-center text-white shadow-xs hover:shadow-md cursor-pointer"
             aria-label="Previous Program"
           >
             <ChevronLeft className="w-5 h-5 text-white" />
           </button>
           <button
-            onClick={() => scroll('right')}
+            onClick={() => handleManualScroll('right')}
             className="carousel-arrow-btn w-10 h-10 rounded-full border flex items-center justify-center text-white shadow-xs hover:shadow-md cursor-pointer"
             aria-label="Next Program"
           >

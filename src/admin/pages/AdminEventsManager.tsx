@@ -7,6 +7,8 @@ import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { archiveService } from '../../services/archiveService';
 import { supabase } from '../../lib/supabase';
@@ -92,16 +94,26 @@ export default function AdminEventsManager() {
     setIsModalOpen(true);
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setEditingItem((prev) => ({ ...prev, image_url: res.publicUrl }));
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const handleFileUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    callback?: (url: string) => void,
+    opts?: { aspectRatio?: number; cropShape?: 'rect' | 'round'; title?: string }
+  ) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          if (callback) callback(res.publicUrl);
+          else setEditingItem((prev) => ({ ...prev, image_url: res.publicUrl }));
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      opts || { aspectRatio: 16 / 9, title: 'Crop Event Poster/Image (16:9 Wide)' }
+    );
   };
 
   const handleSave = async () => {
@@ -339,7 +351,7 @@ export default function AdminEventsManager() {
                   <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
                     <Upload className="w-4 h-4" />
                     <span>{editingItem?.image_url ? 'Replace Image' : 'Upload Image'}</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setEditingItem((prev) => ({ ...prev, image_url: url })), { aspectRatio: 16 / 9, title: 'Crop Event Poster Image (16:9 Wide)' })} />
                   </label>
 
                   {editingItem?.image_url && (
@@ -382,6 +394,8 @@ export default function AdminEventsManager() {
         itemTitle={deleteTarget?.title}
         loading={isDeleting}
       />
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

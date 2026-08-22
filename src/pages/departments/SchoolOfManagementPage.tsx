@@ -129,6 +129,22 @@ export default function SchoolOfManagementPage() {
             },
           ];
 
+  // ── Allied Faculty ────────────────────────────────────────────────────────
+  const showAlliedFacultySection =
+    cmsContent?.showAlliedFacultySection !== false &&
+    cmsContent?.alliedFacultyVisible !== false;
+
+  const alliedFacultyHeading =
+    cmsContent?.alliedFacultyHeading || 'ALLIED FACULTY';
+
+  const alliedFacultyList =
+    cmsContent?.alliedFacultyList &&
+    Array.isArray(cmsContent.alliedFacultyList) &&
+    cmsContent.alliedFacultyList.length > 0
+      ? cmsContent.alliedFacultyList.filter(
+          (f: any) => f.is_visible !== false
+        )
+      : [];
 
   return (
     <div className="dept-page-container">
@@ -174,7 +190,7 @@ export default function SchoolOfManagementPage() {
                 <DecorativeProfileImageFrame
                   src={hodPhoto}
                   alt={hodName}
-                  showBadge={false}
+                  showBadge={true}
                   fallbackLabel="MANAGEMENT HOD PHOTO"
                 />
 
@@ -277,6 +293,39 @@ export default function SchoolOfManagementPage() {
 
         </section>
 
+        {/* =====================================================
+            ALLIED FACULTY
+            ===================================================== */}
+
+        {showAlliedFacultySection && alliedFacultyList.length > 0 && (
+          <section className="w-full space-y-[24px]">
+
+            <div className="relative w-full flex flex-col sm:flex-row items-center justify-center pb-[6px] border-b border-[#E2E8F0] gap-2 sm:gap-0">
+
+              <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center">
+                {alliedFacultyHeading}
+              </h2>
+
+            </div>
+
+            <div className="dept-card-row dept-faculty-grid">
+              {alliedFacultyList.map((fac: any) => (
+                <div key={fac.id} className="dept-faculty-wrapper">
+                  <Link to={`/people/${fac.slug || fac.id}`} className="no-underline block cursor-pointer">
+                    <DepartmentCard
+                      variant="faculty"
+                      title={fac.name}
+                      role={fac.designation}
+                      imageUrl={fac.photoUrl || fac.photo_url || fac.image}
+                      imageLabel={fac.photoPlaceholder || 'ALLIED FACULTY MEMBER'}
+                    />
+                  </Link>
+                </div>
+              ))}
+            </div>
+
+          </section>
+        )}
 
       </div>
 

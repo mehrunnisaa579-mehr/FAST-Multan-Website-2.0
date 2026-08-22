@@ -7,6 +7,8 @@ import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { archiveService } from '../../services/archiveService';
 import { supabase } from '../../lib/supabase';
@@ -158,20 +160,32 @@ export default function AdminNewsManager() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setEditingItem((prev) => ({
-        ...prev,
-        image_url: res.publicUrl,
-        hero_image: res.publicUrl,
-      }));
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const handleFileUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    callback?: (url: string) => void,
+    opts?: { aspectRatio?: number; cropShape?: 'rect' | 'round'; title?: string }
+  ) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          if (callback) callback(res.publicUrl);
+          else {
+            setEditingItem((prev) => ({
+              ...prev,
+              image_url: res.publicUrl,
+              hero_image: res.publicUrl,
+            }));
+          }
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      opts || { aspectRatio: 16 / 9, title: 'Crop News Hero Image (16:9 Wide)' }
+    );
   };
 
   const currentHeroImage = editingItem?.hero_image || editingItem?.image_url || '';
@@ -339,8 +353,8 @@ export default function AdminNewsManager() {
                 />
                 <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
                   <Upload className="w-4 h-4" />
-                  <span>{currentHeroImage ? 'Replace Image' : 'Upload Image'}</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                  <span>{currentHeroImage ? 'Replace Banner' : 'Upload Banner'}</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setEditingItem((prev) => ({ ...prev, hero_image: url, image_url: url })), { aspectRatio: 16 / 9, title: 'Crop News Hero Banner (16:9 Wide)' })} />
                 </label>
                 {currentHeroImage && (
                   <button
@@ -378,6 +392,8 @@ export default function AdminNewsManager() {
         itemTitle={deleteTarget?.title}
         loading={isDeleting}
       />
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

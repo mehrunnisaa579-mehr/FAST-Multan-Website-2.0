@@ -8,6 +8,9 @@ import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
+import FacultyEditModal, { type FacultyMemberData } from '../components/ui/FacultyEditModal';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { archiveService } from '../../services/archiveService';
 import { supabase } from '../../lib/supabase';
@@ -129,19 +132,23 @@ export default function AdminAdministrationStaffManager() {
     fetchData();
   }, []);
 
-  const handleHeroFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    setUploadingHero(true);
-    const res = await cmsService.uploadMedia(file);
-    setUploadingHero(false);
-
-    if (res.success && res.publicUrl) {
-      setHeroImageUrl(res.publicUrl);
-    } else {
-      alert(`Hero image upload failed: ${res.error || 'Unknown error'}`);
-    }
+  const handleHeroFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        setUploadingHero(true);
+        const res = await cmsService.uploadMedia(croppedFile);
+        setUploadingHero(false);
+        if (res.success && res.publicUrl) {
+          setHeroImageUrl(res.publicUrl);
+        } else {
+          alert(`Hero image upload failed: ${res.error || 'Unknown error'}`);
+        }
+      },
+      { aspectRatio: 16 / 9, title: 'Crop Staff Page Hero Image (16:9 Wide)' }
+    );
   };
 
   const handleRemoveHeroImage = () => {
@@ -734,6 +741,8 @@ export default function AdminAdministrationStaffManager() {
         onConfirm={handleDeleteStaff}
         itemTitle={deleteStaffTarget?.name}
       />
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

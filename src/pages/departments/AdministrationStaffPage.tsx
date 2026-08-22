@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, User } from 'lucide-react';
 import AboutPageHero from '../../components/about/AboutPageHero';
+import DepartmentCard from '../../components/departments/DepartmentCard';
 import { adminOfficesList, initialStaffMembers } from '../../data/staffData';
 import type { StaffMember } from '../../data/staffData';
 import { cmsService } from '../../services/cmsService';
@@ -308,7 +309,6 @@ export default function AdministrationStaffPage() {
             {visibleStaff.length > 0 ? (
 
               <div className="admin-staff-grid">
-
                 {visibleStaff
                   .slice()
                   .sort(
@@ -317,48 +317,22 @@ export default function AdministrationStaffPage() {
                       (b.display_order ?? 99)
                   )
                   .map((member) => (
-
-                    <Link
-                      key={member.slug || member.id}
-                      to={`/staff/${
-                        member.slug || member.id
-                      }`}
-                      className="admin-staff-card"
-                      aria-label={`View profile of ${member.name}`}
-                    >
-
-                      {/* Photo */}
-                      <div className="admin-staff-card-photo">
-
-                        {member.photoUrl ? (
-
-                          <img
-                            src={member.photoUrl}
-                            alt={member.name}
-                          />
-
-                        ) : (
-
-                          <User className="w-9 h-9 text-[#C4CDD6]" />
-
-                        )}
-
-                      </div>
-
-                      {/* Name */}
-                      <p className="admin-staff-card-name">
-                        {member.name}
-                      </p>
-
-                      {/* Role */}
-                      <p className="admin-staff-card-role">
-                        {member.designation}
-                      </p>
-
-                    </Link>
-
+                    <div key={member.slug || member.id} className="dept-faculty-wrapper">
+                      <Link
+                        to={`/staff/${member.slug || member.id}`}
+                        className="no-underline block cursor-pointer h-full"
+                        aria-label={`View profile of ${member.name}`}
+                      >
+                        <DepartmentCard
+                          variant="faculty"
+                          title={member.name}
+                          role={member.designation}
+                          imageUrl={member.photoUrl}
+                          imageLabel={member.name ? member.name.substring(0, 2).toUpperCase() : 'STAFF MEMBER'}
+                        />
+                      </Link>
+                    </div>
                   ))}
-
               </div>
 
             ) : (

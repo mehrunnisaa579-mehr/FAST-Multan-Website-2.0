@@ -5,6 +5,8 @@ import AdminButton from '../components/ui/AdminButton';
 import AdminFormGroup from '../components/ui/AdminFormGroup';
 import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { Save, CheckCircle2, AlertCircle, Upload, ImageIcon, ArrowLeft, Accessibility } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -31,16 +33,21 @@ export default function AdminDisabilityEditor() {
     loadData();
   }, []);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setHeroImage(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setHeroImage(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      { aspectRatio: 16 / 9, title: 'Crop Disability Policy Hero Image (16:9 Wide)' }
+    );
   };
 
   const handleSave = async () => {
@@ -163,6 +170,8 @@ export default function AdminDisabilityEditor() {
           Save Page Changes
         </AdminButton>
       </div>
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

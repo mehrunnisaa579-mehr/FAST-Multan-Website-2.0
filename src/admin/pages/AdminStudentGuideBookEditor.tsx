@@ -4,6 +4,8 @@ import AdminCard from '../components/ui/AdminCard';
 import AdminButton from '../components/ui/AdminButton';
 import AdminFormGroup from '../components/ui/AdminFormGroup';
 import AdminInput from '../components/ui/AdminInput';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { Save, CheckCircle2, AlertCircle, Upload, ImageIcon, ArrowLeft, FileText, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -35,16 +37,21 @@ export default function AdminStudentGuideBookEditor() {
     loadData();
   }, []);
 
-  const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setHeroImage(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const handleHeroUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setHeroImage(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      { aspectRatio: 16 / 9, title: 'Crop Student Guidebook Hero Image (16:9 Wide)' }
+    );
   };
 
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -242,6 +249,8 @@ export default function AdminStudentGuideBookEditor() {
           Save Page Changes
         </AdminButton>
       </div>
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

@@ -28,6 +28,36 @@ export function useDynamicNavigation() {
           return item;
         });
 
+        // 1b. Fetch custom created departments for DEPARTMENTS menu
+        const customDepts = await cmsService.getCustomDepartments();
+        updatedNav = updatedNav.map((item) => {
+          if (item.label === 'DEPARTMENTS' && item.items) {
+            let deptItems = [...item.items];
+
+            if (customDepts && customDepts.length > 0) {
+              const customNavItems = customDepts.map((d: any) => ({
+                label: d.name,
+                href: `/departments/${d.slug}`,
+              }));
+              const existingSlugs = new Set(deptItems.map((i) => i.href));
+              const newItems = customNavItems.filter((i: any) => !existingSlugs.has(i.href));
+              deptItems = [...deptItems, ...newItems];
+            }
+
+            // Pin Administrative Staff to always render LAST
+            const isAdminStaff = (i: any) =>
+              i.href === '/departments/administration-staff' ||
+              i.label.toLowerCase().includes('administration staff') ||
+              i.label.toLowerCase().includes('administrative staff');
+
+            const academicDepts = deptItems.filter((i) => !isAdminStaff(i));
+            const adminStaffDepts = deptItems.filter(isAdminStaff);
+
+            return { ...item, items: [...academicDepts, ...adminStaffDepts] };
+          }
+          return item;
+        });
+
         // 2. Fetch societies for Campus menu
         let societies = await cmsService.getSetting<any[]>('student_societies_full_list', []);
         if (!societies || societies.length === 0) {

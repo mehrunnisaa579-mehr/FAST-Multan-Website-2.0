@@ -97,6 +97,10 @@ export default function CSDepartmentPage() {
         display_order: idx + 1,
       }));
 
+  const showAlliedFacultySection =
+    cmsContent?.showAlliedFacultySection !== false &&
+    cmsContent?.alliedFacultyVisible !== false;
+
   const alliedFacultyHeading =
     cmsContent?.alliedFacultyHeading || 'ALLIED FACULTY';
 
@@ -158,7 +162,7 @@ export default function CSDepartmentPage() {
                 <DecorativeProfileImageFrame
                   src={hodPhoto}
                   alt={hodName}
-                  showBadge={false}
+                  showBadge={true}
                   fallbackLabel="CS HOD PHOTO"
                 />
 
@@ -271,30 +275,32 @@ export default function CSDepartmentPage() {
             ALLIED FACULTY
             ===================================================== */}
 
-        <section className="w-full space-y-[24px]">
-          <div className="relative w-full flex flex-col sm:flex-row items-center justify-center pb-[6px] border-b border-[#E2E8F0] gap-2 sm:gap-0">
-            <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center">
-              {alliedFacultyHeading}
-            </h2>
-          </div>
+        {showAlliedFacultySection && (
+          <section className="w-full space-y-[24px]">
+            <div className="relative w-full flex flex-col sm:flex-row items-center justify-center pb-[6px] border-b border-[#E2E8F0] gap-2 sm:gap-0">
+              <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight text-center">
+                {alliedFacultyHeading}
+              </h2>
+            </div>
 
-          <div className="dept-card-row dept-faculty-grid">
-            {alliedFacultyList.map((fac: any) => (
-              <div key={fac.id} className="dept-faculty-wrapper">
-                <Link to={`/people/${fac.slug || fac.id}`} className="no-underline block cursor-pointer">
-                  <DepartmentCard
-                    variant="faculty"
-                    title={fac.name}
-                    role={fac.designation}
-                    imageUrl={fac.photoUrl}
-                    imageLabel={fac.photoPlaceholder || 'ALLIED FACULTY MEMBER'}
-                  />
-                </Link>
-              </div>
-            ))}
-          </div>
+            <div className="dept-card-row dept-faculty-grid">
+              {alliedFacultyList.map((fac: any) => (
+                <div key={fac.id} className="dept-faculty-wrapper">
+                  <Link to={`/people/${fac.slug || fac.id}`} className="no-underline block cursor-pointer">
+                    <DepartmentCard
+                      variant="faculty"
+                      title={fac.name}
+                      role={fac.designation}
+                      imageUrl={fac.photoUrl}
+                      imageLabel={fac.photoPlaceholder || 'ALLIED FACULTY MEMBER'}
+                    />
+                  </Link>
+                </div>
+              ))}
+            </div>
 
-        </section>
+          </section>
+        )}
 
       </div>
 

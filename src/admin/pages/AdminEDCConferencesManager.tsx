@@ -5,6 +5,8 @@ import AdminButton from '../components/ui/AdminButton';
 import AdminFormGroup from '../components/ui/AdminFormGroup';
 import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { conferenceScheduleDay1, conferenceScheduleDay2 } from '../../data/edc';
 import { Save, CheckCircle2, AlertCircle, Upload, ImageIcon, ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Calendar } from 'lucide-react';
@@ -47,28 +49,36 @@ export default function AdminEDCConferencesManager() {
     loadData();
   }, []);
 
-  const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setHeroImage(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const handleHeroUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setHeroImage(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      { aspectRatio: 16 / 9, title: 'Crop Conference Hero Image (16:9 Wide)' }
+    );
   };
 
-  const handlePosterUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setPosterUrl(res.publicUrl);
-    } else {
-      alert(`Poster upload failed: ${res.error}`);
-    }
+  const handlePosterUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setPosterUrl(res.publicUrl);
+        } else {
+          alert(`Poster upload failed: ${res.error}`);
+        }
+      },
+      { aspectRatio: 3 / 4, title: 'Crop Conference Poster (3:4 Rectangle)' }
+    );
   };
 
   // Highlights handlers
@@ -363,6 +373,8 @@ export default function AdminEDCConferencesManager() {
           Save Page Changes
         </AdminButton>
       </div>
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

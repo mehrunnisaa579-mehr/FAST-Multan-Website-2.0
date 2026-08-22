@@ -9,6 +9,8 @@ import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
 import FacultyEditModal, { type FacultyMemberData } from '../components/ui/FacultyEditModal';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { aidsPrograms, aidsFaculty } from '../../data/departments';
 import {
@@ -102,6 +104,7 @@ export default function AdminAIDepartmentEditor() {
   );
 
   // Allied Faculty Section State
+  const [showAlliedFacultySection, setShowAlliedFacultySection] = useState(true);
   const [alliedFacultyHeading, setAlliedFacultyHeading] = useState('ALLIED FACULTY');
   const [alliedFacultyList, setAlliedFacultyList] = useState<AIFacultyItem[]>([]);
 
@@ -156,6 +159,8 @@ export default function AdminAIDepartmentEditor() {
       if (saved.viewAllFacultyUrl) setViewAllFacultyUrl(saved.viewAllFacultyUrl);
       if (Array.isArray(saved.facultyList)) setFacultyList(saved.facultyList);
 
+      if (saved.showAlliedFacultySection !== undefined) setShowAlliedFacultySection(saved.showAlliedFacultySection);
+      else if (saved.alliedFacultyVisible !== undefined) setShowAlliedFacultySection(saved.alliedFacultyVisible);
       if (saved.alliedFacultyHeading) setAlliedFacultyHeading(saved.alliedFacultyHeading);
       if (Array.isArray(saved.alliedFacultyList)) setAlliedFacultyList(saved.alliedFacultyList);
     }
@@ -165,16 +170,25 @@ export default function AdminAIDepartmentEditor() {
     fetchData();
   }, []);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, setUrlFn: (url: string) => void) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setUrlFn(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setUrlFn: (url: string) => void,
+    opts?: { aspectRatio?: number; cropShape?: 'rect' | 'round'; title?: string }
+  ) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setUrlFn(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      opts
+    );
   };
 
   // Program CRUD Handlers
@@ -331,6 +345,7 @@ export default function AdminAIDepartmentEditor() {
       viewAllFacultyText,
       viewAllFacultyUrl,
       facultyList,
+      showAlliedFacultySection,
       alliedFacultyHeading,
       alliedFacultyList,
       updated_at: new Date().toISOString(),
@@ -419,7 +434,7 @@ export default function AdminAIDepartmentEditor() {
                   <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
                     <Upload className="w-3.5 h-3.5" />
                     <span>{heroImageUrl ? 'Replace Photo' : 'Upload Photo'}</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeroImageUrl)} />
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeroImageUrl, { aspectRatio: 16 / 9, title: 'Crop Hero Banner Image (16:9 Wide)' })} />
                   </label>
 
                   {heroImageUrl && (
@@ -482,7 +497,7 @@ export default function AdminAIDepartmentEditor() {
                   <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
                     <Upload className="w-3.5 h-3.5" />
                     <span>{hodPhotoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHodPhotoUrl)} />
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHodPhotoUrl, { aspectRatio: 3 / 4, title: 'Crop Head/Incharge Photo (3:4 Rectangle)' })} />
                   </label>
 
                   {hodPhotoUrl && (
@@ -711,9 +726,19 @@ export default function AdminAIDepartmentEditor() {
 
         {accordions.allied && (
           <div className="p-5 space-y-4">
-            <AdminFormGroup label="Section Heading">
-              <AdminInput value={alliedFacultyHeading} onChange={(e) => setAlliedFacultyHeading(e.target.value)} />
-            </AdminFormGroup>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+              <AdminFormGroup label="Section Heading">
+                <AdminInput value={alliedFacultyHeading} onChange={(e) => setAlliedFacultyHeading(e.target.value)} />
+              </AdminFormGroup>
+              <AdminFormGroup label="Show Section on Public Website">
+                <AdminToggle
+                  checked={showAlliedFacultySection}
+                  onChange={(val) => setShowAlliedFacultySection(val)}
+                  label={showAlliedFacultySection ? "Show on Website (ON)" : "Show on Website (OFF)"}
+                  description="Toggle whether the Allied Faculty section appears on public website."
+                />
+              </AdminFormGroup>
+            </div>
 
             <div className="flex justify-between items-center pt-2">
               <h4 className="text-sm font-bold text-[#374151]">AI Allied Faculty List</h4>
@@ -897,6 +922,8 @@ export default function AdminAIDepartmentEditor() {
         onConfirm={handleDeleteAllied}
         itemTitle={deleteAlliedTarget?.name}
       />
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

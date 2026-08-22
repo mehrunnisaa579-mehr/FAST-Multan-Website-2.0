@@ -6,6 +6,8 @@ import AdminButton from '../components/ui/AdminButton';
 import AdminFormGroup from '../components/ui/AdminFormGroup';
 import AdminInput from '../components/ui/AdminInput';
 import AdminToggle from '../components/ui/AdminToggle';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { footerContent } from '../../data/footer';
 import { Save, CheckCircle2, AlertCircle, Upload, ImageIcon } from 'lucide-react';
@@ -64,49 +66,57 @@ export default function AdminHeaderFooterEditor() {
     loadSettings();
   }, []);
 
-  const handleGlobalHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    setUploadingGlobalHero(true);
-    const res = await cmsService.uploadMedia(file);
-    setUploadingGlobalHero(false);
-
-    if (res.success && res.publicUrl) {
-      setGlobalHeroImageUrl(res.publicUrl);
-    } else {
-      alert(`Global hero image upload failed: ${res.error || 'Unknown error'}`);
-    }
+  const handleGlobalHeroUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        setUploadingGlobalHero(true);
+        const res = await cmsService.uploadMedia(croppedFile);
+        setUploadingGlobalHero(false);
+        if (res.success && res.publicUrl) {
+          setGlobalHeroImageUrl(res.publicUrl);
+        } else {
+          alert(`Global hero image upload failed: ${res.error || 'Unknown error'}`);
+        }
+      },
+      { aspectRatio: 16 / 9, title: 'Crop Global Hero Banner Image (16:9 Wide)' }
+    );
   };
 
-  const handleHeaderLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingHeaderLogo(true);
-    const res = await cmsService.uploadMedia(file);
-    setUploadingHeaderLogo(false);
-
-    if (res.success && res.publicUrl) {
-      setHeaderLogoUrl(res.publicUrl);
-    } else {
-      alert(`Header logo upload failed: ${res.error || 'Unknown error'}`);
-    }
+  const handleHeaderLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        setUploadingHeaderLogo(true);
+        const res = await cmsService.uploadMedia(croppedFile);
+        setUploadingHeaderLogo(false);
+        if (res.success && res.publicUrl) {
+          setHeaderLogoUrl(res.publicUrl);
+        } else {
+          alert(`Header logo upload failed: ${res.error || 'Unknown error'}`);
+        }
+      },
+      { aspectRatio: 3 / 1, title: 'Crop Header Navigation Logo (3:1 Wide)' }
+    );
   };
 
-  const handleFooterLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingFooterLogo(true);
-    const res = await cmsService.uploadMedia(file);
-    setUploadingFooterLogo(false);
-
-    if (res.success && res.publicUrl) {
-      setFooterLogoUrl(res.publicUrl);
-    } else {
-      alert(`Footer logo upload failed: ${res.error || 'Unknown error'}`);
-    }
+  const handleFooterLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        setUploadingFooterLogo(true);
+        const res = await cmsService.uploadMedia(croppedFile);
+        setUploadingFooterLogo(false);
+        if (res.success && res.publicUrl) {
+          setFooterLogoUrl(res.publicUrl);
+        } else {
+          alert(`Footer logo upload failed: ${res.error || 'Unknown error'}`);
+        }
+      },
+      { aspectRatio: 3 / 1, title: 'Crop Footer Navigation Logo (3:1 Wide)' }
+    );
   };
 
   const handleSave = async () => {
@@ -397,6 +407,8 @@ export default function AdminHeaderFooterEditor() {
           Save Settings
         </AdminButton>
       </div>
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

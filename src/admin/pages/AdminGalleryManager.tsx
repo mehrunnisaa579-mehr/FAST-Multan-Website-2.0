@@ -8,6 +8,8 @@ import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { archiveService } from '../../services/archiveService';
 import { supabase } from '../../lib/supabase';
@@ -125,19 +127,23 @@ export default function AdminGalleryManager() {
     fetchGalleryData();
   }, []);
 
-  const handleHeroFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    setUploadingHero(true);
-    const res = await cmsService.uploadMedia(file);
-    setUploadingHero(false);
-
-    if (res.success && res.publicUrl) {
-      setHeroImageUrl(res.publicUrl);
-    } else {
-      alert(`Hero image upload failed: ${res.error || 'Unknown error'}`);
-    }
+  const handleHeroFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        setUploadingHero(true);
+        const res = await cmsService.uploadMedia(croppedFile);
+        setUploadingHero(false);
+        if (res.success && res.publicUrl) {
+          setHeroImageUrl(res.publicUrl);
+        } else {
+          alert(`Hero image upload failed: ${res.error || 'Unknown error'}`);
+        }
+      },
+      { aspectRatio: 16 / 9, title: 'Crop Gallery Hero Image (16:9 Wide)' }
+    );
   };
 
   const handleRemoveHeroImage = () => {
@@ -628,34 +634,14 @@ export default function AdminGalleryManager() {
         </div>
       </AdminModal>
 
-      {/* Delete Confirmation Modal */}
-      <AdminModal
+      <DeleteConfirmModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        title="Delete this gallery item?"
-        maxWidth="sm"
-        footer={
-          <>
-            <AdminButton variant="secondary" onClick={() => setDeleteTarget(null)}>
-              Cancel
-            </AdminButton>
-            <AdminButton variant="danger" onClick={handleDeleteConfirm}>
-              Delete Gallery Item
-            </AdminButton>
-          </>
-        }
-      >
-        <div className="py-2 text-left space-y-3">
-          <p className="text-sm text-[#4B5563] leading-relaxed">
-            This will remove the gallery video card from the public website gallery. This action cannot be undone.
-          </p>
-          {deleteTarget && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md text-xs font-bold text-red-800">
-              Target Item: {deleteTarget.title}
-            </div>
-          )}
-        </div>
-      </AdminModal>
+        onConfirm={handleDeleteConfirm}
+        itemTitle={deleteTarget?.title}
+      />
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

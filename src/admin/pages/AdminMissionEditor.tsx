@@ -7,6 +7,8 @@ import AdminButton from '../components/ui/AdminButton';
 import AdminFormGroup from '../components/ui/AdminFormGroup';
 import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { Save, ArrowLeft, CheckCircle2, AlertCircle, Upload, ImageIcon } from 'lucide-react';
 
@@ -38,16 +40,21 @@ export default function AdminMissionEditor() {
     fetchData();
   }, []);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setHeroImageUrl(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setHeroImageUrl(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      { aspectRatio: 16 / 9, title: 'Crop Mission Hero Image (16:9 Wide)' }
+    );
   };
 
   const handleSave = async () => {
@@ -172,6 +179,8 @@ export default function AdminMissionEditor() {
           </AdminFormGroup>
         </AdminCard>
       </AdminSection>
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

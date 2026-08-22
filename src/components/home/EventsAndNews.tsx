@@ -199,21 +199,21 @@ export default function EventsAndNews() {
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[32px] md:px-[40px]">
 
         {/* Section Header */}
-        <div className="text-left mb-[16px] relative -top-[28px]">
-          <h2 className="text-[22px] sm:text-[25px] font-bold text-[#0C71C3] uppercase tracking-tight leading-[1.5]">
+        <div className="text-center mb-[24px] relative -top-[20px]">
+          <h2 className="text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight leading-[1.5]">
             {eventsHeading}
           </h2>
 
-          <p className="text-[13.5px] text-[#666666] font-medium mt-[-5px]">
+          <p className="text-[15px] text-[#666666] font-medium mt-1">
             {eventsSubtitle}
           </p>
         </div>
 
-        {/* ── Two Column Split Layout ── */}
-        <div className="flex flex-col lg:flex-row gap-[28px] lg:gap-[32px] items-start">
+        {/* ── Two Column Split Layout (Grid Centered, No Percentage Gap Overflow) ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_390px] gap-[28px] lg:gap-[32px] items-start justify-center max-w-[1240px] mx-auto w-full">
 
           {/* ════ LEFT COLUMN — UPCOMING EVENTS ═════════════════════════════ */}
-          <div className="w-full lg:w-[62%] flex flex-col justify-between">
+          <div className="w-full max-w-[800px] lg:max-w-none mx-auto flex flex-col justify-between">
 
             {/* 2 x 2 Event Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-[14px] sm:gap-[16px]">
@@ -322,7 +322,7 @@ export default function EventsAndNews() {
           </div>
 
           {/* ════ RIGHT COLUMN — NEWS & ANNOUNCEMENTS ═══════════════════════ */}
-          <div className="w-full lg:w-[38%] bg-[#0B2E59] rounded-[12px] p-[18px] sm:p-[20px] flex flex-col justify-between border border-[#082244] shadow-xl text-white overflow-hidden flex-shrink-0 h-auto min-h-[440px] max-h-[460px] lg:max-h-[460px]">
+          <div className="w-full max-w-[800px] lg:max-w-none mx-auto bg-[#0B2E59] rounded-[12px] p-[18px] sm:p-[20px] flex flex-col justify-between border border-[#082244] shadow-xl text-white overflow-hidden flex-shrink-0 h-auto min-h-[440px] max-h-[460px] lg:max-h-[460px]">
 
             {/* Navy Panel Top Heading */}
             <div className="pb-[10px] border-b border-white/15 flex items-center justify-between text-left flex-shrink-0">

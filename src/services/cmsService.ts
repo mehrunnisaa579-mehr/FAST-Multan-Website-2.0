@@ -560,4 +560,31 @@ export const cmsService = {
       return { success: false, error: err?.message || 'Failed to save department faculty' };
     }
   },
+
+  // 10. DYNAMIC CUSTOM DEPARTMENTS CRUD
+  async getCustomDepartments() {
+    return await this.getSetting<any[]>('custom_departments_list', []);
+  },
+
+  async saveCustomDepartments(list: any[]) {
+    return await this.saveSetting('custom_departments_list', list, 'List of custom created departments');
+  },
+
+  async deleteCustomDepartment(id: string, slug: string) {
+    const current = await this.getCustomDepartments();
+    const filtered = current.filter((d: any) => d.id !== id && d.slug !== slug);
+    return await this.saveCustomDepartments(filtered);
+  },
+
+  async getCustomDepartmentContent(slug: string) {
+    return await this.getSetting<any>(`custom_department_content_${slug}`, null);
+  },
+
+  async saveCustomDepartmentContent(slug: string, content: any) {
+    return await this.saveSetting(
+      `custom_department_content_${slug}`,
+      content,
+      `Full content schema for custom department ${slug}`
+    );
+  },
 };

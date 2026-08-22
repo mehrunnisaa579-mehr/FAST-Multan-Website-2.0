@@ -6,6 +6,8 @@ import AdminFormGroup from '../components/ui/AdminFormGroup';
 import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { supabase } from '../../lib/supabase';
 import { Plus, Trash2, CheckCircle2, AlertCircle, Upload, ArrowUp, ArrowDown } from 'lucide-react';
@@ -129,15 +131,26 @@ export default function AdminSchoolsManager() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setIconUrl(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const { cropperProps, openCropper } = useImageCropper();
+
+  const handleFileUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    callback?: (url: string) => void,
+    opts?: { aspectRatio?: number; cropShape?: 'rect' | 'round'; title?: string }
+  ) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          if (callback) callback(res.publicUrl);
+          else setIconUrl(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      opts || { aspectRatio: 1, cropShape: 'round', title: 'Crop School Icon/Badge (1:1 Circle)' }
+    );
   };
 
   return (
@@ -236,8 +249,8 @@ export default function AdminSchoolsManager() {
               <AdminInput value={iconUrl} onChange={(e) => setIconUrl(e.target.value)} placeholder="Upload file or paste image URL https://..." />
               <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
                 <Upload className="w-4 h-4" />
-                <span>Upload</span>
-                <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                <span>{iconUrl ? 'Replace Icon' : 'Upload Icon'}</span>
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setIconUrl(url), { aspectRatio: 1, cropShape: 'round', title: 'Crop School Badge Icon (1:1 Circle)' })} />
               </label>
             </div>
           </AdminFormGroup>
@@ -251,6 +264,8 @@ export default function AdminSchoolsManager() {
         itemTitle={deleteTarget?.name}
         loading={isDeleting}
       />
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

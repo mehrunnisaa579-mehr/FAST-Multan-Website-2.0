@@ -7,6 +7,8 @@ import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import {
   Save,
@@ -93,16 +95,25 @@ export default function AdminGatepassManager() {
     fetchGatepassData();
   }, []);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      callback(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    callback: (url: string) => void,
+    opts?: { aspectRatio?: number; cropShape?: 'rect' | 'round'; title?: string }
+  ) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          callback(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      opts
+    );
   };
 
   const moveStep = (index: number, direction: 'up' | 'down') => {
@@ -243,7 +254,7 @@ export default function AdminGatepassManager() {
               <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
                 <Upload className="w-4 h-4" />
                 <span>{heroImage ? 'Replace Hero Image' : 'Upload Hero Image'}</span>
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setHeroImage(url))} />
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setHeroImage(url), { aspectRatio: 16 / 9, title: 'Crop Gatepass Hero Image (16:9 Wide)' })} />
               </label>
 
               {heroImage && (
@@ -431,6 +442,8 @@ export default function AdminGatepassManager() {
         onConfirm={confirmDeleteStep}
         itemTitle={deleteTarget?.title}
       />
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

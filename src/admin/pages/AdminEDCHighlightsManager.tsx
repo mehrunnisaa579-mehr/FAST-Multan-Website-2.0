@@ -8,6 +8,8 @@ import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { edcHighlightsData as defaultHighlights } from '../../data/edc';
 import { Save, Plus, Trash2, CheckCircle2, AlertCircle, Upload, ArrowUp, ArrowDown, Edit2, Sparkles, ImageIcon, ArrowLeft } from 'lucide-react';
@@ -75,33 +77,41 @@ export default function AdminEDCHighlightsManager() {
     fetchHighlights();
   }, []);
 
-  const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setHeroImage(res.publicUrl);
-    } else {
-      alert(`Hero upload failed: ${res.error}`);
-    }
+  const handleHeroUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setHeroImage(res.publicUrl);
+        } else {
+          alert(`Hero upload failed: ${res.error}`);
+        }
+      },
+      { aspectRatio: 16 / 9, title: 'Crop EDC Highlights Hero Image (16:9 Wide)' }
+    );
   };
 
-  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>, imgIdx: number) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setEditingHighlight((prev) => {
-        if (!prev) return prev;
-        const nextImages = [...(prev.images || [])];
-        nextImages[imgIdx] = res.publicUrl || '';
-        return { ...prev, images: nextImages };
-      });
-    } else {
-      alert(`Gallery upload failed: ${res.error}`);
-    }
+  const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>, imgIdx: number) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setEditingHighlight((prev) => {
+            if (!prev) return prev;
+            const nextImages = [...(prev.images || [])];
+            nextImages[imgIdx] = res.publicUrl || '';
+            return { ...prev, images: nextImages };
+          });
+        } else {
+          alert(`Gallery upload failed: ${res.error}`);
+        }
+      },
+      { aspectRatio: 4 / 3, title: 'Crop EDC Event Photo (4:3 Photo Frame)' }
+    );
   };
 
   const handleAddGalleryImage = () => {
@@ -447,7 +457,6 @@ export default function AdminEDCHighlightsManager() {
         </div>
       </AdminModal>
 
-      {/* Delete Modal */}
       <DeleteConfirmModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
@@ -455,6 +464,8 @@ export default function AdminEDCHighlightsManager() {
         title="Delete Highlight Event?"
         message={`Are you sure you want to delete highlight "${deleteTarget?.title}"? This action cannot be undone.`}
       />
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

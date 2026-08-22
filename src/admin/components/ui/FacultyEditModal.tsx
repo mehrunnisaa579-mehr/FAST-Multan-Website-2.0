@@ -5,6 +5,7 @@ import AdminFormGroup from './AdminFormGroup';
 import AdminInput from './AdminInput';
 import AdminTextarea from './AdminTextarea';
 import AdminToggle from './AdminToggle';
+import ImageCropModal from './ImageCropModal';
 import { cmsService } from '../../../services/cmsService';
 import { Upload } from 'lucide-react';
 
@@ -86,34 +87,55 @@ export default function FacultyEditModal({
     }
   }, [initialData, isOpen]);
 
-  const handleMainPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [cropAspect, setCropAspect] = useState<number>(3 / 4);
+  const [cropShape, setCropShape] = useState<'rect' | 'round'>('rect');
+  const [cropTarget, setCropTarget] = useState<'main' | 'badge' | null>(null);
+
+  const handleMainPhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    setUploadingMain(true);
-    const res = await cmsService.uploadMedia(file);
-    setUploadingMain(false);
-
-    if (res.success && res.publicUrl) {
-      setItem((prev) => ({ ...prev, photo_url: res.publicUrl, photoUrl: res.publicUrl }));
-    } else {
-      alert(`Upload failed: ${res.error || 'Unknown error'}`);
-    }
+    setCropFile(file);
+    setCropAspect(3 / 4);
+    setCropShape('rect');
+    setCropTarget('main');
+    e.target.value = '';
   };
 
-  const handleBadgePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBadgePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setCropFile(file);
+    setCropAspect(1);
+    setCropShape('round');
+    setCropTarget('badge');
+    e.target.value = '';
+  };
 
-    setUploadingBadge(true);
-    const res = await cmsService.uploadMedia(file);
-    setUploadingBadge(false);
+  const handleCropComplete = async (croppedFile: File) => {
+    if (cropTarget === 'main') {
+      setUploadingMain(true);
+      const res = await cmsService.uploadMedia(croppedFile);
+      setUploadingMain(false);
 
-    if (res.success && res.publicUrl) {
-      setItem((prev) => ({ ...prev, badge_photo_url: res.publicUrl, badgePhotoUrl: res.publicUrl }));
-    } else {
-      alert(`Badge upload failed: ${res.error || 'Unknown error'}`);
+      if (res.success && res.publicUrl) {
+        setItem((prev) => ({ ...prev, photo_url: res.publicUrl, photoUrl: res.publicUrl }));
+      } else {
+        alert(`Upload failed: ${res.error || 'Unknown error'}`);
+      }
+    } else if (cropTarget === 'badge') {
+      setUploadingBadge(true);
+      const res = await cmsService.uploadMedia(croppedFile);
+      setUploadingBadge(false);
+
+      if (res.success && res.publicUrl) {
+        setItem((prev) => ({ ...prev, badge_photo_url: res.publicUrl, badgePhotoUrl: res.publicUrl }));
+      } else {
+        alert(`Badge upload failed: ${res.error || 'Unknown error'}`);
+      }
     }
+    setCropFile(null);
+    setCropTarget(null);
   };
 
   const handleSave = () => {
@@ -237,7 +259,7 @@ export default function FacultyEditModal({
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={handleMainPhotoUpload}
+                    onChange={handleMainPhotoSelect}
                     disabled={uploadingMain}
                   />
                 </label>
@@ -264,7 +286,7 @@ export default function FacultyEditModal({
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={handleBadgePhotoUpload}
+                    onChange={handleBadgePhotoSelect}
                     disabled={uploadingBadge}
                   />
                 </label>
@@ -379,6 +401,19 @@ export default function FacultyEditModal({
           />
         </div>
       </div>
+
+      <ImageCropModal
+        isOpen={!!cropFile}
+        imageFile={cropFile}
+        aspectRatio={cropAspect}
+        cropShape={cropShape}
+        title={cropTarget === 'badge' ? 'Crop Badge Image (1:1 Circle)' : 'Crop Main Profile Photo (3:4 Rectangle)'}
+        onClose={() => {
+          setCropFile(null);
+          setCropTarget(null);
+        }}
+        onCropComplete={handleCropComplete}
+      />
     </AdminModal>
   );
 }

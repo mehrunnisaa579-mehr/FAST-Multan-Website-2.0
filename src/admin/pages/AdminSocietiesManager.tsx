@@ -8,6 +8,8 @@ import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { archiveService } from '../../services/archiveService';
 import { supabase } from '../../lib/supabase';
@@ -278,16 +280,25 @@ export default function AdminSocietiesManager() {
     fetchSocietiesData();
   }, []);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, setUrlFn: (url: string) => void) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setUrlFn(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setUrlFn: (url: string) => void,
+    opts?: { aspectRatio?: number; cropShape?: 'rect' | 'round'; title?: string }
+  ) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setUrlFn(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      opts
+    );
   };
 
   // Generate public slug automatically from name
@@ -707,7 +718,7 @@ export default function AdminSocietiesManager() {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => handleFileUpload(e, (url) => setEditingSociety((prev) => ({ ...prev, hero_image_url: url })))}
+                      onChange={(e) => handleFileUpload(e, (url) => setEditingSociety((prev) => ({ ...prev, hero_image_url: url })), { aspectRatio: 16 / 9, title: 'Crop Society Cover/Banner Image (16:9 Wide)' })}
                     />
                   </label>
                   {editingSociety?.hero_image_url && (
@@ -746,7 +757,7 @@ export default function AdminSocietiesManager() {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => handleFileUpload(e, (url) => setEditingSociety((prev) => ({ ...prev, logo_url: url })))}
+                      onChange={(e) => handleFileUpload(e, (url) => setEditingSociety((prev) => ({ ...prev, logo_url: url })), { aspectRatio: 1, cropShape: 'round', title: 'Crop Society Circular Logo (1:1 Circle)' })}
                     />
                   </label>
                   {editingSociety?.logo_url && (
@@ -822,7 +833,7 @@ export default function AdminSocietiesManager() {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => handleFileUpload(e, (url) => setEditingSociety((prev) => ({ ...prev, mentor_photo_url: url })))}
+                      onChange={(e) => handleFileUpload(e, (url) => setEditingSociety((prev) => ({ ...prev, mentor_photo_url: url })), { aspectRatio: 3 / 4, title: 'Crop Faculty Mentor Photo (3:4 Rectangle)' })}
                     />
                   </label>
                 </div>
@@ -853,7 +864,7 @@ export default function AdminSocietiesManager() {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => handleFileUpload(e, (url) => setEditingSociety((prev) => ({ ...prev, co_mentor_photo_url: url })))}
+                      onChange={(e) => handleFileUpload(e, (url) => setEditingSociety((prev) => ({ ...prev, co_mentor_photo_url: url })), { aspectRatio: 3 / 4, title: 'Crop Co-Faculty Mentor Photo (3:4 Rectangle)' })}
                     />
                   </label>
                 </div>
@@ -884,7 +895,7 @@ export default function AdminSocietiesManager() {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => handleFileUpload(e, (url) => setEditingSociety((prev) => ({ ...prev, president_photo_url: url })))}
+                      onChange={(e) => handleFileUpload(e, (url) => setEditingSociety((prev) => ({ ...prev, president_photo_url: url })), { aspectRatio: 3 / 4, title: 'Crop Society President Photo (3:4 Rectangle)' })}
                     />
                   </label>
                 </div>
@@ -970,34 +981,14 @@ export default function AdminSocietiesManager() {
         </div>
       </AdminModal>
 
-      {/* Delete Society Confirmation Modal */}
-      <AdminModal
+      <DeleteConfirmModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        title="Delete this society?"
-        maxWidth="sm"
-        footer={
-          <>
-            <AdminButton variant="secondary" onClick={() => setDeleteTarget(null)}>
-              Cancel
-            </AdminButton>
-            <AdminButton variant="danger" onClick={handleDeleteConfirm}>
-              Delete Society
-            </AdminButton>
-          </>
-        }
-      >
-        <div className="py-2 text-left space-y-3">
-          <p className="text-sm text-[#4B5563] leading-relaxed">
-            This will remove the society from the public website and Societies dropdown. This action cannot be undone.
-          </p>
-          {deleteTarget && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md text-xs font-bold text-red-800">
-              Target Society: {deleteTarget.name} ({deleteTarget.slug})
-            </div>
-          )}
-        </div>
-      </AdminModal>
+        onConfirm={handleDeleteConfirm}
+        itemTitle={deleteTarget ? `${deleteTarget.name} (${deleteTarget.slug})` : ''}
+      />
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

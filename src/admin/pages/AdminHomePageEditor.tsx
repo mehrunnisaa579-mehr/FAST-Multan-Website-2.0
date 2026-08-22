@@ -7,6 +7,8 @@ import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
 import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import {
   Save,
@@ -271,16 +273,25 @@ export default function AdminHomePageEditor() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { cropperProps, openCropper } = useImageCropper();
 
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      callback(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    callback: (url: string) => void,
+    opts?: { aspectRatio?: number; cropShape?: 'rect' | 'round'; title?: string }
+  ) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          callback(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      opts
+    );
   };
 
   const handleHeroMediaUpload = async (
@@ -291,27 +302,34 @@ export default function AdminHomePageEditor() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const isVideo = file.type.startsWith('video/') || file.name.endsWith('.mp4') || file.name.endsWith('.webm');
-    const isImage = file.type.startsWith('image/');
-
-    if (mediaType === 'video' && !isVideo) {
-      alert('Invalid file format. Please select an MP4 or WebM video file for video background slides.');
+    if (mediaType === 'video') {
+      const isVideo = file.type.startsWith('video/') || file.name.endsWith('.mp4') || file.name.endsWith('.webm');
+      if (!isVideo) {
+        alert('Invalid file format. Please select an MP4 or WebM video file for video background slides.');
+        e.target.value = '';
+        return;
+      }
+      const res = await cmsService.uploadMedia(file);
+      if (res.success && res.publicUrl) {
+        callback(res.publicUrl);
+      } else {
+        alert(`Upload failed: ${res.error}`);
+      }
       e.target.value = '';
-      return;
-    }
-    if (mediaType === 'image' && !isImage) {
-      alert('Invalid file format. Please select an image file (JPG, PNG, WebP) for image background slides.');
-      e.target.value = '';
-      return;
-    }
-
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      callback(res.publicUrl);
     } else {
-      alert(`Upload failed: ${res.error}`);
+      openCropper(
+        e,
+        async (croppedFile) => {
+          const res = await cmsService.uploadMedia(croppedFile);
+          if (res.success && res.publicUrl) {
+            callback(res.publicUrl);
+          } else {
+            alert(`Upload failed: ${res.error}`);
+          }
+        },
+        { aspectRatio: 16 / 9, title: 'Crop Hero Slide Image (16:9 Wide)' }
+      );
     }
-    e.target.value = '';
   };
 
   // ── HOMEPAGE PHOTO GALLERY CRUD HELPERS ─────────────────────────────────────
@@ -339,18 +357,21 @@ export default function AdminHomePageEditor() {
     setGalleryModalOpen(true);
   };
 
-  const handleGalleryImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setGalleryImageUploading(true);
-    const res = await cmsService.uploadMedia(file);
-    setGalleryImageUploading(false);
-    if (res.success && res.publicUrl) {
-      setEditingGalleryItem((prev) => ({ ...prev, image_url: res.publicUrl }));
-    } else {
-      alert(`Image upload failed: ${res.error}`);
-    }
-    e.target.value = '';
+  const handleGalleryImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        setGalleryImageUploading(true);
+        const res = await cmsService.uploadMedia(croppedFile);
+        setGalleryImageUploading(false);
+        if (res.success && res.publicUrl) {
+          setEditingGalleryItem((prev) => ({ ...prev, image_url: res.publicUrl }));
+        } else {
+          alert(`Image upload failed: ${res.error}`);
+        }
+      },
+      { aspectRatio: 4 / 3, title: 'Crop Gallery Photo (4:3 Rectangle)' }
+    );
   };
 
   const handleGallerySaveItem = async () => {
@@ -612,7 +633,7 @@ export default function AdminHomePageEditor() {
                     <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
                       <Upload className="w-4 h-4" />
                       <span>Upload</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setDirectorPhoto(url))} />
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setDirectorPhoto(url), { aspectRatio: 3 / 4, title: 'Crop Director Photo (3:4 Rectangle)' })} />
                     </label>
                   </div>
                 </AdminFormGroup>
@@ -623,7 +644,7 @@ export default function AdminHomePageEditor() {
                     <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
                       <Upload className="w-4 h-4" />
                       <span>Upload</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setDirectorBadgePhoto(url))} />
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setDirectorBadgePhoto(url), { aspectRatio: 1, cropShape: 'round', title: 'Crop Director Badge Photo (1:1 Circle)' })} />
                     </label>
                   </div>
                 </AdminFormGroup>
@@ -1534,6 +1555,8 @@ export default function AdminHomePageEditor() {
         onConfirm={confirmDelete}
         itemTitle={deleteTarget?.title}
       />
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

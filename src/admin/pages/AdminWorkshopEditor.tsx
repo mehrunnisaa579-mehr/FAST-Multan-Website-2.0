@@ -7,6 +7,8 @@ import AdminFormGroup from '../components/ui/AdminFormGroup';
 import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
 import AdminToggle from '../components/ui/AdminToggle';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import type { WorkshopRecord } from '../../services/cmsService';
 import { Save, CheckCircle2, AlertCircle, Upload, ImageIcon, ArrowLeft, BookOpen } from 'lucide-react';
@@ -90,15 +92,21 @@ export default function AdminWorkshopEditor() {
     setSlugManuallyEdited(true);
   };
 
-  const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setHeroImage(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const { cropperProps, openCropper } = useImageCropper();
+
+  const handleHeroUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setHeroImage(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      { aspectRatio: 16 / 9, title: 'Crop Workshop Hero Image (16:9 Wide)' }
+    );
   };
 
   const handleSave = async () => {
@@ -340,6 +348,8 @@ export default function AdminWorkshopEditor() {
           Save Workshop
         </AdminButton>
       </div>
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

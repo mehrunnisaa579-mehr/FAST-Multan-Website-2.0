@@ -98,6 +98,9 @@ import AdminUsefulLinksManager from './admin/pages/AdminUsefulLinksManager';
 import AdminSettingsManager from './admin/pages/AdminSettingsManager';
 import AdminArchiveManager from './admin/pages/AdminArchiveManager';
 
+import GenericDepartmentPage from './pages/departments/GenericDepartmentPage';
+import AdminGenericDepartmentEditor from './admin/pages/AdminGenericDepartmentEditor';
+
 export default function App() {
   useEffect(() => {
     document.title = 'FAST-NUCES Multan Campus';
@@ -122,6 +125,7 @@ export default function App() {
             <Route path="departments/management/programs" element={<ManagementProgramsPage />} />
             <Route path="departments/management/faculty" element={<ManagementFacultyPage />} />
             <Route path="departments/administration-staff" element={<AdministrationStaffPage />} />
+            <Route path="departments/:slug" element={<GenericDepartmentPage />} />
             <Route path="staff/:slug" element={<PersonProfilePage />} />
             <Route path="people/:slug" element={<PersonProfilePage />} />
             <Route path="news" element={<NewsPage />} />
@@ -160,6 +164,7 @@ export default function App() {
               <Route path="departments/cs" element={<AdminCSDepartmentEditor />} />
               <Route path="departments/se" element={<AdminSEDepartmentEditor />} />
               <Route path="departments/ai" element={<AdminAIDepartmentEditor />} />
+              <Route path="departments/custom/:slug" element={<AdminGenericDepartmentEditor />} />
               <Route path="school-of-computing" element={<AdminSchoolOfComputingManager />} />
               <Route path="school-of-management" element={<AdminSchoolOfManagementManager />} />
               <Route path="administration-staff" element={<AdminAdministrationStaffManager />} />
