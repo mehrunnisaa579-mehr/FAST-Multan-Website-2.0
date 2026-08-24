@@ -45,6 +45,8 @@ export interface WebTeamMember {
   photoUrl: string;
   iconName: string;
   customIconUrl?: string;
+  linkedinUrl?: string;
+  instagramUrl?: string;
   display_order: number;
   is_visible: boolean;
 }
@@ -597,6 +599,25 @@ export default function AdminWebTeamManager() {
               </div>
             </div>
           </AdminFormGroup>
+
+          {/* Social Media Profiles (Optional) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+            <AdminFormGroup label="LinkedIn Profile URL (Optional)">
+              <AdminInput
+                value={editingMember?.linkedinUrl || ''}
+                onChange={(e) => setEditingMember((prev) => ({ ...prev, linkedinUrl: e.target.value }))}
+                placeholder="https://www.linkedin.com/in/username"
+              />
+            </AdminFormGroup>
+
+            <AdminFormGroup label="Instagram Profile URL (Optional)">
+              <AdminInput
+                value={editingMember?.instagramUrl || ''}
+                onChange={(e) => setEditingMember((prev) => ({ ...prev, instagramUrl: e.target.value }))}
+                placeholder="https://www.instagram.com/username"
+              />
+            </AdminFormGroup>
+          </div>
 
           <AdminToggle
             label="Visible on Public Website"
