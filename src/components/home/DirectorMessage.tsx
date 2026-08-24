@@ -41,28 +41,35 @@ export default function DirectorMessage({ data }: DirectorMessageProps) {
     <section className="w-full bg-white py-[60px] sm:py-[76px]">
       {/* ── Balanced Container (max-w-[1300px], clean centered margins) ── */}
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[32px] md:px-[40px]">
+        {/* Desktop Heading (Matches HOD Message layout) */}
+        <div className="hidden md:grid grid-cols-[320px_minmax(0,1fr)] gap-[30px] lg:gap-[38px] mb-[40px]">
+          <div />
+          <h2 className="m-0 text-[40px] lg:text-[46px] leading-[1.1] font-bold text-[#0C71C3] uppercase tracking-[-1px] text-left relative -top-[30px]">
+            Director's Message
+          </h2>
+        </div>
 
-        {/* ── Two-Column Centered Layout ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-[32px] lg:gap-[48px] items-center justify-center max-w-[1240px] mx-auto w-full">
+        {/* Mobile Heading (Matches HOD Message mobile layout) */}
+        <h2 className="md:hidden text-[32px] sm:text-[38px] leading-[1.1] font-bold text-[#0C71C3] uppercase tracking-tight text-center mb-[34px]">
+          Director's Message
+        </h2>
 
-          {/* ════ LEFT COLUMN — PHOTO & NAME (CLICKABLE TO PROFILE) ═════════ */}
-          <div className="w-full max-w-[320px] mx-auto flex flex-col items-center pt-0">
+        {/* Photo + Message Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-[320px_minmax(0,1fr)] gap-[30px] md:gap-[38px] lg:gap-[40px] items-start">
+          {/* LEFT — DIRECTOR PHOTO & NAME */}
+          <div className="w-full max-w-[315px] mx-auto md:mx-0">
             <Link to="/people/director" className="no-underline block group cursor-pointer w-full text-center">
-              {/* Decorative Architectural Photo Frame */}
               <DecorativeProfileImageFrame
                 src={directorPhoto}
                 alt={directorName}
                 showBadge={true}
                 fallbackLabel="DIRECTOR PHOTO"
-                className="mb-[10px] mx-auto"
                 disableHoverEffect={true}
               />
 
-              {/* Director Name */}
-              <h3 className="text-[15px] sm:text-[16px] font-bold text-[#1F2937] group-hover:text-[#0093DD] transition-colors text-center leading-snug">
+              <h3 className="m-0 mt-[6px] text-[18px] sm:text-[19px] leading-[1.3] font-bold text-black group-hover:text-[#0093DD] transition-colors text-center">
                 {directorName}
               </h3>
-              {/* Subtle Designation */}
               {directorTitle && (
                 <p className="text-[12px] font-semibold text-[#0093DD] text-center mt-[2px]">
                   {directorTitle}
@@ -71,27 +78,14 @@ export default function DirectorMessage({ data }: DirectorMessageProps) {
             </Link>
           </div>
 
-          {/* ════ RIGHT COLUMN — HEADING + PARAGRAPH ═══════════════════════ */}
-          <div className="w-full flex flex-col items-center lg:items-start pt-0 gap-[24px] sm:gap-[32px] max-w-[850px] mx-auto lg:mx-0">
-
-            <h2 className="text-[32px] sm:text-[38px] md:text-[40px] lg:text-[46px] leading-[1.1] font-bold text-[#0C71C3] uppercase tracking-tight md:tracking-[-1px] text-center lg:text-left w-full">
-              Director's Message
-            </h2>
-
-            {/* Paragraph Text */}
-            <div className="w-full text-[14px] leading-[1.7] text-[#4B5563] space-y-[16px] text-justify">
-              {messageParagraphs.map((para, idx) => (
-                <p
-                  key={idx}
-                  className="text-justify [text-justify:inter-word]"
-                >
-                  {para}
-                </p>
-              ))}
-            </div>
-
+          {/* RIGHT — DIRECTOR MESSAGE PARAGRAPHS */}
+          <div className="w-full text-[14px] lg:text-[14.5px] leading-[1.7] text-[#26384A] text-left">
+            {messageParagraphs.map((para, idx) => (
+              <p key={idx} className="m-0 text-justify mb-[12px] last:mb-0">
+                {para}
+              </p>
+            ))}
           </div>
-
         </div>
       </div>
     </section>
