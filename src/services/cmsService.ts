@@ -230,13 +230,13 @@ export const cmsService = {
       const { data, error } = await supabase
         .from('news')
         .select('*')
-        .or('is_archived.eq.false,is_archived.is.null')
         .order('updated_at', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false, nullsFirst: false })
         .order('display_order', { ascending: true, nullsFirst: false });
       if (error) throw error;
       return (data || []).filter((item: any) => item.is_archived !== true);
-    } catch {
+    } catch (err) {
+      console.error('getNews error:', err);
       return [];
     }
   },
@@ -246,13 +246,13 @@ export const cmsService = {
       const { data, error } = await supabase
         .from('news')
         .select('id, title, excerpt, published_at, created_at, updated_at, author, category, image_url, published, is_archived')
-        .or('is_archived.eq.false,is_archived.is.null')
         .order('updated_at', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false, nullsFirst: false })
         .order('display_order', { ascending: true, nullsFirst: false });
       if (error) throw error;
       return (data || []).filter((item: any) => item.is_archived !== true);
-    } catch {
+    } catch (err) {
+      console.error('getNewsSummary error:', err);
       return [];
     }
   },
@@ -273,27 +273,20 @@ export const cmsService = {
 
       const { data: list, error: listErr } = await supabase
         .from('news')
-        .select('id, title')
-        .or('is_archived.eq.false,is_archived.is.null');
+        .select('*');
 
       if (listErr || !list) return null;
 
       const found = list.find((item: any) => {
-        const itemSlug = createSlug(item.title, item.id).toLowerCase().trim();
-        return itemSlug === cleanSlug || item.id === cleanSlug;
+        if (item.is_archived === true) return false;
+        const itemSlug = (item.slug || createSlug(item.title, item.id)).toLowerCase().trim();
+        const itemTitleSlug = createSlug(item.title, item.id).toLowerCase().trim();
+        return itemSlug === cleanSlug || itemTitleSlug === cleanSlug || item.id === cleanSlug;
       });
 
-      if (!found) return null;
-
-      const { data, error } = await supabase
-        .from('news')
-        .select('*')
-        .eq('id', found.id)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data;
-    } catch {
+      return found || null;
+    } catch (err) {
+      console.error('getNewsBySlug error:', err);
       return null;
     }
   },
@@ -302,21 +295,21 @@ export const cmsService = {
     return this.getNews();
   },
 
-  async getRecentNews(limit: number) {
+  async getRecentNews(limit: number = 4) {
     try {
       const { data, error } = await supabase
         .from('news')
-        .select('id, title, excerpt, content, published_at, created_at, updated_at, image_url, category, author, published, is_archived')
-        .or('is_archived.eq.false,is_archived.is.null')
-        .or('published.eq.true,published.is.null')
-        .or('is_visible.eq.true,is_visible.is.null')
+        .select('*')
         .order('updated_at', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false, nullsFirst: false })
-        .order('display_order', { ascending: true, nullsFirst: false })
-        .limit(limit);
+        .order('display_order', { ascending: true, nullsFirst: false });
       if (error) throw error;
-      return (data || []).filter((item: any) => item.is_archived !== true);
-    } catch {
+      const filtered = (data || []).filter(
+        (item: any) => item.is_archived !== true && item.published !== false
+      );
+      return filtered.slice(0, limit);
+    } catch (err) {
+      console.error('getRecentNews error:', err);
       return [];
     }
   },

@@ -56,12 +56,7 @@ export default function NewsPageTwo() {
         }
       }
 
-      const formattedFallback = newsPageTwoData.map((item) => ({
-        ...item,
-        slug: item.slug || createSlug(item.title, item.id),
-        category: item.category || 'Academic Announcements',
-      }));
-      setNewsItems(formattedFallback);
+      setNewsItems([]);
     };
 
     fetchPageTwoNews();

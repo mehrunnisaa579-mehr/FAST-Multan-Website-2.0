@@ -71,13 +71,8 @@ export default function NewsPage() {
         }
       }
 
-      // Fallback only if database returned zero usable records
-      const formattedFallback = newsPageOneData.map((item) => ({
-        ...item,
-        slug: item.slug || createSlug(item.title, item.id),
-        category: item.category || 'Academic Announcements',
-      }));
-      setNewsItems(formattedFallback);
+      // Clean empty state if database has no published news records
+      setNewsItems([]);
       setLoading(false);
     };
 

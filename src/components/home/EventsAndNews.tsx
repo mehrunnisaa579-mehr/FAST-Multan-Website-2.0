@@ -130,7 +130,7 @@ export default function EventsAndNews({ data }: EventsAndNewsProps) {
       setEventsList(combinedEvents.slice(0, 4));
 
       // 3. Fetch CMS News
-      const cmsNews = await cmsService.getRecentNews(4);
+      const cmsNews = await cmsService.getRecentNews(10);
       let formattedNews: any[] = [];
 
       if (cmsNews && cmsNews.length > 0) {
@@ -141,6 +141,8 @@ export default function EventsAndNews({ data }: EventsAndNewsProps) {
               ? Math.abs((Date.now() - pubDate.getTime()) / (1000 * 60 * 60 * 24))
               : 999;
             const isNew = n.is_new === true || n.isNew === true || diffDays <= 7 || idx === 0;
+
+            const itemSlug = n.slug || (n.title ? n.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') + '-' + n.id.slice(0, 8) : n.id);
 
             return {
               id: n.id,
@@ -154,13 +156,13 @@ export default function EventsAndNews({ data }: EventsAndNewsProps) {
                   })
                 : n.date || 'Jan 1, 2026',
               author: n.author || 'Admin',
-              slug: n.slug || n.id,
+              slug: itemSlug,
               isNew,
             };
           });
       }
 
-      if (formattedNews.length < 4) {
+      if (formattedNews.length === 0) {
         homepageContent.newsItems.forEach(
           (defNews: any, idx: number) => {
             formattedNews.push({
@@ -354,7 +356,7 @@ export default function EventsAndNews({ data }: EventsAndNewsProps) {
                 {infiniteNews.map((item, idx) => (
                   <Link
                     key={`${item.id}-${idx}`}
-                    to="/news"
+                    to={`/news/${item.slug}`}
                     className="news-jelly-bar block no-underline p-[11px] px-[14px] rounded-[6px] text-left cursor-pointer"
                   >
 
