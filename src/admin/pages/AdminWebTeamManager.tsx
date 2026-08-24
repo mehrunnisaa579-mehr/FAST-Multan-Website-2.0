@@ -419,7 +419,7 @@ export default function AdminWebTeamManager() {
                   {/* Photo Thumbnail */}
                   <div className="w-12 h-16 rounded-t-full rounded-b-md bg-[#F3F4F6] border border-[#E5E7EB] overflow-hidden flex items-center justify-center flex-shrink-0">
                     {member.photoUrl ? (
-                      <img src={member.photoUrl} alt={member.name} className="w-full h-full object-cover" />
+                      <img src={member.photoUrl} alt={member.name} className="w-full h-full object-cover object-top" />
                     ) : (
                       <User className="w-5 h-5 text-[#9CA3AF]" />
                     )}

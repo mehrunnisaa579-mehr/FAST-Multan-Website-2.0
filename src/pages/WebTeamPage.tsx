@@ -133,13 +133,13 @@ export default function WebTeamPage() {
                   }`}
                 >
                   {/* 1. Portrait Photo Region */}
-                  <div className="relative w-full min-h-[300px] sm:min-h-[340px] flex-1 bg-[#F1F5F9] rounded-t-[120px] overflow-hidden">
+                  <div className="relative w-full min-h-[320px] sm:min-h-[340px] flex-1 bg-[#F1F5F9] rounded-t-[120px] overflow-hidden">
                     {member.photoUrl ? (
                       <img
                         src={member.photoUrl}
                         alt={member.name}
-                        style={{ height: '100%', width: '100%', objectFit: 'cover' }}
-                        className="absolute inset-0 !w-full !h-full object-cover rounded-t-[120px] group-hover:scale-105 transition-transform duration-500"
+                        style={{ height: '100%', width: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+                        className="absolute inset-0 !w-full !h-full object-cover object-top rounded-t-[120px] group-hover:scale-105 transition-transform duration-500"
                         loading={idx < 6 ? 'eager' : 'lazy'}
                       />
                     ) : (
