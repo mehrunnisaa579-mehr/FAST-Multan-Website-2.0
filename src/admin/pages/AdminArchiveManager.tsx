@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Archive, RotateCcw, Trash2, Search, Filter, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Archive, RotateCcw, Search, Filter, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react';
 import { archiveService } from '../../services/archiveService';
 import type { ArchivedRecord } from '../../services/archiveService';
-import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
+import AdminModal from '../components/ui/AdminModal';
 import AdminButton from '../components/ui/AdminButton';
 
 export default function AdminArchiveManager() {
@@ -14,8 +14,8 @@ export default function AdminArchiveManager() {
 
   // Modal target states
   const [restoreTarget, setRestoreTarget] = useState<ArchivedRecord | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<ArchivedRecord | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [isPurgingAll, setIsPurgingAll] = useState(false);
 
   const fetchArchives = async () => {
     setLoading(true);
@@ -63,23 +63,29 @@ export default function AdminArchiveManager() {
     }
   };
 
-  // Handle Delete Permanently Confirm
-  const handleDeletePermanentlyConfirm = async () => {
-    if (!deleteTarget) return;
-    setProcessing(true);
-    const res = await archiveService.deletePermanently(deleteTarget);
-    setProcessing(false);
-    setDeleteTarget(null);
+  // Handle Complete Pre-Launch Archive Data Purge
+  const handlePurgeAllArchives = async () => {
+    if (!window.confirm('Are you sure you want to delete ALL development archive data for production pre-launch? Active website items will NOT be touched.')) {
+      return;
+    }
 
-    if (res.success) {
-      setActionNotice(`Permanently deleted "${deleteTarget.title}".`);
-      setTimeout(() => setActionNotice(null), 4000);
-      fetchArchives();
+    setIsPurgingAll(true);
+    try {
+      const res = await archiveService.purgeAllArchivedData();
+      if (res.success) {
+        setActionNotice(`Pre-launch archive cleanup complete. Deleted ${res.count} development archive record(s).`);
+        setTimeout(() => setActionNotice(null), 5000);
+        fetchArchives();
+      }
+    } catch {
+      setActionNotice('Failed to purge archive data.');
+    } finally {
+      setIsPurgingAll(false);
     }
   };
 
   return (
-    <div className="space-y-6 text-left select-none">
+    <div className="space-y-6 text-left select-none max-w-[1300px]">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-[#E5E7EB] shadow-xs">
         <div>
@@ -95,21 +101,47 @@ export default function AdminArchiveManager() {
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-[#6B7280]">
-                Restore or permanently remove archived website content.
+                View and restore archived website content. Archived records are protected against manual deletion.
               </p>
             </div>
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={fetchArchives}
-          className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-[#374151] bg-[#F9FAFB] hover:bg-[#F3F4F6] border border-[#E5E7EB] rounded-lg transition-colors cursor-pointer self-start sm:self-auto"
-          title="Refresh Archive"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {items.length > 0 && (
+            <button
+              type="button"
+              onClick={handlePurgeAllArchives}
+              disabled={isPurgingAll}
+              className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors cursor-pointer"
+              title="Clear all development test items from archive for production launch"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>{isPurgingAll ? 'Purging Archives...' : 'Pre-Launch Archive Purge'}</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={fetchArchives}
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-[#374151] bg-[#F9FAFB] hover:bg-[#F3F4F6] border border-[#E5E7EB] rounded-lg transition-colors cursor-pointer"
+            title="Refresh Archive"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Archive Protection Banner */}
+      <div className="p-4 bg-[#F0F9FF] border border-[#BAE6FD] text-[#0369A1] rounded-xl flex items-start sm:items-center gap-3 text-xs sm:text-sm shadow-xs">
+        <ShieldCheck className="w-5 h-5 text-[#0284C7] flex-shrink-0" />
+        <div>
+          <span className="font-bold">Archive Protection Active: </span>
+          <span>
+            Archived records are protected against manual permanent deletion. Archived data is retained indefinitely and automatically cleaned up when storage capacity threshold is reached.
+          </span>
+        </div>
       </div>
 
       {/* Action Notification Toast */}
@@ -168,7 +200,7 @@ export default function AdminArchiveManager() {
           </div>
           <h3 className="text-base font-bold text-[#1F2937] mb-1">Archive is empty.</h3>
           <p className="text-xs sm:text-sm text-[#6B7280] max-w-[360px]">
-            Deleted website content will appear here before permanent removal.
+            Archived website content will appear here and remain protected.
           </p>
         </div>
       ) : (
@@ -235,16 +267,14 @@ export default function AdminArchiveManager() {
                     <span>Restore</span>
                   </button>
 
-                  {/* Permanent Delete Button */}
-                  <button
-                    type="button"
-                    onClick={() => setDeleteTarget(item)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#DC2626] hover:text-white bg-red-50 hover:bg-[#DC2626] rounded-lg transition-colors cursor-pointer border border-red-100"
-                    title="Permanently remove item from database"
+                  {/* Archive Deletion Protection Badge */}
+                  <div
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#0369A1] bg-[#F0F9FF] border border-[#BAE6FD] rounded-lg cursor-default select-none"
+                    title="Archived items are protected against manual permanent deletion. Storage threshold cleanup purges oldest items when capacity limit is reached."
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete Permanently</span>
-                  </button>
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#0284C7]" />
+                    <span>Protected</span>
+                  </div>
                 </div>
               </div>
             );
@@ -274,37 +304,6 @@ export default function AdminArchiveManager() {
             </AdminButton>
             <AdminButton variant="primary" onClick={handleRestoreConfirm} disabled={processing}>
               {processing ? 'Restoring...' : 'Restore Item'}
-            </AdminButton>
-          </div>
-        </div>
-      </AdminModal>
-
-      {/* Delete Permanently Confirmation Modal */}
-      <AdminModal
-        isOpen={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        title="Delete Permanently?"
-      >
-        <div className="space-y-4 text-left">
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-red-800 text-xs sm:text-sm">
-            <AlertTriangle className="w-5 h-5 text-[#DC2626] flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-bold block mb-0.5">This action cannot be undone.</span>
-              <span>Are you sure you want to permanently remove this record from the database?</span>
-            </div>
-          </div>
-
-          <div className="p-3 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg">
-            <span className="text-xs font-bold text-[#1F2937] block">{deleteTarget?.title}</span>
-            <span className="text-xs text-[#6B7280] block mt-0.5">Module: {deleteTarget?.module_name}</span>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-2">
-            <AdminButton variant="secondary" onClick={() => setDeleteTarget(null)}>
-              Cancel
-            </AdminButton>
-            <AdminButton variant="danger" onClick={handleDeletePermanentlyConfirm} disabled={processing}>
-              {processing ? 'Deleting...' : 'Delete Permanently'}
             </AdminButton>
           </div>
         </div>

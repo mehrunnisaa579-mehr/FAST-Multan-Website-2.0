@@ -150,6 +150,8 @@ export const archiveService = {
     const { table, settingKey, arrayKey, itemId, moduleName, title, subtitle, image_url, itemData } = params;
     const nowIso = new Date().toISOString();
 
+    let result: { success: boolean; error?: string } = { success: false, error: 'Unknown error' };
+
     // Strategy A: DB Table Soft Delete
     if (table) {
       try {
@@ -158,14 +160,14 @@ export const archiveService = {
           .update({ is_archived: true, archived_at: nowIso })
           .eq('id', itemId);
 
-        if (!error) return { success: true };
+        if (!error) result = { success: true };
       } catch {
         // Table update failed, fallback below
       }
     }
 
     // Strategy B: Setting Array Soft Delete
-    if (settingKey && arrayKey) {
+    if (!result.success && settingKey && arrayKey) {
       try {
         const currentData = await cmsService.getSetting<any>(settingKey, {});
         if (currentData && Array.isArray(currentData[arrayKey])) {
@@ -176,34 +178,43 @@ export const archiveService = {
             return item;
           });
           await cmsService.saveSetting(settingKey, { ...currentData, [arrayKey]: updatedArray });
-          return { success: true };
+          result = { success: true };
         }
       } catch (err: any) {
-        return { success: false, error: err?.message };
+        result = { success: false, error: err?.message };
       }
     }
 
     // Strategy C: Store in Fallback Setting Array if DB schema columns are not yet present
-    try {
-      const currentFallbacks = await cmsService.getSetting<ArchivedRecord[]>('cms_archived_items_fallback', []);
-      const newArchivedRecord: ArchivedRecord = {
-        id: itemId,
-        source_type: table ? 'table' : 'setting_array',
-        source_key: table || settingKey || 'general',
-        array_key: arrayKey,
-        module_name: moduleName,
-        title: title,
-        subtitle: subtitle,
-        image_url: image_url,
-        archived_at: nowIso,
-        original_data: itemData || { id: itemId, title, subtitle, image_url },
-      };
-      const updated = [newArchivedRecord, ...currentFallbacks.filter((f) => f.id !== itemId)];
-      await cmsService.saveSetting('cms_archived_items_fallback', updated);
-      return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err?.message || 'Failed to archive item' };
+    if (!result.success) {
+      try {
+        const currentFallbacks = await cmsService.getSetting<ArchivedRecord[]>('cms_archived_items_fallback', []);
+        const newArchivedRecord: ArchivedRecord = {
+          id: itemId,
+          source_type: table ? 'table' : 'setting_array',
+          source_key: table || settingKey || 'general',
+          array_key: arrayKey,
+          module_name: moduleName,
+          title: title,
+          subtitle: subtitle,
+          image_url: image_url,
+          archived_at: nowIso,
+          original_data: itemData || { id: itemId, title, subtitle, image_url },
+        };
+        const updated = [newArchivedRecord, ...currentFallbacks.filter((f) => f.id !== itemId)];
+        await cmsService.saveSetting('cms_archived_items_fallback', updated);
+        result = { success: true };
+      } catch (err: any) {
+        result = { success: false, error: err?.message || 'Failed to archive item' };
+      }
     }
+
+    // Trigger automatic storage threshold purge check asynchronously
+    if (result.success) {
+      this.autoPurgeOldArchivesIfNeeded(500).catch(() => {});
+    }
+
+    return result;
   },
 
   // 3. RESTORE AN ARCHIVED ITEM
@@ -252,19 +263,20 @@ export const archiveService = {
     }
   },
 
-  // 4. PERMANENTLY DELETE AN ARCHIVED ITEM
-  async deletePermanently(item: ArchivedRecord): Promise<{ success: boolean; error?: string }> {
-    try {
-      // Permanent Delete Strategy A: DB Table
-      if (item.source_type === 'table') {
-        const { error } = await supabase.from(item.source_key).delete().eq('id', item.id);
-        if (error) {
-          // If table delete fails, fallback to removing from fallback
-          await this.removeFallbackItem(item.id);
-        }
-      }
+  // 4. MANUAL PERMANENT DELETE (PROTECTED - BLOCKED IN UI)
+  async deletePermanently(_item: ArchivedRecord): Promise<{ success: boolean; error?: string }> {
+    return {
+      success: false,
+      error: 'Manual permanent deletion of archived items is disabled for data safety. Archived items are protected and will only be automatically purged when storage capacity limit is reached.',
+    };
+  },
 
-      // Permanent Delete Strategy B: Setting Array
+  // Internal helper for system threshold purge or pre-launch cleanup
+  async forcePurgeArchivedItem(item: ArchivedRecord): Promise<boolean> {
+    try {
+      if (item.source_type === 'table') {
+        await supabase.from(item.source_key).delete().eq('id', item.id);
+      }
       if (item.source_type === 'setting_array' && item.source_key && item.array_key) {
         const currentData = await cmsService.getSetting<any>(item.source_key, {});
         if (currentData && Array.isArray(currentData[item.array_key])) {
@@ -272,12 +284,118 @@ export const archiveService = {
           await cmsService.saveSetting(item.source_key, { ...currentData, [item.array_key]: filteredArray });
         }
       }
-
-      // Clean up fallback record
       await this.removeFallbackItem(item.id);
-      return { success: true };
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  // 5. AUTOMATIC STORAGE CAPACITY THRESHOLD PURGE (FIFO OLDEST ARCHIVED ITEMS FIRST)
+  async autoPurgeOldArchivesIfNeeded(maxCapacityCount: number = 500): Promise<{ purgedCount: number }> {
+    try {
+      const archives = await this.getArchivedItems();
+      if (archives.length <= maxCapacityCount) {
+        return { purgedCount: 0 };
+      }
+
+      // Sort by archived_at ascending (oldest first)
+      const sortedOldestFirst = [...archives].sort(
+        (a, b) => new Date(a.archived_at).getTime() - new Date(b.archived_at).getTime()
+      );
+
+      const excessItems = sortedOldestFirst.slice(0, archives.length - maxCapacityCount);
+      let purgedCount = 0;
+
+      for (const item of excessItems) {
+        const ok = await this.forcePurgeArchivedItem(item);
+        if (ok) purgedCount++;
+      }
+
+      return { purgedCount };
+    } catch {
+      return { purgedCount: 0 };
+    }
+  },
+
+  // 6. COMPLETE PRE-LAUNCH ARCHIVE DATA PURGE (CLEAR ALL DEVELOPMENT ARCHIVED RECORDS)
+  async purgeAllArchivedData(): Promise<{ success: boolean; count: number }> {
+    try {
+      const items = await this.getArchivedItems();
+      let count = items.length;
+
+      // Purge all individual items
+      for (const item of items) {
+        await this.forcePurgeArchivedItem(item);
+      }
+
+      // Force DB Table Cleanup for any remaining rows where is_archived = true
+      const tables = [
+        'news',
+        'events',
+        'faculty',
+        'administration_staff',
+        'gallery_items',
+        'societies',
+        'programs',
+        'research_groups',
+        'edc_conferences',
+        'edc_speakers',
+        'edc_workshops',
+        'services',
+        'useful_links',
+      ];
+
+      await Promise.all(
+        tables.map(async (table) => {
+          try {
+            await supabase.from(table).delete().eq('is_archived', true);
+          } catch {
+            // ignore table delete error
+          }
+        })
+      );
+
+      // Force Setting Array Cleanup for any remaining archived entries in JSON settings
+      const settingArrayConfigs = [
+        { key: 'department_cs_content', arrayKey: 'programsList' },
+        { key: 'department_cs_content', arrayKey: 'facultyList' },
+        { key: 'department_cs_content', arrayKey: 'alliedFacultyList' },
+        { key: 'department_cs_content', arrayKey: 'researchList' },
+        { key: 'department_se_content', arrayKey: 'programsList' },
+        { key: 'department_se_content', arrayKey: 'facultyList' },
+        { key: 'department_ai_content', arrayKey: 'programsList' },
+        { key: 'department_ai_content', arrayKey: 'facultyList' },
+        { key: 'school_of_management_content', arrayKey: 'programsList' },
+        { key: 'school_of_management_content', arrayKey: 'facultyList' },
+        { key: 'school_of_management_content', arrayKey: 'alliedFacultyList' },
+        { key: 'homepage_full_content', arrayKey: 'newsList' },
+        { key: 'homepage_full_content', arrayKey: 'eventsList' },
+        { key: 'homepage_full_content', arrayKey: 'galleryImages' },
+        { key: 'campus_intro_content', arrayKey: 'galleryList' },
+        { key: 'edc_summer_bootcamp', arrayKey: 'modulesList' },
+        { key: 'edc_highlights', arrayKey: 'mediaList' },
+        { key: 'workshops_list', arrayKey: 'items' },
+      ];
+
+      for (const cfg of settingArrayConfigs) {
+        try {
+          const data = await cmsService.getSetting<any>(cfg.key, null);
+          if (data && Array.isArray(data[cfg.arrayKey])) {
+            const cleanArray = data[cfg.arrayKey].filter((i: any) => i && i.is_archived !== true);
+            await cmsService.saveSetting(cfg.key, { ...data, [cfg.arrayKey]: cleanArray });
+          }
+        } catch {
+          // ignore setting error
+        }
+      }
+
+      // Clear Fallback Storage
+      await cmsService.saveSetting('cms_archived_items_fallback', []);
+
+      return { success: true, count };
     } catch (err: any) {
-      return { success: false, error: err?.message || 'Failed to permanently delete item' };
+      return { success: false, count: 0 };
     }
   },
 
