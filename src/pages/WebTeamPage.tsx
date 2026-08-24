@@ -154,17 +154,19 @@ export default function WebTeamPage() {
 
                   {/* 2. Label Area */}
                   <div className="relative w-full bg-[#FFFFFF] px-3 sm:px-4 pt-7 pb-5 text-center rounded-b-[24px] flex flex-col items-center justify-center min-h-[72px] flex-shrink-0 z-10">
-                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-[#0093DD] text-white border-4 border-white shadow-md flex items-center justify-center z-20 group-hover:bg-[#0C71C3] group-hover:scale-110 transition-all duration-300">
-                      {member.customIconUrl ? (
+                    {member.customIconUrl ? (
+                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 flex items-center justify-center z-20 transition-transform duration-300 group-hover:scale-110">
                         <img
                           src={member.customIconUrl}
-                          alt="Badge Icon"
-                          className="w-6 h-6 object-contain rounded-full"
+                          alt={`${member.name} logo`}
+                          className="max-w-full max-h-full object-contain drop-shadow-md"
                         />
-                      ) : (
-                        <IconComponent className="w-5 h-5 text-white" />
-                      )}
-                    </div>
+                      </div>
+                    ) : (
+                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-white text-[#0093DD] border-2 border-[#E2E8F0] shadow-md flex items-center justify-center z-20 group-hover:border-[#0093DD] group-hover:scale-110 transition-all duration-300">
+                        <IconComponent className="w-5 h-5 text-[#0093DD]" />
+                      </div>
+                    )}
 
                     <div className="w-full flex items-center justify-center pt-1">
                       <h3 className="text-[15px] sm:text-[16px] font-bold text-[#1F2937] leading-snug group-hover:text-[#0093DD] transition-colors break-words text-center">

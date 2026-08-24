@@ -212,7 +212,7 @@ export default function AdminWebTeamManager() {
           alert(`Icon upload failed: ${res.error || 'Unknown error'}`);
         }
       },
-      { aspectRatio: 1, cropShape: 'round', title: 'Crop Badge Icon (1:1 Circle)' }
+      { aspectRatio: 1, cropShape: 'rect', title: 'Crop Team Member Logo (1:1)' }
     );
   };
 
@@ -425,12 +425,14 @@ export default function AdminWebTeamManager() {
                     )}
                   </div>
 
-                  {/* Badge Icon Preview */}
-                  <div className="w-8 h-8 rounded-full bg-[#0093DD] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                  {/* Logo / Badge Icon Preview */}
+                  <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
                     {member.customIconUrl ? (
-                      <img src={member.customIconUrl} alt="Badge Icon" className="w-full h-full object-cover rounded-full" />
+                      <img src={member.customIconUrl} alt="Logo" className="max-w-full max-h-full object-contain" />
                     ) : (
-                      <IconComp className="w-4 h-4" />
+                      <div className="w-8 h-8 rounded-full bg-[#F0F9FF] text-[#0093DD] border border-[#0093DD]/30 flex items-center justify-center">
+                        <IconComp className="w-4 h-4" />
+                      </div>
                     )}
                   </div>
 
