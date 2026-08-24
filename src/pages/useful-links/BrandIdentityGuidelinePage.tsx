@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import AboutPageHero from '../../components/about/AboutPageHero';
 import { cmsService } from '../../services/cmsService';
-import { FileText, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
+import PdfViewer from '../../components/ui/PdfViewer';
 import '../../styles/useful-links-pages.css';
 
 export default function BrandIdentityGuidelinePage() {
@@ -56,18 +57,17 @@ export default function BrandIdentityGuidelinePage() {
           {heading}
         </h1>
 
-        {/* PDF Preview Box */}
-        <div className="pdf-preview-box flex flex-col items-center justify-center p-6 bg-white border border-[#E5E7EB] rounded-md shadow-xs">
+        {/* PDF Preview Box (Shared Responsive PDF Viewer) */}
+        <div className="pdf-preview-box mb-6">
           {brandPdfUrl ? (
-            <div className="w-full space-y-4">
-              <div className="flex items-center justify-center gap-3 text-[#0093DD]">
-                <FileText className="w-8 h-8" />
-                <span className="text-base font-bold text-[#1F2937]">{brandPdfFileName || 'NUCES Brand Identity Guideline.pdf'}</span>
-              </div>
-              <iframe src={brandPdfUrl} title="NUCES Brand Identity Guideline PDF" className="w-full h-[450px] border border-[#E5E7EB] rounded-md" />
-            </div>
+            <PdfViewer
+              pdfUrl={brandPdfUrl}
+              fileName={brandPdfFileName || 'NUCES Brand Identity Guideline.pdf'}
+              title="NUCES Brand Identity Guideline PDF"
+              defaultHeight="h-[450px] md:h-[520px]"
+            />
           ) : (
-            <span className="text-[13px] font-semibold text-[#666666] tracking-wide uppercase">
+            <span className="text-[13px] font-semibold text-[#666666] tracking-wide uppercase py-10">
               PLACEHOLDER: NUCES BRAND IDENTITY GUIDELINE PDF PREVIEW
             </span>
           )}
