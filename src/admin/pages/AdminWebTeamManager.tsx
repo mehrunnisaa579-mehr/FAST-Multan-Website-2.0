@@ -135,7 +135,7 @@ export default function AdminWebTeamManager() {
   );
   const [heroImageUrl, setHeroImageUrl] = useState('');
 
-  const [teamMembers, setTeamMembers] = useState<WebTeamMember[]>(defaultWebTeamMembers);
+  const [teamMembers, setTeamMembers] = useState<WebTeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -158,7 +158,11 @@ export default function AdminWebTeamManager() {
       }
       if (Array.isArray(data.teamMembers) && data.teamMembers.length > 0) {
         setTeamMembers(data.teamMembers);
+      } else {
+        setTeamMembers(defaultWebTeamMembers);
       }
+    } else {
+      setTeamMembers(defaultWebTeamMembers);
     }
     setLoading(false);
   };

@@ -9,9 +9,11 @@
   --footer-bg: #0093DD;
 }
 
-* {
-  margin: 0;
-  box-sizing: border-box;
+@layer base {
+  * {
+    margin: 0;
+    box-sizing: border-box;
+  }
 }
 
 html {
@@ -24,10 +26,12 @@ html {
   }
 }
 
-html,
+html {
+  overflow-x: clip;
+}
+
 body,
 #root {
-  overflow-x: hidden;
   margin: 0;
   width: 100%;
   user-select: text;

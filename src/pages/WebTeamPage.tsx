@@ -43,26 +43,42 @@ export default function WebTeamPage() {
     'Meet the talented developers, designers, and engineers behind the FAST-NUCES Multan Campus digital experience.'
   );
   const [heroImage, setHeroImage] = useState('');
-  const [teamMembers, setTeamMembers] = useState<WebTeamMember[]>(defaultWebTeamMembers);
+  const [teamMembers, setTeamMembers] = useState<WebTeamMember[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchWebTeamData = async () => {
       setLoading(true);
       const data = await cmsService.getSetting<WebTeamSettings>('webteam_content', null as any);
+
+      if (!isMounted) return;
+
       if (data) {
         if (data.pageTitle) setPageTitle(data.pageTitle);
         if (data.pageSubtitle) setPageSubtitle(data.pageSubtitle);
         if (data.heroImageUrl) setHeroImage(data.heroImageUrl);
         if (Array.isArray(data.teamMembers) && data.teamMembers.length > 0) {
           const visible = data.teamMembers.filter((m) => m.is_visible !== false);
-          if (visible.length > 0) setTeamMembers(visible);
+          if (visible.length > 0) {
+            setTeamMembers(visible);
+            setLoading(false);
+            return;
+          }
         }
       }
+
+      // Fallback to default template members ONLY if no CMS settings exist
+      setTeamMembers(defaultWebTeamMembers);
       setLoading(false);
     };
 
     fetchWebTeamData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
@@ -83,65 +99,84 @@ export default function WebTeamPage() {
         </div>
 
         {/* 6 Arched Pill Cards Grid (Staggered Skylined Heights) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-5 items-stretch justify-center">
-          {teamMembers.map((member, idx) => {
-            const IconComponent = ICON_MAP[member.iconName] || Code;
-            // Alternating vertical offset for alternating arched skyline pattern matching reference
-            const isStaggered = idx % 2 === 1;
-
-            return (
-              <div
-                key={member.id || idx}
-                className={`w-full flex flex-col rounded-t-[120px] rounded-b-[24px] overflow-hidden bg-white shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-[#E2E8F0] group ${
-                  isStaggered ? 'lg:translate-y-5' : 'lg:translate-y-0'
-                }`}
-              >
-                {/* 1. Portrait Photo Region (Fully Rounded Pill Top - Absolute Inset-0 Stretches Image 100% of Flex-1 Height) */}
-                <div className="relative w-full min-h-[300px] sm:min-h-[340px] flex-1 bg-[#F1F5F9] rounded-t-[120px] overflow-hidden">
-                  {member.photoUrl ? (
-                    <img
-                      src={member.photoUrl}
-                      alt={member.name}
-                      style={{ height: '100%', width: '100%', objectFit: 'cover' }}
-                      className="absolute inset-0 !w-full !h-full object-cover rounded-t-[120px] group-hover:scale-105 transition-transform duration-500"
-                      loading={idx < 6 ? 'eager' : 'lazy'}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center text-[#9CA3AF] bg-gradient-to-b from-gray-100 to-gray-200">
-                      <User className="w-12 h-12 mb-2 opacity-60" />
-                      <span className="text-[11px] font-bold tracking-wider uppercase opacity-80">
-                        DEVQUAD PHOTO
-                      </span>
-                    </div>
-                  )}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-5 items-stretch justify-center">
+            {Array.from({ length: 6 }).map((_, idx) => {
+              const isStaggered = idx % 2 === 1;
+              return (
+                <div
+                  key={idx}
+                  className={`w-full flex flex-col rounded-t-[120px] rounded-b-[24px] overflow-hidden bg-white shadow-md border border-[#E2E8F0] ${
+                    isStaggered ? 'lg:translate-y-5' : 'lg:translate-y-0'
+                  }`}
+                >
+                  <div className="relative w-full min-h-[300px] sm:min-h-[340px] flex-1 bg-gradient-to-b from-[#E2E8F0] to-[#F1F5F9] rounded-t-[120px] overflow-hidden animate-pulse" />
+                  <div className="relative w-full bg-[#FFFFFF] px-3 sm:px-4 pt-7 pb-5 text-center rounded-b-[24px] flex flex-col items-center justify-center min-h-[72px] flex-shrink-0">
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-[#CBD5E1] border-4 border-white shadow-md animate-pulse" />
+                    <div className="w-24 h-4 bg-[#CBD5E1] rounded animate-pulse mt-1" />
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-5 items-stretch justify-center">
+            {teamMembers.map((member, idx) => {
+              const IconComponent = ICON_MAP[member.iconName] || Code;
+              const isStaggered = idx % 2 === 1;
 
-                {/* 2. EXPLICIT PURE SOLID WHITE BACKGROUND BOTTOM LABEL AREA (Fixed Height Flex-Shrink-0) */}
-                <div className="relative w-full bg-[#FFFFFF] px-3 sm:px-4 pt-7 pb-5 text-center rounded-b-[24px] flex flex-col items-center justify-center min-h-[72px] flex-shrink-0 z-10">
-                  {/* Small Circular Icon Badge (Centered & Overlapping Bottom of Photo) */}
-                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-[#0093DD] text-white border-4 border-white shadow-md flex items-center justify-center z-20 group-hover:bg-[#0C71C3] group-hover:scale-110 transition-all duration-300">
-                    {member.customIconUrl ? (
+              return (
+                <div
+                  key={member.id || idx}
+                  className={`w-full flex flex-col rounded-t-[120px] rounded-b-[24px] overflow-hidden bg-white shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-[#E2E8F0] group ${
+                    isStaggered ? 'lg:translate-y-5' : 'lg:translate-y-0'
+                  }`}
+                >
+                  {/* 1. Portrait Photo Region */}
+                  <div className="relative w-full min-h-[300px] sm:min-h-[340px] flex-1 bg-[#F1F5F9] rounded-t-[120px] overflow-hidden">
+                    {member.photoUrl ? (
                       <img
-                        src={member.customIconUrl}
-                        alt="Badge Icon"
-                        className="w-6 h-6 object-contain rounded-full"
+                        src={member.photoUrl}
+                        alt={member.name}
+                        style={{ height: '100%', width: '100%', objectFit: 'cover' }}
+                        className="absolute inset-0 !w-full !h-full object-cover rounded-t-[120px] group-hover:scale-105 transition-transform duration-500"
+                        loading={idx < 6 ? 'eager' : 'lazy'}
                       />
                     ) : (
-                      <IconComponent className="w-5 h-5 text-white" />
+                      <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center text-[#9CA3AF] bg-gradient-to-b from-gray-100 to-gray-200">
+                        <User className="w-12 h-12 mb-2 opacity-60" />
+                        <span className="text-[11px] font-bold tracking-wider uppercase opacity-80">
+                          DEVQUAD PHOTO
+                        </span>
+                      </div>
                     )}
                   </div>
 
-                  {/* Member Name */}
-                  <div className="w-full flex items-center justify-center pt-1">
-                    <h3 className="text-[15px] sm:text-[16px] font-bold text-[#1F2937] leading-snug group-hover:text-[#0093DD] transition-colors break-words text-center">
-                      {member.name}
-                    </h3>
+                  {/* 2. Label Area */}
+                  <div className="relative w-full bg-[#FFFFFF] px-3 sm:px-4 pt-7 pb-5 text-center rounded-b-[24px] flex flex-col items-center justify-center min-h-[72px] flex-shrink-0 z-10">
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-[#0093DD] text-white border-4 border-white shadow-md flex items-center justify-center z-20 group-hover:bg-[#0C71C3] group-hover:scale-110 transition-all duration-300">
+                      {member.customIconUrl ? (
+                        <img
+                          src={member.customIconUrl}
+                          alt="Badge Icon"
+                          className="w-6 h-6 object-contain rounded-full"
+                        />
+                      ) : (
+                        <IconComponent className="w-5 h-5 text-white" />
+                      )}
+                    </div>
+
+                    <div className="w-full flex items-center justify-center pt-1">
+                      <h3 className="text-[15px] sm:text-[16px] font-bold text-[#1F2937] leading-snug group-hover:text-[#0093DD] transition-colors break-words text-center">
+                        {member.name}
+                      </h3>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

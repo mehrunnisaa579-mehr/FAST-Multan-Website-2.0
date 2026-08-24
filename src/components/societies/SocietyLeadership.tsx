@@ -21,8 +21,8 @@ export default function SocietyLeadership({ leadership }: SocietyLeadershipProps
         OUR TEAM
       </h2>
 
-      {/* 3-Card Balanced Desktop Row (Grid on md:grid-cols-3, Stacked on Mobile) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-[28px] sm:gap-[36px] w-full justify-items-center">
+      {/* Balanced Desktop Row (Flex-wrap centered for 2 or 3 cards cleanly) */}
+      <div className="flex flex-wrap justify-center gap-[28px] sm:gap-[36px] w-full">
         {displayMembers.map((member, idx) => (
           <div
             key={idx}

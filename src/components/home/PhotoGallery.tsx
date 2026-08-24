@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { cmsService } from '../../services/cmsService';
 import { supabase } from '../../lib/supabase';
 
@@ -25,9 +25,10 @@ const InstagramIcon = ({ className }: { className?: string }) => (
 interface GalleryRowProps {
   items: any[];
   rowLabel: string;
+  isInstagram?: boolean;
 }
 
-function GalleryRow({ items, rowLabel }: GalleryRowProps) {
+function GalleryRow({ items, rowLabel, isInstagram = true }: GalleryRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: 'left' | 'right') => {
@@ -46,7 +47,7 @@ function GalleryRow({ items, rowLabel }: GalleryRowProps) {
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {items.map((item, index) => {
-          const rawImgSrc = item.thumbnail_url || item.media_url || item.image || item.image_url;
+          const rawImgSrc = item.thumbnail_url || item.media_url || item.image_url || item.image;
           const hasImage = !!rawImgSrc;
           const imgSrc = hasImage ? cmsService.getOptimizedMediaUrl(rawImgSrc, 360) : '';
           return (
@@ -60,28 +61,19 @@ function GalleryRow({ items, rowLabel }: GalleryRowProps) {
               {hasImage ? (
                 <img
                   src={imgSrc}
-                  alt={item.caption || 'Instagram Photo'}
+                  alt=""
                   loading="lazy"
                   className="w-full h-full object-cover select-none transition-transform duration-[350ms] ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                 />
               ) : (
-                <div className="w-full h-full bg-white flex items-center justify-center">
-                  <span className="text-[13px] font-semibold text-[#888888] tracking-wide uppercase">
-                    IMAGE
-                  </span>
+                <div className="w-full h-full bg-gray-100 flex items-center justify-center" />
+              )}
+              {/* Instagram Icon overlay only for Instagram source */}
+              {isInstagram && (
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-md">
+                  <InstagramIcon className="w-5 h-5 text-white" />
                 </div>
               )}
-              {item.caption && (
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-10">
-                  <span className="text-white text-[12px] font-medium block text-left line-clamp-2">
-                    {item.caption}
-                  </span>
-                </div>
-              )}
-              {/* Instagram Icon overlay */}
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-md">
-                <InstagramIcon className="w-5 h-5 text-white" />
-              </div>
             </a>
           );
         })}
@@ -115,6 +107,7 @@ interface PhotoGalleryProps {
 export default function PhotoGallery({ data }: PhotoGalleryProps) {
   const [heading, setHeading] = useState('Instagram Feed');
   const [subtitle, setSubtitle] = useState('A glimpse into campus life');
+  const [gallerySource, setGallerySource] = useState<'instagram' | 'local'>('instagram');
   const [row1Cap, setRow1Cap] = useState(6);
   const [row2Cap, setRow2Cap] = useState(6);
   const [row3Cap, setRow3Cap] = useState(6);
@@ -127,25 +120,49 @@ export default function PhotoGallery({ data }: PhotoGalleryProps) {
       if (data.galleryRow1Count) setRow1Cap(data.galleryRow1Count);
       if (data.galleryRow2Count) setRow2Cap(data.galleryRow2Count);
       if (data.galleryRow3Count) setRow3Cap(data.galleryRow3Count);
+      if (data.gallerySource) setGallerySource(data.gallerySource);
     }
   }, [data]);
 
   useEffect(() => {
     const fetchGalleryData = async () => {
-      // Fetch from Instagram Integration
-      const { data: posts, error } = await supabase
-        .from('instagram_posts')
-        .select('*')
-        .eq('is_visible', true)
-        .order('posted_at', { ascending: false })
-        .limit(20);
+      let source = data?.gallerySource;
+      let localImgs = data?.localGalleryImages;
 
-      if (posts && !error) {
-        setImages(posts);
+      if (!source || localImgs === undefined) {
+        const fullContent = await cmsService.getSetting<any>('homepage_full_content', null);
+        if (fullContent) {
+          source = source || fullContent.gallerySource || 'instagram';
+          localImgs = localImgs || fullContent.localGalleryImages || [];
+          if (!data?.galleryHeading && fullContent.galleryHeading) setHeading(fullContent.galleryHeading);
+          if (!data?.gallerySubtitle && fullContent.gallerySubtitle) setSubtitle(fullContent.gallerySubtitle);
+          if (!data?.galleryRow1Count && fullContent.galleryRow1Count) setRow1Cap(fullContent.galleryRow1Count);
+          if (!data?.galleryRow2Count && fullContent.galleryRow2Count) setRow2Cap(fullContent.galleryRow2Count);
+          if (!data?.galleryRow3Count && fullContent.galleryRow3Count) setRow3Cap(fullContent.galleryRow3Count);
+        }
+      }
+
+      const activeSource = source || 'instagram';
+      setGallerySource(activeSource);
+
+      if (activeSource === 'local') {
+        setImages(Array.isArray(localImgs) ? localImgs : []);
+      } else {
+        // Fetch from Instagram Integration
+        const { data: posts, error } = await supabase
+          .from('instagram_posts')
+          .select('*')
+          .eq('is_visible', true)
+          .order('posted_at', { ascending: false })
+          .limit(20);
+
+        if (posts && !error) {
+          setImages(posts);
+        }
       }
     };
     fetchGalleryData();
-  }, []);
+  }, [data]);
 
   const { row1, row2, row3 } = useMemo(() => {
     const indexedImages = images.map((img, idx) => ({ ...img, originalIndex: idx }));
@@ -164,6 +181,8 @@ export default function PhotoGallery({ data }: PhotoGalleryProps) {
     return { row1: r1, row2: r2, row3: r3 };
   }, [images, row1Cap, row2Cap, row3Cap]);
 
+  const isInstagram = gallerySource === 'instagram';
+
   return (
     <section className="py-[60px] w-full bg-[#F7F9FC]">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px]">
@@ -177,15 +196,25 @@ export default function PhotoGallery({ data }: PhotoGalleryProps) {
         {/* 3-Row Gallery Layout */}
         {images.length > 0 ? (
           <div className="w-full space-y-[20px]">
-            {row1.length > 0 && <GalleryRow items={row1} rowLabel="Row 1" />}
-            {row2.length > 0 && <GalleryRow items={row2} rowLabel="Row 2" />}
-            {row3.length > 0 && <GalleryRow items={row3} rowLabel="Row 3" />}
+            {row1.length > 0 && <GalleryRow items={row1} rowLabel="Row 1" isInstagram={isInstagram} />}
+            {row2.length > 0 && <GalleryRow items={row2} rowLabel="Row 2" isInstagram={isInstagram} />}
+            {row3.length > 0 && <GalleryRow items={row3} rowLabel="Row 3" isInstagram={isInstagram} />}
           </div>
         ) : (
           <div className="w-full py-16 bg-white border border-gray-100 rounded-lg shadow-sm text-center">
-            <InstagramIcon className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-            <h3 className="text-lg font-bold text-gray-500">Instagram feed is currently empty</h3>
-            <p className="text-sm text-gray-400 mt-1">Check back later for new updates.</p>
+            {isInstagram ? (
+              <>
+                <InstagramIcon className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-gray-500">Instagram feed is currently empty</h3>
+                <p className="text-sm text-gray-400 mt-1">Check back later for new updates.</p>
+              </>
+            ) : (
+              <>
+                <ImageIcon className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-gray-500">No local gallery images uploaded yet</h3>
+                <p className="text-sm text-gray-400 mt-1">Upload images in CMS under Section 5 to display them here.</p>
+              </>
+            )}
           </div>
         )}
       </div>

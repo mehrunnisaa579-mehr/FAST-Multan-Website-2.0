@@ -209,7 +209,11 @@ export default function SocietyView({ slug }: SocietyViewProps) {
 
         setStats(parsedStats);
 
-        setLeadership([
+        // Fetch global co-mentors toggle setting
+        const settingVal = await cmsService.getSetting<boolean | null>('show_society_co_mentors', null);
+        const coMentorsEnabled = settingVal !== null ? settingVal : await cmsService.getSetting<boolean>('society_co_mentors_enabled', true);
+
+        const leadershipList = [
           {
             role: 'Mentor',
             name:
@@ -221,7 +225,12 @@ export default function SocietyView({ slug }: SocietyViewProps) {
               currentCms.mentor_photo ||
               '',
           },
-          {
+        ];
+
+        const perSocietyEnabled = (currentCms.co_mentor_enabled ?? currentCms.co_mentor_visible ?? true) !== false;
+
+        if (coMentorsEnabled !== false && perSocietyEnabled) {
+          leadershipList.push({
             role: 'Co-Mentor',
             name:
               currentCms.co_mentor_name ||
@@ -233,19 +242,22 @@ export default function SocietyView({ slug }: SocietyViewProps) {
               currentCms.comentor_photo_url ||
               currentCms.co_mentor_photo ||
               '',
-          },
-          {
-            role: 'President',
-            name:
-              currentCms.president_name ||
-              'Society President',
-            photoPlaceholder: 'PRESIDENT PHOTO',
-            photoUrl:
-              currentCms.president_photo_url ||
-              currentCms.president_photo ||
-              '',
-          },
-        ]);
+          });
+        }
+
+        leadershipList.push({
+          role: 'President',
+          name:
+            currentCms.president_name ||
+            'Society President',
+          photoPlaceholder: 'PRESIDENT PHOTO',
+          photoUrl:
+            currentCms.president_photo_url ||
+            currentCms.president_photo ||
+            '',
+        });
+
+        setLeadership(leadershipList);
       } else if (specificDefault) {
         setSocietyName(specificDefault.name);
         setShortName(specificDefault.headingTitle);
@@ -266,9 +278,14 @@ export default function SocietyView({ slug }: SocietyViewProps) {
           specificDefault.showRegistrationButton ?? false
         );
 
-        setLeadership(
-          specificDefault.leadership
-        );
+        const settingVal = await cmsService.getSetting<boolean | null>('show_society_co_mentors', null);
+        const coMentorsEnabled = settingVal !== null ? settingVal : await cmsService.getSetting<boolean>('society_co_mentors_enabled', true);
+        const perSocietyEnabled = ((specificDefault as any).co_mentor_enabled ?? true) !== false;
+        const defaultLeadership = (coMentorsEnabled === false || !perSocietyEnabled)
+          ? specificDefault.leadership.filter((m: any) => m.role !== 'Co-Mentor')
+          : specificDefault.leadership;
+
+        setLeadership(defaultLeadership);
 
         if (specificDefault.stats) {
           setStats(specificDefault.stats);

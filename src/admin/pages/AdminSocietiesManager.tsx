@@ -47,6 +47,7 @@ export interface SocietyCMSItem {
   co_mentor_name?: string;
   co_mentor_photo_url?: string;
   co_mentor_photo?: string;
+  co_mentor_enabled?: boolean;
   president_name: string;
   president_photo_url: string;
   president_photo?: string;
@@ -215,6 +216,7 @@ const defaultInitialSocieties: SocietyCMSItem[] = [
 
 export default function AdminSocietiesManager() {
   const [societies, setSocieties] = useState<SocietyCMSItem[]>(defaultInitialSocieties);
+  const [coMentorsEnabled, setCoMentorsEnabled] = useState<boolean>(true);
   const [loading, setLoading] = useState(true);
 
   // Modals state
@@ -228,6 +230,11 @@ export default function AdminSocietiesManager() {
   const fetchSocietiesData = async () => {
     setLoading(true);
     let loaded: SocietyCMSItem[] = [];
+
+    // Fetch global co-mentors toggle setting (checking show_society_co_mentors key first)
+    const primarySetting = await cmsService.getSetting<boolean | null>('show_society_co_mentors', null);
+    const coMentorsSetting = primarySetting !== null ? primarySetting : await cmsService.getSetting<boolean>('society_co_mentors_enabled', true);
+    setCoMentorsEnabled(coMentorsSetting ?? true);
 
     // 1. Try fetching from CMS setting student_societies_full_list
     const savedSetting = await cmsService.getSetting<SocietyCMSItem[]>('student_societies_full_list', []);
@@ -249,6 +256,7 @@ export default function AdminSocietiesManager() {
           mentor_photo_url: s.mentor_photo_url || s.mentor_photo || '',
           co_mentor_name: s.co_mentor_name || s.comentor_name || '',
           co_mentor_photo_url: s.co_mentor_photo_url || s.comentor_photo_url || '',
+          co_mentor_enabled: s.co_mentor_enabled ?? s.co_mentor_visible ?? true,
           president_name: s.president_name || '',
           president_photo_url: s.president_photo_url || s.president_photo || '',
           vp1_name: s.vp1_name || '',
@@ -327,6 +335,7 @@ export default function AdminSocietiesManager() {
       mentor_photo_url: '',
       co_mentor_name: '',
       co_mentor_photo_url: '',
+      co_mentor_enabled: true,
       president_name: '',
       president_photo_url: '',
       vp1_name: '',
@@ -379,6 +388,7 @@ export default function AdminSocietiesManager() {
       mentor_photo_url: editingSociety.mentor_photo_url || '',
       co_mentor_name: editingSociety.co_mentor_name || '',
       co_mentor_photo_url: editingSociety.co_mentor_photo_url || '',
+      co_mentor_enabled: editingSociety.co_mentor_enabled ?? true,
       president_name: editingSociety.president_name || '',
       president_photo_url: editingSociety.president_photo_url || '',
       vp1_name: editingSociety.vp1_name || '',
@@ -460,6 +470,18 @@ export default function AdminSocietiesManager() {
     setSaving(true);
     setMessage(null);
 
+    // Save global co-mentors toggle setting to show_society_co_mentors and society_co_mentors_enabled keys
+    await cmsService.saveSetting(
+      'show_society_co_mentors',
+      coMentorsEnabled,
+      'Global Society Co-Mentors Setting'
+    );
+    await cmsService.saveSetting(
+      'society_co_mentors_enabled',
+      coMentorsEnabled,
+      'Global Society Co-Mentors Setting'
+    );
+
     const payloadList = societies.map((soc, idx) => ({
       ...soc,
       display_order: idx + 1,
@@ -485,6 +507,7 @@ export default function AdminSocietiesManager() {
         mentor_photo_url: soc.mentor_photo_url,
         co_mentor_name: soc.co_mentor_name,
         co_mentor_photo_url: soc.co_mentor_photo_url,
+        co_mentor_enabled: soc.co_mentor_enabled ?? true,
         president_name: soc.president_name,
         president_photo_url: soc.president_photo_url,
         vp1_name: soc.vp1_name,
@@ -557,6 +580,28 @@ export default function AdminSocietiesManager() {
           <span>{message.text}</span>
         </div>
       )}
+
+      {/* Society Settings */}
+      <AdminSection
+        title="Society Settings"
+        description="Configure global display options applied across all public society pages."
+      >
+        <AdminCard className="p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h4 className="text-base font-bold text-[#1F2937]">Show Society Co-Mentors</h4>
+              <p className="text-xs text-[#6B7280]">
+                Controls whether Co-Mentors are shown across all society pages.
+              </p>
+            </div>
+            <AdminToggle
+              label={coMentorsEnabled ? 'ON' : 'OFF'}
+              checked={coMentorsEnabled}
+              onChange={(checked) => setCoMentorsEnabled(checked)}
+            />
+          </div>
+        </AdminCard>
+      </AdminSection>
 
       {/* Societies List Grid */}
       <AdminSection
@@ -866,7 +911,14 @@ export default function AdminSocietiesManager() {
 
             {/* Co-Mentor */}
             <div className="p-3 border border-[#E5E7EB] rounded-md bg-[#F9FAFB] space-y-3">
-              <span className="text-xs font-bold text-[#0093DD]">2. CO-FACULTY MENTOR</span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#0093DD]">2. CO-FACULTY MENTOR</span>
+                <AdminToggle
+                  label={editingSociety?.co_mentor_enabled ?? true ? 'Show ON' : 'Show OFF'}
+                  checked={editingSociety?.co_mentor_enabled ?? true}
+                  onChange={(checked) => setEditingSociety((prev) => ({ ...prev, co_mentor_enabled: checked }))}
+                />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
                 <AdminInput
                   value={editingSociety?.co_mentor_name || ''}

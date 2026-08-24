@@ -29,6 +29,7 @@ import {
   EyeOff,
   Edit2,
   RefreshCcw,
+  Layers,
 } from 'lucide-react';
 
 const InstagramIcon = ({ className }: { className?: string }) => (
@@ -142,6 +143,9 @@ export default function AdminHomePageEditor() {
   const [galleryRow1Count, setGalleryRow1Count] = useState<number>(6);
   const [galleryRow2Count, setGalleryRow2Count] = useState<number>(6);
   const [galleryRow3Count, setGalleryRow3Count] = useState<number>(6);
+  const [gallerySource, setGallerySource] = useState<'instagram' | 'local'>('instagram');
+  const [localGalleryImages, setLocalGalleryImages] = useState<any[]>([]);
+  const [uploadingLocalGallery, setUploadingLocalGallery] = useState(false);
 
   // Instagram Integration State
   const [igAccessToken, setIgAccessToken] = useState('');
@@ -204,6 +208,8 @@ export default function AdminHomePageEditor() {
         if (data.galleryRow1Count) setGalleryRow1Count(data.galleryRow1Count);
         if (data.galleryRow2Count) setGalleryRow2Count(data.galleryRow2Count);
         if (data.galleryRow3Count) setGalleryRow3Count(data.galleryRow3Count);
+        if (data.gallerySource) setGallerySource(data.gallerySource);
+        if (Array.isArray(data.localGalleryImages)) setLocalGalleryImages(data.localGalleryImages);
 
         if (data.eventsHeading) setEventsHeading(data.eventsHeading);
         if (data.eventsSubtitle) setEventsSubtitle(data.eventsSubtitle);
@@ -278,6 +284,8 @@ export default function AdminHomePageEditor() {
       galleryRow1Count,
       galleryRow2Count,
       galleryRow3Count,
+      gallerySource,
+      localGalleryImages,
       eventsHeading,
       eventsSubtitle,
       highlightsHeading,
@@ -360,6 +368,34 @@ export default function AdminHomePageEditor() {
         { aspectRatio: 16 / 9, title: 'Crop Hero Slide Image (16:9 Wide)' }
       );
     }
+  };
+
+  const handleLocalGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploadingLocalGallery(true);
+    const newItems: any[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const res = await cmsService.uploadMedia(file);
+      if (res.success && res.publicUrl) {
+        newItems.push({
+          id: 'local-' + Date.now() + '-' + i + '-' + Math.random().toString(36).substr(2, 4),
+          image_url: res.publicUrl,
+          caption: file.name.split('.')[0] || 'Gallery Image',
+          display_order: localGalleryImages.length + newItems.length + 1,
+          created_at: new Date().toISOString(),
+        });
+      } else {
+        alert(`Upload failed for ${file.name}: ${res.error}`);
+      }
+    }
+    if (newItems.length > 0) {
+      setLocalGalleryImages((prev) => [...prev, ...newItems]);
+      setMessage({ type: 'success', text: `Uploaded ${newItems.length} image(s) to local gallery.` });
+    }
+    setUploadingLocalGallery(false);
+    e.target.value = '';
   };
 
   // ── INSTAGRAM INTEGRATION HANDLERS ──────────────────────────────────────────
@@ -898,7 +934,7 @@ export default function AdminHomePageEditor() {
         )}
       </AdminCard>
 
-      {/* 5. INSTAGRAM INTEGRATION ACCORDION */}
+      {/* 5. INSTAGRAM INTEGRATION & LOCAL PHOTO GALLERY ACCORDION */}
       {(adminProfile?.role === 'admin' || adminProfile?.role === 'super_admin') && (
         <AdminCard className="p-0 overflow-hidden">
           <button
@@ -909,9 +945,9 @@ export default function AdminHomePageEditor() {
             <div>
               <h3 className="text-lg font-bold text-[#1F2937] flex items-center gap-2">
                 <InstagramIcon className="w-5 h-5 text-pink-600" />
-                5. Instagram Integration (Photo Gallery)
+                5. Photo Gallery & Instagram Integration
               </h3>
-              <p className="text-xs text-[#6B7280]">Connect the FAST Multan Instagram Business account to auto-populate the Homepage Gallery.</p>
+              <p className="text-xs text-[#6B7280]">Manage the homepage photo gallery source (Instagram feed or CMS local uploads) and layout settings.</p>
             </div>
             {openAccordions.gallery ? <ChevronDown className="w-5 h-5 text-[#6B7280]" /> : <ChevronRight className="w-5 h-5 text-[#6B7280]" />}
           </button>
@@ -926,6 +962,70 @@ export default function AdminHomePageEditor() {
                 <AdminFormGroup label="Gallery Section Subtitle">
                   <AdminInput value={gallerySubtitle} onChange={(e) => setGallerySubtitle(e.target.value)} />
                 </AdminFormGroup>
+              </div>
+
+              {/* Gallery Source Selection */}
+              <div className="p-4 bg-[#F0F9FF] border border-[#B9E6FE] rounded-lg space-y-3">
+                <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wide flex items-center gap-2">
+                  <Layers className="w-4 h-4" />
+                  Gallery Source
+                </h4>
+                <p className="text-xs text-[#475467]">
+                  Choose whether the homepage Photo Gallery displays images from the connected Instagram feed or locally uploaded images.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <label
+                    className={`flex items-start gap-3 p-3.5 border rounded-lg cursor-pointer transition-all ${
+                      gallerySource === 'instagram'
+                        ? 'bg-white border-[#0093DD] ring-2 ring-[#0093DD]/20 shadow-sm'
+                        : 'bg-white/60 border-[#D0D5DD] hover:border-[#98A2B3]'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="gallerySource"
+                      value="instagram"
+                      checked={gallerySource === 'instagram'}
+                      onChange={() => setGallerySource('instagram')}
+                      className="mt-0.5 text-[#0093DD] focus:ring-[#0093DD]"
+                    />
+                    <div>
+                      <span className="text-sm font-bold text-[#1D2939] block flex items-center gap-1.5">
+                        <InstagramIcon className="w-4 h-4 text-pink-600 inline" />
+                        Instagram
+                      </span>
+                      <span className="text-xs text-[#667085] block mt-0.5">
+                        Display images from the connected Instagram feed.
+                      </span>
+                    </div>
+                  </label>
+
+                  <label
+                    className={`flex items-start gap-3 p-3.5 border rounded-lg cursor-pointer transition-all ${
+                      gallerySource === 'local'
+                        ? 'bg-white border-[#0093DD] ring-2 ring-[#0093DD]/20 shadow-sm'
+                        : 'bg-white/60 border-[#D0D5DD] hover:border-[#98A2B3]'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="gallerySource"
+                      value="local"
+                      checked={gallerySource === 'local'}
+                      onChange={() => setGallerySource('local')}
+                      className="mt-0.5 text-[#0093DD] focus:ring-[#0093DD]"
+                    />
+                    <div>
+                      <span className="text-sm font-bold text-[#1D2939] block flex items-center gap-1.5">
+                        <Upload className="w-4 h-4 text-[#0093DD] inline" />
+                        Local Uploads
+                      </span>
+                      <span className="text-xs text-[#667085] block mt-0.5">
+                        Display images uploaded manually through this CMS.
+                      </span>
+                    </div>
+                  </label>
+                </div>
               </div>
 
               {/* Layout Settings */}
@@ -952,9 +1052,116 @@ export default function AdminHomePageEditor() {
 
               <div className="flex justify-end">
                 <AdminButton variant="primary" onClick={() => handleSaveSection('gallery')} loading={savingSection === 'gallery'} icon={<Save className="w-4 h-4" />}>
-                  Save Gallery Headings & Layout
+                  Save Gallery Source & Settings
                 </AdminButton>
               </div>
+
+              {/* Local Uploads Management Area */}
+              {gallerySource === 'local' && (
+                <div className="border-t border-[#E5E7EB] pt-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-[#1F2937] flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-[#0093DD]" />
+                        Local Gallery Images ({localGalleryImages.length})
+                      </h4>
+                      <p className="text-xs text-[#6B7280] mt-0.5">
+                        Upload and manage local images for the homepage photo gallery.
+                      </p>
+                    </div>
+                    <label className="px-4 py-2 bg-[#0093DD] text-white text-xs font-semibold rounded-md hover:bg-[#007BB8] cursor-pointer transition-colors flex items-center gap-1.5 shadow-sm">
+                      <Upload className="w-4 h-4" />
+                      <span>{uploadingLocalGallery ? 'Uploading...' : 'Upload Images'}</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/jpeg,image/png,image/webp,image/jpg"
+                        className="hidden"
+                        onChange={handleLocalGalleryUpload}
+                        disabled={uploadingLocalGallery}
+                      />
+                    </label>
+                  </div>
+
+                  {localGalleryImages.length === 0 ? (
+                    <div className="p-8 border-2 border-dashed border-[#D0D5DD] rounded-lg text-center bg-[#F9FAFB]">
+                      <ImageIcon className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                      <p className="text-sm font-semibold text-gray-600">No local gallery images uploaded yet</p>
+                      <p className="text-xs text-gray-400 mt-1">Click "Upload Images" above to add photos to the local gallery.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                      {localGalleryImages.map((img, idx) => (
+                        <div key={img.id || idx} className="relative group bg-white border border-[#E5E7EB] rounded-lg overflow-hidden flex flex-col shadow-sm">
+                          <div className="w-full h-28 bg-gray-100 overflow-hidden relative">
+                            <img src={img.image_url} alt={img.caption || 'Gallery item'} className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm('Delete this image from the local gallery?')) {
+                                  setLocalGalleryImages(prev => prev.filter((_, i) => i !== idx));
+                                }
+                              }}
+                              className="absolute top-1.5 right-1.5 p-1 bg-red-600 text-white rounded-full opacity-80 hover:opacity-100 transition-opacity cursor-pointer shadow-md"
+                              title="Delete image"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <div className="p-2 flex flex-col gap-1">
+                            <input
+                              type="text"
+                              value={img.caption || ''}
+                              onChange={(e) => {
+                                const updated = [...localGalleryImages];
+                                updated[idx].caption = e.target.value;
+                                setLocalGalleryImages(updated);
+                              }}
+                              placeholder="Caption / Alt text"
+                              className="w-full px-2 py-1 bg-gray-50 border border-[#E5E7EB] rounded text-[11px] text-gray-700"
+                            />
+                            <div className="flex items-center justify-between pt-1">
+                              <span className="text-[10px] text-gray-400 font-mono">#{idx + 1}</span>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  disabled={idx === 0}
+                                  onClick={() => {
+                                    const updated = [...localGalleryImages];
+                                    const temp = updated[idx];
+                                    updated[idx] = updated[idx - 1];
+                                    updated[idx - 1] = temp;
+                                    setLocalGalleryImages(updated);
+                                  }}
+                                  className="p-1 text-gray-500 hover:text-[#0093DD] disabled:opacity-30 cursor-pointer"
+                                  title="Move Left/Up"
+                                >
+                                  <ArrowUp className="w-3 h-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={idx === localGalleryImages.length - 1}
+                                  onClick={() => {
+                                    const updated = [...localGalleryImages];
+                                    const temp = updated[idx];
+                                    updated[idx] = updated[idx + 1];
+                                    updated[idx + 1] = temp;
+                                    setLocalGalleryImages(updated);
+                                  }}
+                                  className="p-1 text-gray-500 hover:text-[#0093DD] disabled:opacity-30 cursor-pointer"
+                                  title="Move Right/Down"
+                                >
+                                  <ArrowDown className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Instagram Credentials */}
               <div className="border-t border-[#E5E7EB] pt-5">
