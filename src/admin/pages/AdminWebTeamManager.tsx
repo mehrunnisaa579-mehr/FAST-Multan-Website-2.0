@@ -212,7 +212,7 @@ export default function AdminWebTeamManager() {
           alert(`Icon upload failed: ${res.error || 'Unknown error'}`);
         }
       },
-      { aspectRatio: 1, cropShape: 'rect', title: 'Crop Team Member Logo (1:1)' }
+      { aspectRatio: 1, cropShape: 'round', title: 'Crop Team Member Circular Logo (1:1 Circle)' }
     );
   };
 
@@ -425,12 +425,12 @@ export default function AdminWebTeamManager() {
                     )}
                   </div>
 
-                  {/* Logo / Badge Icon Preview */}
-                  <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+                  {/* Circular Logo / Badge Icon Preview */}
+                  <div className="w-8 h-8 rounded-full overflow-hidden bg-white border border-[#E5E7EB] flex items-center justify-center flex-shrink-0 shadow-xs">
                     {member.customIconUrl ? (
-                      <img src={member.customIconUrl} alt="Logo" className="max-w-full max-h-full object-contain" />
+                      <img src={member.customIconUrl} alt="Logo" className="w-full h-full object-cover rounded-full" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-[#F0F9FF] text-[#0093DD] border border-[#0093DD]/30 flex items-center justify-center">
+                      <div className="w-full h-full rounded-full bg-[#F0F9FF] text-[#0093DD] flex items-center justify-center">
                         <IconComp className="w-4 h-4" />
                       </div>
                     )}
@@ -569,12 +569,19 @@ export default function AdminWebTeamManager() {
                 })}
               </div>
 
-              {/* Optional Custom Icon Upload */}
+              {/* Optional Custom Logo Upload */}
               <div className="pt-2 flex items-center gap-3">
-                <span className="text-xs text-[#6B7280] font-semibold">Or upload custom icon:</span>
+                <span className="text-xs text-[#6B7280] font-semibold">Or upload custom logo:</span>
+                
+                {editingMember?.customIconUrl && (
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-[#E5E7EB] bg-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                    <img src={editingMember.customIconUrl} alt="Circular Logo Preview" className="w-full h-full object-cover rounded-full" />
+                  </div>
+                )}
+
                 <label className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-[#374151] text-xs font-semibold rounded cursor-pointer flex items-center gap-1.5">
                   <Upload className="w-3.5 h-3.5" />
-                  <span>Upload Icon Image</span>
+                  <span>{editingMember?.customIconUrl ? 'Replace Custom Logo' : 'Upload Custom Logo'}</span>
                   <input type="file" accept="image/*" className="hidden" onChange={handleCustomIconUpload} />
                 </label>
 
@@ -582,9 +589,9 @@ export default function AdminWebTeamManager() {
                   <button
                     type="button"
                     onClick={() => setEditingMember((prev) => ({ ...prev, customIconUrl: '' }))}
-                    className="px-2.5 py-1 text-xs text-red-600 hover:underline"
+                    className="px-2.5 py-1 text-xs text-red-600 hover:underline cursor-pointer"
                   >
-                    Clear Custom Icon
+                    Clear Logo
                   </button>
                 )}
               </div>

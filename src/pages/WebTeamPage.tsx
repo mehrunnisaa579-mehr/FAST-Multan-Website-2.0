@@ -155,11 +155,11 @@ export default function WebTeamPage() {
                   {/* 2. Label Area */}
                   <div className="relative w-full bg-[#FFFFFF] px-3 sm:px-4 pt-7 pb-5 text-center rounded-b-[24px] flex flex-col items-center justify-center min-h-[72px] flex-shrink-0 z-10">
                     {member.customIconUrl ? (
-                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 flex items-center justify-center z-20 transition-transform duration-300 group-hover:scale-110">
+                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full overflow-hidden bg-white border-2 border-white shadow-md flex items-center justify-center z-20 transition-transform duration-300 group-hover:scale-110 flex-shrink-0">
                         <img
                           src={member.customIconUrl}
                           alt={`${member.name} logo`}
-                          className="max-w-full max-h-full object-contain drop-shadow-md"
+                          className="w-full h-full object-cover rounded-full"
                         />
                       </div>
                     ) : (
