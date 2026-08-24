@@ -425,7 +425,7 @@ export default function AdminEDCSpeakersManager() {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => handlePhotoUpload(e, (url) => setEditingSpeaker((prev) => ({ ...prev, photo_url: url })), { aspectRatio: 3 / 4, title: 'Crop Speaker Photo (3:4 Rectangle)' })}
+                    onChange={(e) => handlePhotoUpload(e, (url) => setEditingSpeaker((prev) => ({ ...prev, photo_url: url })), { aspectRatio: 1, title: 'Crop Speaker Photo (1:1 Square)' })}
                   />
                 </label>
 

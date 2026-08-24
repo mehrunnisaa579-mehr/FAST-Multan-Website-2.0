@@ -42,7 +42,7 @@ export default function ConferenceSpeakersPage() {
               className="flex flex-col sm:flex-row gap-[24px] items-start border-b border-[#EAEAEA] pb-[40px] last:border-b-0 last:pb-0 card-hover-lift rounded-[8px] p-[16px]"
             >
               {/* Speaker Photo */}
-              <div className="w-full sm:w-[190px] h-[220px] rounded-[4px] flex items-center justify-center flex-shrink-0 overflow-hidden bg-white border border-[#E5E7EB]">
+              <div className="w-full sm:w-[190px] h-[220px] rounded-[4px] flex items-center justify-center flex-shrink-0 overflow-hidden bg-white border border-[#E5E7EB] person-photo-glow">
                 <CmsImage
                   src={photoSrc}
                   alt={speaker.name}

@@ -44,6 +44,7 @@ interface FacultyEditModalProps {
   title?: string;
   initialData?: Partial<FacultyMemberData> | null;
   loading?: boolean;
+  isStaff?: boolean;
 }
 
 export default function FacultyEditModal({
@@ -53,6 +54,7 @@ export default function FacultyEditModal({
   title,
   initialData,
   loading = false,
+  isStaff = false,
 }: FacultyEditModalProps) {
   const [item, setItem] = useState<Partial<FacultyMemberData>>({});
   const [uploadingMain, setUploadingMain] = useState(false);
@@ -88,7 +90,7 @@ export default function FacultyEditModal({
   }, [initialData, isOpen]);
 
   const [cropFile, setCropFile] = useState<File | null>(null);
-  const [cropAspect, setCropAspect] = useState<number>(3 / 4);
+  const [cropAspect, setCropAspect] = useState<number>(13 / 15);
   const [cropShape, setCropShape] = useState<'rect' | 'round'>('rect');
   const [cropTarget, setCropTarget] = useState<'main' | 'badge' | null>(null);
 
@@ -96,7 +98,7 @@ export default function FacultyEditModal({
     const file = e.target.files?.[0];
     if (!file) return;
     setCropFile(file);
-    setCropAspect(3 / 4);
+    setCropAspect(13 / 15);
     setCropShape('rect');
     setCropTarget('main');
     e.target.value = '';
@@ -354,43 +356,45 @@ export default function FacultyEditModal({
         </div>
 
         {/* ACADEMIC DETAILS */}
-        <div className="space-y-4 pt-2">
-          <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">
-            Academic Details
-          </h4>
-          <AdminFormGroup label="Publications">
-            <AdminTextarea
-              rows={4}
-              value={item.publications || ''}
-              onChange={(e) => setItem((prev) => ({ ...prev, publications: e.target.value }))}
-              placeholder="List of journal articles, conference papers, and patents..."
-            />
-          </AdminFormGroup>
+        {!isStaff && (
+          <div className="space-y-4 pt-2">
+            <h4 className="text-xs font-bold text-[#0093DD] uppercase tracking-wider border-b border-[#E5E7EB] pb-2">
+              Academic Details
+            </h4>
+            <AdminFormGroup label="Publications">
+              <AdminTextarea
+                rows={4}
+                value={item.publications || ''}
+                onChange={(e) => setItem((prev) => ({ ...prev, publications: e.target.value }))}
+                placeholder="List of journal articles, conference papers, and patents..."
+              />
+            </AdminFormGroup>
 
-          <AdminFormGroup label="Collaborations at National and International Level">
-            <AdminTextarea
-              rows={4}
-              value={item.collaborations || ''}
-              onChange={(e) => setItem((prev) => ({ ...prev, collaborations: e.target.value }))}
-              placeholder="Joint research initiatives, university collaborations..."
-            />
-          </AdminFormGroup>
+            <AdminFormGroup label="Collaborations at National and International Level">
+              <AdminTextarea
+                rows={4}
+                value={item.collaborations || ''}
+                onChange={(e) => setItem((prev) => ({ ...prev, collaborations: e.target.value }))}
+                placeholder="Joint research initiatives, university collaborations..."
+              />
+            </AdminFormGroup>
 
-          <AdminFormGroup label="Detail of Funded Projects">
-            <AdminTextarea
-              rows={4}
-              value={item.funded_projects || item.fundedProjects || ''}
-              onChange={(e) =>
-                setItem((prev) => ({
-                  ...prev,
-                  funded_projects: e.target.value,
-                  fundedProjects: e.target.value,
-                }))
-              }
-              placeholder="HEC grants, industry sponsored projects, research funding..."
-            />
-          </AdminFormGroup>
-        </div>
+            <AdminFormGroup label="Detail of Funded Projects">
+              <AdminTextarea
+                rows={4}
+                value={item.funded_projects || item.fundedProjects || ''}
+                onChange={(e) =>
+                  setItem((prev) => ({
+                    ...prev,
+                    funded_projects: e.target.value,
+                    fundedProjects: e.target.value,
+                  }))
+                }
+                placeholder="HEC grants, industry sponsored projects, research funding..."
+              />
+            </AdminFormGroup>
+          </div>
+        )}
 
         {/* SETTINGS */}
         <div className="pt-2">
@@ -407,7 +411,7 @@ export default function FacultyEditModal({
         imageFile={cropFile}
         aspectRatio={cropAspect}
         cropShape={cropShape}
-        title={cropTarget === 'badge' ? 'Crop Badge Image (1:1 Circle)' : 'Crop Main Profile Photo (3:4 Rectangle)'}
+        title={cropTarget === 'badge' ? 'Crop Badge Image (1:1 Circle)' : 'Crop Main Profile Photo (13:15 Rectangle)'}
         onClose={() => {
           setCropFile(null);
           setCropTarget(null);

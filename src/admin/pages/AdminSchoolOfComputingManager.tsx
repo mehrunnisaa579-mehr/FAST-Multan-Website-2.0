@@ -425,7 +425,7 @@ export default function AdminSchoolOfComputingManager() {
                 <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
                   <Upload className="w-3.5 h-3.5" />
                   <span>{headPhotoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeadPhotoUrl, { aspectRatio: 3 / 4, title: 'Crop Head Photograph (3:4 Rectangle)' })} />
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeadPhotoUrl, { aspectRatio: 13 / 15, title: 'Crop Head Photograph (13:15 Rectangle)' })} />
                 </label>
 
                 {headPhotoUrl && (
@@ -780,7 +780,7 @@ export default function AdminSchoolOfComputingManager() {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => handleFileUpload(e, (url) => setEditingDept((prev) => ({ ...prev, hodPhoto: url })))}
+                    onChange={(e) => handleFileUpload(e, (url) => setEditingDept((prev) => ({ ...prev, hodPhoto: url })), { aspectRatio: 13 / 15, title: 'Crop HOD Photograph (13:15 Rectangle)' })}
                   />
                 </label>
 
@@ -883,7 +883,7 @@ export default function AdminSchoolOfComputingManager() {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => handleFileUpload(e, (url) => setEditingHead((prev) => ({ ...prev, photoUrl: url })))}
+                    onChange={(e) => handleFileUpload(e, (url) => setEditingHead((prev) => ({ ...prev, photoUrl: url })), { aspectRatio: 13 / 15, title: 'Crop Head Photograph (13:15 Rectangle)' })}
                   />
                 </label>
 

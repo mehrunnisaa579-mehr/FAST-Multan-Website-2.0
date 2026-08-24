@@ -23,19 +23,34 @@ function formatTimeTo12Hour(timeStr?: string): string {
   return clean;
 }
 
-export default function UpcomingEvents() {
+interface UpcomingEventsProps {
+  data?: any;
+  eventsHeading?: string;
+  eventsSubtitle?: string;
+}
+
+export default function UpcomingEvents({ data, eventsHeading, eventsSubtitle }: UpcomingEventsProps = {}) {
   const [heading, setHeading] = useState('Upcoming Events');
   const [subtitle, setSubtitle] = useState("Have a look at what's coming up");
   const [events, setEvents] = useState<any[]>(homepageContent.upcomingEvents);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (eventsHeading) {
+      setHeading(eventsHeading);
+    } else if (data?.eventsHeading) {
+      setHeading(data.eventsHeading);
+    }
+
+    if (eventsSubtitle) {
+      setSubtitle(eventsSubtitle);
+    } else if (data?.eventsSubtitle) {
+      setSubtitle(data.eventsSubtitle);
+    }
+  }, [data, eventsHeading, eventsSubtitle]);
+
+  useEffect(() => {
     const fetchEventsData = async () => {
-      const data = await cmsService.getSetting<any>('homepage_full_content', null);
-      if (data) {
-        if (data.eventsHeading) setHeading(data.eventsHeading);
-        if (data.eventsSubtitle) setSubtitle(data.eventsSubtitle);
-      }
       const cmsEvents = await cmsService.getEvents();
       if (cmsEvents && cmsEvents.length > 0) {
         const formatted = cmsEvents
@@ -87,8 +102,7 @@ export default function UpcomingEvents() {
   return (
     <section className="py-[60px] w-full bg-[#F7F9FC] overflow-x-hidden">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px] relative">
-        {/* Section Heading & Subheading */}
-        <h2 className="text-[28px] font-bold text-[#0C71C3] text-center mb-2">
+        <h2 className="text-[32px] sm:text-[38px] md:text-[40px] lg:text-[46px] leading-[1.1] font-bold text-[#0C71C3] uppercase tracking-tight md:tracking-[-1px] text-center mb-2">
           {heading}
         </h2>
         <p className="text-[15px] text-[#666666] text-center mb-[40px] font-medium">

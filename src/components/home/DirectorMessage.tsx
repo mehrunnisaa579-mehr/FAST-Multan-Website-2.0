@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { homepageContent } from '../../data/homepage';
-import { cmsService } from '../../services/cmsService';
 import DecorativeProfileImageFrame from '../ui/DecorativeProfileImageFrame';
 
-export default function DirectorMessage() {
+interface DirectorMessageProps {
+  data?: any;
+}
+
+export default function DirectorMessage({ data }: DirectorMessageProps) {
   const [directorName, setDirectorName] = useState(
     homepageContent.directorMessage.name
   );
@@ -22,22 +25,13 @@ export default function DirectorMessage() {
   );
 
   useEffect(() => {
-    const fetchDirectorData = async () => {
-      const data = await cmsService.getSetting<any>(
-        'homepage_full_content',
-        null
-      );
-
-      if (data) {
-        if (data.directorName) setDirectorName(data.directorName);
-        if (data.directorTitle) setDirectorTitle(data.directorTitle);
-        if (data.directorMessage) setDirectorMessage(data.directorMessage);
-        if (data.directorPhoto) setDirectorPhoto(data.directorPhoto);
-      }
-    };
-
-    fetchDirectorData();
-  }, []);
+    if (data) {
+      if (data.directorName) setDirectorName(data.directorName);
+      if (data.directorTitle) setDirectorTitle(data.directorTitle);
+      if (data.directorMessage) setDirectorMessage(data.directorMessage);
+      if (data.directorPhoto) setDirectorPhoto(data.directorPhoto);
+    }
+  }, [data]);
 
   const messageParagraphs = directorMessage
     ? directorMessage.split('\n\n').filter(Boolean)
@@ -49,7 +43,7 @@ export default function DirectorMessage() {
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[32px] md:px-[40px]">
 
         {/* ── Two-Column Centered Layout ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-[32px] lg:gap-[48px] items-center justify-center max-w-[1150px] mx-auto w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-[32px] lg:gap-[48px] items-center justify-center max-w-[1240px] mx-auto w-full">
 
           {/* ════ LEFT COLUMN — PHOTO & NAME (CLICKABLE TO PROFILE) ═════════ */}
           <div className="w-full max-w-[320px] mx-auto flex flex-col items-center pt-0">
@@ -61,6 +55,7 @@ export default function DirectorMessage() {
                 showBadge={true}
                 fallbackLabel="DIRECTOR PHOTO"
                 className="mb-[10px] mx-auto"
+                disableHoverEffect={true}
               />
 
               {/* Director Name */}
@@ -79,8 +74,7 @@ export default function DirectorMessage() {
           {/* ════ RIGHT COLUMN — HEADING + PARAGRAPH ═══════════════════════ */}
           <div className="w-full flex flex-col items-center lg:items-start pt-0 gap-[24px] sm:gap-[32px] max-w-[850px] mx-auto lg:mx-0">
 
-            {/* Heading */}
-            <h2 className="text-[28px] sm:text-[34px] lg:text-[38px] font-bold text-[#0C71C3] uppercase tracking-tight text-center lg:text-left leading-tight w-full">
+            <h2 className="text-[32px] sm:text-[38px] md:text-[40px] lg:text-[46px] leading-[1.1] font-bold text-[#0C71C3] uppercase tracking-tight md:tracking-[-1px] text-center lg:text-left w-full">
               Director's Message
             </h2>
 

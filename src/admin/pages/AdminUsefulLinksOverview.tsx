@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import AdminPageHeader from '../components/ui/AdminPageHeader';
 import AdminCard from '../components/ui/AdminCard';
 import AdminSection from '../components/ui/AdminSection';
-import { Accessibility, Shield, FileText, Bookmark, ChevronRight } from 'lucide-react';
+import { Accessibility, Shield, FileText, Bookmark, ChevronRight, Calendar } from 'lucide-react';
 
 export default function AdminUsefulLinksOverview() {
   return (
@@ -121,6 +121,28 @@ export default function AdminUsefulLinksOverview() {
             </div>
             <Link
               to="/admin-panel5463/useful-links/brand-identity-guideline"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-bold uppercase tracking-wider rounded-md shadow-xs transition-colors no-underline w-full"
+            >
+              <span>Open Editor</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </AdminCard>
+
+          {/* Card 5 — Academic Calendar */}
+          <AdminCard className="p-6 flex flex-col justify-between space-y-5 hover:border-[#0093DD]/50 transition-all shadow-xs hover:shadow-md group">
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-lg bg-[#F0F9FF] text-[#0093DD] group-hover:bg-[#0093DD] group-hover:text-white flex items-center justify-center font-bold border border-[#E5E7EB] transition-colors">
+                <Calendar className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-[#1F2937] group-hover:text-[#0093DD] transition-colors">
+                Academic Calendar
+              </h3>
+              <p className="text-sm text-[#6B7280] leading-relaxed">
+                Manage the Academic Calendar spreadsheet displayed on the public website.
+              </p>
+            </div>
+            <Link
+              to="/admin-panel5463/useful-links/academic-calendar"
               className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-bold uppercase tracking-wider rounded-md shadow-xs transition-colors no-underline w-full"
             >
               <span>Open Editor</span>

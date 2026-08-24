@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { homepageContent } from '../../data/homepage';
-import { cmsService } from '../../services/cmsService';
 
-export default function CampusHighlights() {
+interface CampusHighlightsProps {
+  data?: any;
+}
+
+export default function CampusHighlights({ data }: CampusHighlightsProps) {
   const [heading, setHeading] = useState('Campus Highlights');
   const [subtitle, setSubtitle] = useState('A glimpse into life at FAST-NUCES Multan Campus');
   const [highlights, setHighlights] = useState<any[]>(homepageContent.campusHighlights);
@@ -11,22 +14,18 @@ export default function CampusHighlights() {
   const [isVideoFile, setIsVideoFile] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchHighlightsData = async () => {
-      const data = await cmsService.getSetting<any>('homepage_full_content', null);
-      if (data) {
-        if (data.highlightsHeading) setHeading(data.highlightsHeading);
-        if (data.highlightsSubtitle) setSubtitle(data.highlightsSubtitle);
-        if (data.showHighlightsSection !== undefined) setIsVisible(data.showHighlightsSection);
-        if (Array.isArray(data.highlightItems) && data.highlightItems.length > 0) {
-          const visibleItems = data.highlightItems.filter((i: any) => i.visible !== false);
-          if (visibleItems.length > 0) {
-            setHighlights(visibleItems);
-          }
+    if (data) {
+      if (data.highlightsHeading) setHeading(data.highlightsHeading);
+      if (data.highlightsSubtitle) setSubtitle(data.highlightsSubtitle);
+      if (data.showHighlightsSection !== undefined) setIsVisible(data.showHighlightsSection);
+      if (Array.isArray(data.highlightItems) && data.highlightItems.length > 0) {
+        const visibleItems = data.highlightItems.filter((i: any) => i.visible !== false);
+        if (visibleItems.length > 0) {
+          setHighlights(visibleItems);
         }
       }
-    };
-    fetchHighlightsData();
-  }, []);
+    }
+  }, [data]);
 
   const getEmbedUrl = (url: string) => {
     if (!url) return '';

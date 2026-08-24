@@ -1,27 +1,25 @@
 import { useEffect, useState } from 'react';
-import { cmsService } from '../../services/cmsService';
 import CmsImage from '../ui/CmsImage';
 import { getYouTubeEmbedUrl } from '../../utils/youtube';
 
-export default function CampusTour() {
+interface CampusTourProps {
+  data?: any;
+}
+
+export default function CampusTour({ data }: CampusTourProps) {
   const [heading, setHeading] = useState('Campus Tour');
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [isVisible, setIsVisible] = useState<boolean>(true);
 
   useEffect(() => {
-    const fetchCampusTourData = async () => {
-      const data = await cmsService.getSetting<any>('homepage_full_content', null);
-      if (data) {
-        if (data.campusTourHeading) setHeading(data.campusTourHeading);
-        if (data.showCampusTourSection !== undefined) setIsVisible(data.showCampusTourSection);
-        if (data.campusTourVideoUrl || data.campusTourVideo || data.campusTourMedia) {
-          setVideoUrl(data.campusTourVideoUrl || data.campusTourVideo || data.campusTourMedia);
-        }
+    if (data) {
+      if (data.campusTourHeading) setHeading(data.campusTourHeading);
+      if (data.showCampusTourSection !== undefined) setIsVisible(data.showCampusTourSection);
+      if (data.campusTourVideoUrl || data.campusTourVideo || data.campusTourMedia) {
+        setVideoUrl(data.campusTourVideoUrl || data.campusTourVideo || data.campusTourMedia);
       }
-    };
-
-    fetchCampusTourData();
-  }, []);
+    }
+  }, [data]);
 
   if (!isVisible) return null;
 
@@ -30,8 +28,7 @@ export default function CampusTour() {
   return (
     <section className="py-[50px] sm:py-[64px] w-full bg-white">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[32px] md:px-[40px]">
-        {/* Section Heading */}
-        <h2 className="text-[28px] font-bold text-[#0C71C3] text-center mb-[24px] uppercase tracking-tight relative -top-[30px]">
+        <h2 className="text-[32px] sm:text-[38px] md:text-[40px] lg:text-[46px] leading-[1.1] font-bold text-[#0C71C3] uppercase tracking-tight md:tracking-[-1px] text-center mb-[24px] relative -top-[30px]">
           {heading}
         </h2>
 

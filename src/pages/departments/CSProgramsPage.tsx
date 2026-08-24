@@ -103,7 +103,7 @@ export default function CSProgramsPage() {
             Important Links
           </h3>
           <div className="flex flex-wrap gap-[16px] text-[14px] font-semibold text-[#0093DD]">
-            <a href="https://www.nu.edu.pk/Student/Calender" className="hover:underline">
+            <a href="/useful-links/academic-calendar" className="hover:underline">
               Academic Calendar →
             </a>
             <a href="https://nu.edu.pk/Admissions/FeeStructure" className="hover:underline">

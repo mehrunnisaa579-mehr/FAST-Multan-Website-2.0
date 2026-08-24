@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import AboutPageHero from '../../components/about/AboutPageHero';
 import DepartmentCard from '../../components/departments/DepartmentCard';
 import { csFaculty } from '../../data/departments';
@@ -39,16 +40,18 @@ export default function CSFacultyPage() {
             {facultyHeading}
           </h2>
 
-          <div className="dept-card-row dept-faculty-grid">
+          <div className="dept-card-row dept-faculty-grid flex flex-wrap justify-center items-start gap-[40px] md:gap-[60px] w-full">
             {facultyList.map((fac: any) => (
               <div key={fac.id} className="dept-faculty-wrapper">
-                <DepartmentCard
-                  title={fac.name}
-                  role={fac.designation}
-                  imageLabel={fac.photoPlaceholder || 'FACULTY MEMBER'}
-                  imageUrl={fac.photoUrl || fac.photo_url || fac.image}
-                  variant="faculty"
-                />
+                <Link to={`/people/${fac.slug || fac.id}`} className="no-underline block cursor-pointer h-full">
+                  <DepartmentCard
+                    title={fac.name}
+                    role={fac.designation}
+                    imageLabel={fac.photoPlaceholder || 'FACULTY MEMBER'}
+                    imageUrl={fac.photoUrl || fac.photo_url || fac.image}
+                    variant="faculty"
+                  />
+                </Link>
               </div>
             ))}
           </div>

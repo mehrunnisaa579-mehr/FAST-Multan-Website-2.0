@@ -15,6 +15,8 @@ export interface SocietyData {
   route: string;
   intro: string;
   instagramUrl: string;
+  registrationUrl?: string;
+  showRegistrationButton?: boolean;
   leadership: LeadershipMember[];
   stats?: StatConfig[];
 }

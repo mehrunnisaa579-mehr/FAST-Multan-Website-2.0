@@ -29,7 +29,7 @@ export default function SocietyLeadership({ leadership }: SocietyLeadershipProps
             className="w-full max-w-[260px] text-center flex flex-col items-center bg-white border border-[#E5E7EB] rounded-[10px] p-[18px] transition-all hover:border-[#0093DD] hover:shadow-xs"
           >
             {/* Portrait Image or Placeholder */}
-            <div className="w-full h-[220px] rounded-[6px] overflow-hidden flex items-center justify-center mb-[14px] bg-[#F8FAFC] border border-[#E5E7EB]">
+            <div className="w-full h-[220px] rounded-[6px] overflow-hidden flex items-center justify-center mb-[14px] bg-[#F8FAFC] border border-[#E5E7EB] person-photo-glow">
               <CmsImage
                 src={member.photoUrl}
                 alt={member.name}

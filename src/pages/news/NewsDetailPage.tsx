@@ -18,9 +18,8 @@ export default function NewsDetailPage() {
     const fetchArticleDetail = async () => {
       setLoading(true);
 
-      // Fetch all published articles from Supabase news table via central cmsService
-      const dbNews = await cmsService.getNews();
-
+      // 1. Fetch lightweight news summary for sidebar (excludes large content fields)
+      const dbNews = await cmsService.getNewsSummary();
       let combinedArticles: any[] = [];
 
       if (dbNews && dbNews.length > 0) {
@@ -29,8 +28,8 @@ export default function NewsDetailPage() {
         );
         if (publishedOnly.length > 0) {
           const sorted = [...publishedOnly].sort((a: any, b: any) => {
-            const timeA = new Date(a.updated_at || a.published_at || a.created_at || 0).getTime();
-            const timeB = new Date(b.updated_at || b.published_at || b.created_at || 0).getTime();
+            const timeA = new Date(a.published_at || a.updated_at || a.created_at || 0).getTime();
+            const timeB = new Date(b.published_at || b.updated_at || b.created_at || 0).getTime();
             return timeB - timeA;
           });
 
@@ -46,7 +45,7 @@ export default function NewsDetailPage() {
               slug: n.slug || createSlug(n.title, n.id),
               title: n.title,
               excerpt: n.excerpt || '',
-              content: n.long_description || n.content || n.excerpt || 'No detailed content available.',
+              content: '',
               category: n.category || 'Academic Announcements',
               author: n.author || 'FAST-NUCES Multan Campus',
               date: dateStr,
@@ -56,7 +55,6 @@ export default function NewsDetailPage() {
         }
       }
 
-      // Merge fallback data ONLY if DB returned zero usable records
       if (combinedArticles.length === 0) {
         const fallbacks = [...newsPageOneData, ...newsPageTwoData].map((f) => ({
           ...f,
@@ -69,21 +67,51 @@ export default function NewsDetailPage() {
 
       setAllArticles(combinedArticles);
 
-      // Find target article matching slug or id
+      // 2. Fetch specific news article by slug/id (includes large description/content field)
+      let targetArticle: any = null;
       if (slug) {
-        const targetSlug = decodeURIComponent(slug).toLowerCase().trim();
-        const found = combinedArticles.find((a) => {
-          const itemSlug = (a.slug || createSlug(a.title, a.id)).toLowerCase().trim();
-          const itemTitleSlug = createSlug(a.title, a.id).toLowerCase().trim();
-          return itemSlug === targetSlug || itemTitleSlug === targetSlug || a.id === targetSlug;
-        });
+        const dbArticle = await cmsService.getNewsBySlug(slug);
+        if (dbArticle) {
+          const rawDate = dbArticle.published_at || dbArticle.updated_at || dbArticle.created_at;
+          const parsedDate = rawDate ? new Date(rawDate) : null;
+          const dateStr = parsedDate && !isNaN(parsedDate.getTime())
+            ? parsedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+            : 'January 1, 2026';
 
-        if (found) {
-          setArticle(found);
-        } else {
-          setArticle(null);
+          targetArticle = {
+            id: dbArticle.id,
+            slug: dbArticle.slug || createSlug(dbArticle.title, dbArticle.id),
+            title: dbArticle.title,
+            excerpt: dbArticle.excerpt || '',
+            content: dbArticle.long_description || dbArticle.content || dbArticle.excerpt || 'No detailed content available.',
+            category: dbArticle.category || 'Academic Announcements',
+            author: dbArticle.author || 'FAST-NUCES Multan Campus',
+            date: dateStr,
+            image: dbArticle.hero_image || dbArticle.image_url || '',
+          };
+        }
+
+        // Fallback search in local static data if not found in db
+        if (!targetArticle) {
+          const targetSlug = decodeURIComponent(slug).toLowerCase().trim();
+          const fallbacks = [...newsPageOneData, ...newsPageTwoData].map((f) => ({
+            ...f,
+            slug: f.slug || createSlug(f.title, f.id),
+            category: f.category || 'Academic Announcements',
+            content: f.content || f.excerpt,
+          }));
+          const foundFallback = fallbacks.find((a) => {
+            const itemSlug = (a.slug || createSlug(a.title, a.id)).toLowerCase().trim();
+            const itemTitleSlug = createSlug(a.title, a.id).toLowerCase().trim();
+            return itemSlug === targetSlug || itemTitleSlug === targetSlug || a.id === targetSlug;
+          });
+          if (foundFallback) {
+            targetArticle = foundFallback;
+          }
         }
       }
+
+      setArticle(targetArticle);
       setLoading(false);
     };
 

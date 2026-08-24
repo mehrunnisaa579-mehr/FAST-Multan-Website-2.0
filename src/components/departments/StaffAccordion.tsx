@@ -1,92 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, User } from 'lucide-react';
 import { adminOfficesList, initialStaffMembers } from '../../data/staffData';
 import type { StaffMember } from '../../data/staffData';
-import { cmsService } from '../../services/cmsService';
 
-interface OfficeGroupItem {
+export interface OfficeGroupItem {
   id: string;
   title: string;
 }
 
-export default function StaffAccordion() {
+export interface StaffAccordionProps {
+  offices?: Array<{ id: string; title?: string; label?: string }>;
+  staffData?: StaffMember[];
+}
+
+export default function StaffAccordion({
+  offices,
+  staffData: propStaffData,
+}: StaffAccordionProps = {}) {
   const [openIndex, setOpenIndex] = useState<number | null>(0); // Open first accordion by default
-  const [officesList, setOfficesList] = useState<OfficeGroupItem[]>(
-    adminOfficesList.map((o) => ({ id: o.id, title: o.title }))
-  );
-  const [staffData, setStaffData] = useState<StaffMember[]>(initialStaffMembers);
 
-  useEffect(() => {
-    const fetchStaffData = async () => {
-      // 1. Dynamic offices from CMS
-      const savedOffices = await cmsService.getSetting<any[]>('admin_offices_list', []);
-      let currentOffices: OfficeGroupItem[] = [];
-      if (savedOffices && savedOffices.length > 0) {
-        currentOffices = savedOffices
-          .filter((o: any) => o.is_visible !== false)
-          .map((o: any) => ({
-            id: o.id,
-            title: o.title || o.label || o.id,
-          }));
-      } else {
-        currentOffices = adminOfficesList.map((o) => ({ id: o.id, title: o.title }));
-      }
+  const officesList: OfficeGroupItem[] =
+    offices && offices.length > 0
+      ? offices.map((o) => ({ id: o.id, title: o.title || o.label || o.id }))
+      : adminOfficesList.map((o) => ({ id: o.id, title: o.title }));
 
-      // 2. DB Staff
-      const dbStaff = await cmsService.getAdminStaff();
-      if (dbStaff && dbStaff.length > 0) {
-        const formatted: StaffMember[] = dbStaff.map((s: any) => ({
-          id: s.id,
-          slug: s.slug || s.id,
-          name: s.name,
-          designation: s.designation,
-          office: s.office,
-          photoUrl: s.photo_url || s.photoUrl || '',
-          email: s.email || '',
-          phone: s.phone || '',
-          extension: s.extension || '',
-          introduction: s.introduction || '',
-          education: s.education || '',
-          display_order: s.display_order || 1,
-          is_visible: s.is_visible ?? true,
-        }));
-
-        // Include any office from staff records not present in currentOffices
-        const existingIds = new Set(currentOffices.map((o) => o.id));
-        formatted.forEach((s) => {
-          if (s.office && !existingIds.has(s.office)) {
-            currentOffices.push({
-              id: s.office,
-              title: s.office.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
-            });
-            existingIds.add(s.office);
-          }
-        });
-
-        setOfficesList(currentOffices);
-
-        // Merge CMS staff per office
-        const merged: StaffMember[] = [];
-        currentOffices.forEach((office) => {
-          const cmsForOffice = formatted.filter(
-            (s) => (s.office === office.id || s.office === office.title) && s.is_visible !== false
-          );
-          if (cmsForOffice.length > 0) {
-            merged.push(...cmsForOffice);
-          } else {
-            const fallbackForOffice = initialStaffMembers.filter((s) => s.office === office.id);
-            merged.push(...fallbackForOffice);
-          }
-        });
-        setStaffData(merged);
-      } else {
-        setOfficesList(currentOffices);
-      }
-    };
-
-    fetchStaffData();
-  }, []);
+  const staffData: StaffMember[] = propStaffData || initialStaffMembers;
 
   const toggleItem = (index: number) => {
     setOpenIndex((prev) => (prev === index ? null : index));
@@ -139,7 +78,7 @@ export default function StaffAccordion() {
                       className="bg-white border border-[#EAEAEA] rounded-[6px] p-[20px] flex flex-col items-center text-center shadow-xs card-hover-lift no-underline cursor-pointer group block"
                     >
                       {/* Photo / Placeholder Container */}
-                      <div className="w-[120px] h-[150px] bg-white border border-[#E5E7EB] rounded-[4px] overflow-hidden flex items-center justify-center p-[6px] mb-[14px] shadow-xs group-hover:border-[#0093DD]">
+                      <div className="w-[120px] h-[150px] bg-white border border-[#E5E7EB] rounded-[4px] overflow-hidden flex items-center justify-center p-[6px] mb-[14px] shadow-xs group-hover:border-[#0093DD] person-photo-glow">
                         {member.photoUrl ? (
                           <img
                             src={member.photoUrl}

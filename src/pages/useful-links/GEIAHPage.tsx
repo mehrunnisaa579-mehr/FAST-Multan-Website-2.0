@@ -24,7 +24,7 @@ export default function GEIAHPage() {
     <div className="w-full bg-white text-left">
       <AboutPageHero title={title} backgroundImage={heroImage} />
 
-      <div className="w-full max-w-[1180px] mx-auto px-[20px] min-[700px]:px-[24px] py-[40px] min-[700px]:py-[50px] min-[1100px]:pt-[65px] min-[1100px]:pb-[85px] text-[#444444] text-[16px] leading-[1.75] font-normal space-y-[18px]">
+      <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px] py-[40px] min-[700px]:py-[50px] min-[1100px]:pt-[65px] min-[1100px]:pb-[85px] text-[#444444] text-[16px] leading-[1.75] font-normal space-y-[18px]">
         {policyText ? (
           policyText.split('\n\n').map((para, idx) => <p key={idx}>{para}</p>)
         ) : (

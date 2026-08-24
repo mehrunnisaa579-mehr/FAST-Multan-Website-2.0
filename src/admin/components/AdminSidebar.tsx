@@ -21,6 +21,10 @@ import {
   BookOpen,
 } from 'lucide-react';
 
+import { useAdminAuth } from '../auth/useAdminAuth';
+import { getModuleForPath, canAccessModule } from '../config/rolePermissions';
+import horizontalLogo from '../../assets/images/cms-horizontal-logo.png';
+
 interface SubMenuItem {
   label: string;
   path: string;
@@ -65,6 +69,7 @@ const sidebarNavigation: MenuItem[] = [
       { label: 'Manage Campus Overview', path: '/admin-panel5463/campus' },
       { label: 'Student Societies', path: '/admin-panel5463/societies' },
       { label: 'Photo Gallery', path: '/admin-panel5463/gallery' },
+      { label: 'Web Team', path: '/admin-panel5463/web-team' },
     ],
   },
   {
@@ -74,7 +79,6 @@ const sidebarNavigation: MenuItem[] = [
       { label: 'Manage Services', path: '/admin-panel5463/services' },
       { label: 'Complaint Management', path: '/admin-panel5463/complaint-management' },
       { label: 'Gatepass Application', path: '/admin-panel5463/gatepass-application' },
-      { label: 'Career Services (CSO)', path: '/admin-panel5463/career-services' },
       { label: 'EDC Workshops', path: '/admin-panel5463/edc/workshops-hub' },
     ],
   },
@@ -93,6 +97,7 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ isOpen, isDesktopCollapsed = false, onCloseMobile }: AdminSidebarProps) {
   const location = useLocation();
+  const { adminProfile } = useAdminAuth();
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     Academics: true,
     'News & Events': true,
@@ -129,7 +134,7 @@ export default function AdminSidebar({ isOpen, isDesktopCollapsed = false, onClo
         {/* Sidebar Header Lockup - Horizontal Logo Only */}
         <div className="h-20 px-4 flex items-center justify-center border-b border-slate-700/60 bg-[#162D56] flex-shrink-0">
           <img
-            src="/cms-horizontal-logo.png"
+            src={horizontalLogo}
             alt="FAST-NUCES Multan Logo"
             className="w-full max-w-[190px] sm:max-w-[200px] h-auto object-contain mx-auto"
           />
@@ -138,11 +143,25 @@ export default function AdminSidebar({ isOpen, isDesktopCollapsed = false, onClo
         {/* Navigation Menu */}
         <div className="flex-1 overflow-y-auto py-5 px-4 space-y-1.5 admin-sidebar-scroll text-left">
           {sidebarNavigation.map((item) => {
-            const Icon = item.icon;
             const hasChildren = !!item.children;
+            
+            // Filter children based on access
+            const allowedChildren = hasChildren 
+              ? item.children!.filter(sub => canAccessModule(adminProfile?.role, getModuleForPath(sub.path)))
+              : [];
+              
+            // If item has no children natively, check path access directly
+            if (!hasChildren && item.path) {
+              if (!canAccessModule(adminProfile?.role, getModuleForPath(item.path))) return null;
+            }
+            
+            // If it had children but none are allowed, hide the group
+            if (hasChildren && allowedChildren.length === 0) return null;
+
+            const Icon = item.icon;
             const isGroupExpanded = expandedGroups[item.label];
 
-            if (hasChildren) {
+            if (hasChildren && allowedChildren.length > 0) {
               return (
                 <div key={item.label} className="w-full">
                   <button
@@ -161,7 +180,7 @@ export default function AdminSidebar({ isOpen, isDesktopCollapsed = false, onClo
 
                   {isGroupExpanded && (
                     <div className="ml-5 pl-3 border-l border-slate-700/60 mt-1 space-y-1">
-                      {item.children?.map((subItem) => (
+                      {allowedChildren.map((subItem) => (
                         <NavLink
                           key={subItem.path}
                           to={subItem.path}

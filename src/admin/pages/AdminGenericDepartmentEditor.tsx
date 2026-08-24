@@ -11,6 +11,8 @@ import AdminModal, { DeleteConfirmModal } from '../components/ui/AdminModal';
 import FacultyEditModal, { type FacultyMemberData } from '../components/ui/FacultyEditModal';
 import ImageCropModal from '../components/ui/ImageCropModal';
 import { useImageCropper } from '../hooks/useImageCropper';
+import { useAdminAuth } from '../auth/useAdminAuth';
+import { canAccessDepartmentSection } from '../config/rolePermissions';
 import { cmsService } from '../../services/cmsService';
 import {
   Save,
@@ -63,6 +65,7 @@ interface ResearchItem {
 
 export default function AdminGenericDepartmentEditor() {
   const { slug } = useParams<{ slug: string }>();
+  const { adminProfile } = useAdminAuth();
 
   // Department Basic Info State
   const [deptName, setDeptName] = useState('');
@@ -159,19 +162,21 @@ export default function AdminGenericDepartmentEditor() {
       }
 
       // 2. Fetch full content schema
+      const cleanStr = (s?: string) => s ? s.replace(/^(department\s+of\s+)+/i, 'Department of ') : '';
+
       const saved = await cmsService.getCustomDepartmentContent(slug);
       if (saved) {
-        if (saved.deptName) setDeptName(saved.deptName);
+        if (saved.deptName) setDeptName(cleanStr(saved.deptName));
         if (saved.shortName) setShortName(saved.shortName);
         if (saved.description) setDescription(saved.description);
 
-        if (saved.heroTitle) setHeroTitle(saved.heroTitle);
+        if (saved.heroTitle) setHeroTitle(cleanStr(saved.heroTitle));
         if (saved.heroSubtitle) setHeroSubtitle(saved.heroSubtitle);
         if (saved.heroImageUrl) setHeroImageUrl(saved.heroImageUrl);
 
         if (saved.hodHeading) setHodHeading(saved.hodHeading);
         if (saved.hodName) setHodName(saved.hodName);
-        if (saved.hodDesignation) setHodDesignation(saved.hodDesignation);
+        if (saved.hodDesignation) setHodDesignation(cleanStr(saved.hodDesignation));
         if (saved.hodPhotoUrl) setHodPhotoUrl(saved.hodPhotoUrl);
         if (saved.hodEmail) setHodEmail(saved.hodEmail);
         if (saved.hodPhone) setHodPhone(saved.hodPhone);
@@ -539,8 +544,9 @@ export default function AdminGenericDepartmentEditor() {
       )}
 
       {/* ── 0. BASIC INFORMATION ── */}
-      <AdminCard>
-        <button
+      {canAccessDepartmentSection(adminProfile?.role, 'basic') && (
+        <AdminCard>
+          <button
           onClick={() => toggleAccordion('basic')}
           className="w-full flex items-center justify-between p-4 bg-[#F9FAFB] hover:bg-[#F3F4F6] transition-colors rounded-t-lg border-b border-[#E5E7EB] text-left cursor-pointer"
         >
@@ -586,8 +592,10 @@ export default function AdminGenericDepartmentEditor() {
           </div>
         )}
       </AdminCard>
+      )}
 
       {/* ── 1. HERO BANNER SECTION ── */}
+      {canAccessDepartmentSection(adminProfile?.role, 'hero') && (
       <AdminCard>
         <button
           onClick={() => toggleAccordion('hero')}
@@ -659,8 +667,10 @@ export default function AdminGenericDepartmentEditor() {
           </div>
         )}
       </AdminCard>
+      )}
 
       {/* ── 2. HOD'S MESSAGE SECTION ── */}
+      {canAccessDepartmentSection(adminProfile?.role, 'hod') && (
       <AdminCard>
         <button
           onClick={() => toggleAccordion('hod')}
@@ -725,7 +735,7 @@ export default function AdminGenericDepartmentEditor() {
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={(e) => handleFileUpload(e, setHodPhotoUrl, { aspectRatio: 3 / 4, title: 'Crop HOD Photograph (3:4 Rectangle)' })}
+                        onChange={(e) => handleFileUpload(e, setHodPhotoUrl, { aspectRatio: 13 / 15, title: 'Crop HOD Photograph (13:15 Rectangle)' })}
                       />
                     </label>
 
@@ -816,8 +826,10 @@ export default function AdminGenericDepartmentEditor() {
           </div>
         )}
       </AdminCard>
+      )}
 
       {/* ── 3. DEGREE PROGRAMS SECTION ── */}
+      {canAccessDepartmentSection(adminProfile?.role, 'programs') && (
       <AdminCard>
         <button
           onClick={() => toggleAccordion('programs')}
@@ -914,8 +926,10 @@ export default function AdminGenericDepartmentEditor() {
           </div>
         )}
       </AdminCard>
+      )}
 
       {/* ── 4. DEPARTMENT FACULTY SECTION ── */}
+      {canAccessDepartmentSection(adminProfile?.role, 'faculty') && (
       <AdminCard>
         <button
           onClick={() => toggleAccordion('faculty')}
@@ -1012,8 +1026,10 @@ export default function AdminGenericDepartmentEditor() {
           </div>
         )}
       </AdminCard>
+      )}
 
       {/* ── 5. ALLIED FACULTY SECTION ── */}
+      {canAccessDepartmentSection(adminProfile?.role, 'alliedFaculty') && (
       <AdminCard>
         <button
           onClick={() => toggleAccordion('alliedFaculty')}
@@ -1115,8 +1131,10 @@ export default function AdminGenericDepartmentEditor() {
           </div>
         )}
       </AdminCard>
+      )}
 
-      {/* ── 6. RESEARCH GROUPS & AREAS SECTION ── */}
+      {/* ── 6. RESEARCH GROUPS SECTION ── */}
+      {canAccessDepartmentSection(adminProfile?.role, 'research') && (
       <AdminCard>
         <button
           onClick={() => toggleAccordion('research')}
@@ -1209,6 +1227,7 @@ export default function AdminGenericDepartmentEditor() {
           </div>
         )}
       </AdminCard>
+      )}
 
       {/* Program Modal */}
       <AdminModal

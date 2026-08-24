@@ -1,8 +1,14 @@
 import { supabase } from '../lib/supabase';
 import { csFaculty, mgmtFaculty } from '../data/departments';
+import { createSlug } from '../data/news';
+
+const settingPromiseCache: Record<string, Promise<any> | undefined> = {};
+const settingValueCache: Record<string, { value: any; expiresAt: number } | undefined> = {};
+const SETTING_TTL_MS = 60 * 1000;
 
 export interface SiteSetting {
   id?: string;
+
   key?: string;
   value?: any;
   setting_key?: string;
@@ -47,34 +53,54 @@ export const cmsService = {
   },
 
   // 2. GET SINGLE SETTING BY KEY (Supports both 'key' and 'setting_key' columns)
-  async getSetting<T = any>(key: string, defaultValue: T): Promise<T> {
-    try {
-      // 1. Try querying by canonical 'key' column
-      const { data: primaryData, error: primaryErr } = await supabase
-        .from('site_settings')
-        .select('*')
-        .eq('key', key)
-        .maybeSingle();
-
-      if (!primaryErr && primaryData) {
-        return (primaryData.value !== undefined ? primaryData.value : primaryData.setting_value) as T;
-      }
-
-      // 2. Fallback to 'setting_key' column if primary query returns error or empty
-      const { data: fallbackData, error: fallbackErr } = await supabase
-        .from('site_settings')
-        .select('*')
-        .eq('setting_key', key)
-        .maybeSingle();
-
-      if (!fallbackErr && fallbackData) {
-        return (fallbackData.setting_value !== undefined ? fallbackData.setting_value : fallbackData.value) as T;
-      }
-
-      return defaultValue;
-    } catch {
-      return defaultValue;
+  getSetting<T = any>(key: string, defaultValue: T): Promise<T> {
+    const cached = settingValueCache[key];
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached.value as T);
     }
+
+    if (settingPromiseCache[key]) {
+      return settingPromiseCache[key];
+    }
+
+    const promise = (async () => {
+      try {
+        // 1. Try querying by canonical 'key' column
+        const { data: primaryData, error: primaryErr } = await supabase
+          .from('site_settings')
+          .select('*')
+          .eq('key', key)
+          .maybeSingle();
+
+        if (!primaryErr && primaryData) {
+          const val = (primaryData.value !== undefined ? primaryData.value : primaryData.setting_value) as T;
+          settingValueCache[key] = { value: val, expiresAt: Date.now() + SETTING_TTL_MS };
+          return val;
+        }
+
+        // 2. Fallback to 'setting_key' column if primary query returns error or empty
+        const { data: fallbackData, error: fallbackErr } = await supabase
+          .from('site_settings')
+          .select('*')
+          .eq('setting_key', key)
+          .maybeSingle();
+
+        if (!fallbackErr && fallbackData) {
+          const val = (fallbackData.setting_value !== undefined ? fallbackData.setting_value : fallbackData.value) as T;
+          settingValueCache[key] = { value: val, expiresAt: Date.now() + SETTING_TTL_MS };
+          return val;
+        }
+
+        return defaultValue;
+      } catch {
+        return defaultValue;
+      } finally {
+        delete settingPromiseCache[key];
+      }
+    })();
+
+    settingPromiseCache[key] = promise;
+    return promise;
   },
 
   // 3. SAVE OR UPDATE SETTING (Supports both 'key' and 'setting_key' schema targets)
@@ -96,7 +122,10 @@ export const cmsService = {
         .from('site_settings')
         .upsert(primaryPayload, { onConflict: 'key' });
 
-      if (!primaryErr) return { success: true };
+      if (!primaryErr) {
+        delete settingValueCache[key];
+        return { success: true };
+      }
 
       // 2. Fallback upsert attempt using 'setting_key' / 'setting_value' columns
       const fallbackPayload = {
@@ -110,7 +139,10 @@ export const cmsService = {
         .from('site_settings')
         .upsert(fallbackPayload, { onConflict: 'setting_key' });
 
-      if (!fallbackErr) return { success: true };
+      if (!fallbackErr) {
+        delete settingValueCache[key];
+        return { success: true };
+      }
 
       throw primaryErr || fallbackErr;
     } catch (err: any) {
@@ -209,8 +241,84 @@ export const cmsService = {
     }
   },
 
+  async getNewsSummary() {
+    try {
+      const { data, error } = await supabase
+        .from('news')
+        .select('id, title, excerpt, published_at, created_at, updated_at, author, category, image_url, published, is_archived')
+        .or('is_archived.eq.false,is_archived.is.null')
+        .order('updated_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false, nullsFirst: false })
+        .order('display_order', { ascending: true, nullsFirst: false });
+      if (error) throw error;
+      return (data || []).filter((item: any) => item.is_archived !== true);
+    } catch {
+      return [];
+    }
+  },
+
+  async getNewsBySlug(slug: string) {
+    try {
+      const cleanSlug = decodeURIComponent(slug).toLowerCase().trim();
+      
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(cleanSlug)) {
+        const { data, error } = await supabase
+          .from('news')
+          .select('*')
+          .eq('id', cleanSlug)
+          .maybeSingle();
+        if (!error && data) return data;
+      }
+
+      const { data: list, error: listErr } = await supabase
+        .from('news')
+        .select('id, title')
+        .or('is_archived.eq.false,is_archived.is.null');
+
+      if (listErr || !list) return null;
+
+      const found = list.find((item: any) => {
+        const itemSlug = createSlug(item.title, item.id).toLowerCase().trim();
+        return itemSlug === cleanSlug || item.id === cleanSlug;
+      });
+
+      if (!found) return null;
+
+      const { data, error } = await supabase
+        .from('news')
+        .select('*')
+        .eq('id', found.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    } catch {
+      return null;
+    }
+  },
+
   async getNewsArticles() {
     return this.getNews();
+  },
+
+  async getRecentNews(limit: number) {
+    try {
+      const { data, error } = await supabase
+        .from('news')
+        .select('id, title, excerpt, content, published_at, created_at, updated_at, image_url, category, author, published, is_archived')
+        .or('is_archived.eq.false,is_archived.is.null')
+        .or('published.eq.true,published.is.null')
+        .or('is_visible.eq.true,is_visible.is.null')
+        .order('updated_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false, nullsFirst: false })
+        .order('display_order', { ascending: true, nullsFirst: false })
+        .limit(limit);
+      if (error) throw error;
+      return (data || []).filter((item: any) => item.is_archived !== true);
+    } catch {
+      return [];
+    }
   },
 
   // 9. EVENTS CRUD
@@ -221,6 +329,22 @@ export const cmsService = {
         .select('*')
         .or('is_archived.eq.false,is_archived.is.null')
         .order('display_order', { ascending: true });
+      if (error) throw error;
+      return (data || []).filter((item: any) => item.is_archived !== true);
+    } catch {
+      return [];
+    }
+  },
+
+  async getRecentEvents(limit: number) {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('id, title, event_date, start_time, end_time, location, description, image_url, published, display_order, is_archived')
+        .or('is_archived.eq.false,is_archived.is.null')
+        .or('published.eq.true,published.is.null')
+        .order('display_order', { ascending: true })
+        .limit(limit);
       if (error) throw error;
       return (data || []).filter((item: any) => item.is_archived !== true);
     } catch {
@@ -273,6 +397,58 @@ export const cmsService = {
     }
   },
 
+  async getAdminStaffBySlug(slug: string) {
+    try {
+      const cleanSlug = slug.toLowerCase().trim();
+      
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(cleanSlug)) {
+        const { data, error } = await supabase
+          .from('administration_staff')
+          .select('*')
+          .eq('id', cleanSlug)
+          .maybeSingle();
+        if (!error && data) return data;
+      }
+
+      const { data: list, error: listErr } = await supabase
+        .from('administration_staff')
+        .select('id, slug, name')
+        .or('is_archived.eq.false,is_archived.is.null');
+
+      if (listErr || !list) return null;
+
+      const toSlugLocal = (text: string): string => {
+        if (!text) return '';
+        return text
+          .toLowerCase()
+          .trim()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/[\s_-]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+      };
+
+      const found = list.find((item: any) => {
+        const itemSlug = (item.slug || '').toLowerCase().trim();
+        const itemSlugFromName = toSlugLocal(item.name).toLowerCase().trim();
+        return itemSlug === cleanSlug || itemSlugFromName === cleanSlug || item.id === cleanSlug;
+      });
+
+      if (!found) return null;
+
+      const { data, error } = await supabase
+        .from('administration_staff')
+        .select('*')
+        .eq('id', found.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    } catch {
+      return null;
+    }
+  },
+
   // 13. CAREER SERVICES & EDC CONTENT
   async getEDCContent(type: string) {
     try {
@@ -309,7 +485,28 @@ export const cmsService = {
     }
   },
 
-  // 15. FILE UPLOAD TO site-media BUCKET (Support Images, MP4/WebM Videos, and PDF Documents)
+  // 15. OPTIMIZED IMAGE URL HELPER
+  getOptimizedMediaUrl(originalUrl: string, width?: number): string {
+    if (!width || !originalUrl || typeof originalUrl !== 'string') return originalUrl;
+
+    try {
+      // Check if URL belongs to our site-media bucket
+      const match = originalUrl.match(/\/storage\/v1\/object\/public\/site-media\/(.+)$/);
+      if (match && match[1]) {
+        const path = match[1];
+        // Use Supabase JS SDK transform capability
+        const { data } = supabase.storage.from('site-media').getPublicUrl(path, {
+          transform: { width, resize: 'contain' }
+        });
+        return data.publicUrl;
+      }
+    } catch {
+      // ignore
+    }
+    return originalUrl;
+  },
+
+  // 16. FILE UPLOAD TO site-media BUCKET (Support Images, MP4/WebM Videos, and PDF Documents)
   async uploadMedia(
     file: File,
     options?: { allowedTypes?: string[]; maxSizeBytes?: number }

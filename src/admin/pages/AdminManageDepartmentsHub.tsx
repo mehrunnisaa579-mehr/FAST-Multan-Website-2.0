@@ -76,12 +76,15 @@ export default function AdminManageDepartmentsHub() {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
+    const formattedDeptName = newDeptName.trim().replace(/^(department\s+of\s+)+/i, 'Department of ');
+    const fullDeptTitle = /^department\s+of/i.test(formattedDeptName) ? formattedDeptName : `Department of ${formattedDeptName}`;
+
     const newDept = {
       id: `dept-${Date.now()}`,
-      name: newDeptName.trim(),
-      short_name: newShortName.trim() || newDeptName.trim(),
+      name: fullDeptTitle,
+      short_name: newShortName.trim() || formattedDeptName,
       slug: slug || `dept-${Date.now()}`,
-      description: newDescription.trim() || `Department of ${newDeptName.trim()}`,
+      description: newDescription.trim() || fullDeptTitle,
       created_at: new Date().toISOString(),
     };
 

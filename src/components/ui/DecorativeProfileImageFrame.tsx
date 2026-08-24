@@ -1,5 +1,6 @@
 import React from 'react';
 import CmsImage from './CmsImage';
+import roundLogo from '../../assets/images/round-logo.png';
 
 interface DecorativeProfileImageFrameProps {
   src?: string;
@@ -8,6 +9,7 @@ interface DecorativeProfileImageFrameProps {
   showBadge?: boolean;
   className?: string;
   fallbackLabel?: string;
+  disableHoverEffect?: boolean;
 }
 
 export default function DecorativeProfileImageFrame({
@@ -16,6 +18,7 @@ export default function DecorativeProfileImageFrame({
   showBadge = false,
   className = '',
   fallbackLabel = 'PHOTO',
+  disableHoverEffect = false,
 }: DecorativeProfileImageFrameProps) {
   return (
     <div className={`relative w-full max-w-[320px] h-[320px] mx-auto md:mx-0 ${className}`}>
@@ -24,7 +27,7 @@ export default function DecorativeProfileImageFrame({
       <div className="absolute top-0 left-0 w-[50px] h-[250px] bg-[#0B2E59] z-0" />
 
       {/* Main profile image */}
-      <div className="absolute top-[28px] left-[28px] w-[280px] h-[280px] bg-[#F7F7F7] border border-[#E5E7EB] overflow-hidden z-10">
+      <div className={`absolute top-[28px] left-[28px] w-[280px] h-[280px] bg-[#F7F7F7] border border-[#E5E7EB] overflow-hidden z-10${disableHoverEffect ? '' : ' person-photo-glow'}`}>
         <CmsImage
           src={src}
           alt={alt}
@@ -38,7 +41,7 @@ export default function DecorativeProfileImageFrame({
       {showBadge && (
         <div className="absolute top-[7px] left-[7px] w-[80px] h-[80px] rounded-full bg-white border-[4px] border-white shadow-md overflow-hidden z-20 flex items-center justify-center p-[2px]">
           <img
-            src="/round-logo.png"
+            src={roundLogo}
             alt="FAST NUCES Logo"
             className="w-full h-full object-contain scale-[1.5]"
           />

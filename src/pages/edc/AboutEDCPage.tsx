@@ -28,7 +28,7 @@ export default function AboutEDCPage() {
     <div className="w-full bg-white">
       <AboutPageHero title={title} backgroundImage={heroImage} />
 
-      <div className="w-full max-w-[1180px] mx-auto px-[20px] min-[700px]:px-[24px] py-[40px] min-[700px]:py-[50px] min-[1100px]:pt-[65px] min-[1100px]:pb-[85px] text-[#444444] text-[16px] leading-[1.75] font-normal text-left space-y-[24px]">
+      <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px] py-[40px] min-[700px]:py-[50px] min-[1100px]:pt-[65px] min-[1100px]:pb-[85px] text-[#444444] text-[16px] leading-[1.75] font-normal text-left space-y-[24px]">
         <div>
           <h2 className="text-[22px] font-bold text-[#0C71C3] uppercase mb-2">Overview</h2>
           <p>

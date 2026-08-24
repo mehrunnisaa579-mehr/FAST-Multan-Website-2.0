@@ -8,6 +8,9 @@ import { cmsService } from '../../services/cmsService';
 import { Save, CheckCircle2, AlertCircle, Upload, ImageIcon, ArrowLeft, FileText, Download, Archive } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
+
 export default function AdminBrandGuidelineEditor() {
   const [heroTitle, setHeroTitle] = useState('NUCES Brand Identity Guideline');
   const [heroImage, setHeroImage] = useState('');
@@ -26,37 +29,21 @@ export default function AdminBrandGuidelineEditor() {
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  useEffect(() => {
-    const loadData = async () => {
-      const data = await cmsService.getSetting<any>('useful_links_content', null);
-      if (data) {
-        if (data.brandHeroTitle) setHeroTitle(data.brandHeroTitle);
-        if (data.brandHeroImage) setHeroImage(data.brandHeroImage);
-        if (data.brandHeading) setHeading(data.brandHeading);
+  const { cropperProps, openCropper } = useImageCropper();
 
-        if (data.brandPdfUrl) setBrandPdfUrl(data.brandPdfUrl);
-        if (data.brandPdfFileName) setBrandPdfFileName(data.brandPdfFileName);
-
-        if (data.logoResourceUrl) setLogoResourceUrl(data.logoResourceUrl);
-        if (data.logoResourceFileName) setLogoResourceFileName(data.logoResourceFileName);
-
-        if (data.logoBtnLabel) setLogoBtnLabel(data.logoBtnLabel);
-        if (data.guidebookBtnLabel2) setGuidebookBtnLabel(data.guidebookBtnLabel2);
-      }
-    };
-    loadData();
-  }, []);
-
-  const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setHeroImage(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const handleHeroUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setHeroImage(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      { aspectRatio: 16 / 9, title: 'Crop Hero Banner Image (16:9 Wide)' }
+    );
   };
 
   const handleBrandPdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -334,6 +321,8 @@ export default function AdminBrandGuidelineEditor() {
           Save Page Changes
         </AdminButton>
       </div>
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

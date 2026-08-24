@@ -58,8 +58,14 @@ export default function AdminStudentGuideBookEditor() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.size > 15 * 1024 * 1024) {
+      alert('File size must not exceed 15 MB.');
+      return;
+    }
+
     setUploadingPdf(true);
-    const res = await cmsService.uploadMedia(file);
+    // Increased size limit to 15MB for Student Handbook as requested
+    const res = await cmsService.uploadMedia(file, { maxSizeBytes: 15 * 1024 * 1024 });
     if (res.success && res.publicUrl) {
       setPdfUrl(res.publicUrl);
       setPdfFileName(file.name);

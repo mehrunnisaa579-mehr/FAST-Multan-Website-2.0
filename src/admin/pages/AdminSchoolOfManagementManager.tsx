@@ -12,6 +12,8 @@ import FacultyEditModal, { type FacultyMemberData } from '../components/ui/Facul
 import ImageCropModal from '../components/ui/ImageCropModal';
 import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
+import { useAdminAuth } from '../auth/useAdminAuth';
+import { canAccessDepartmentSection } from '../config/rolePermissions';
 import {
   Save,
   Plus,
@@ -52,6 +54,7 @@ interface MgmtFacultyItem extends FacultyMemberData {
 
 
 export default function AdminSchoolOfManagementManager() {
+  const { adminProfile } = useAdminAuth();
   const [heroTitle, setHeroTitle] = useState('FAST School Of Management');
   const [heroImageUrl, setHeroImageUrl] = useState('');
 
@@ -427,6 +430,7 @@ export default function AdminSchoolOfManagementManager() {
       )}
 
       {/* Hero Section */}
+      {canAccessDepartmentSection(adminProfile?.role, 'hero') && (
       <AdminSection title="School Hero Banner" description="Manage page title and hero background image.">
         <AdminCard className="space-y-4">
           <AdminFormGroup label="Page Hero Title">
@@ -464,8 +468,10 @@ export default function AdminSchoolOfManagementManager() {
           </AdminFormGroup>
         </AdminCard>
       </AdminSection>
+      )}
 
       {/* Head of Department Section */}
+      {canAccessDepartmentSection(adminProfile?.role, 'hod') && (
       <AdminSection title="Head, Department of Management Sciences" description="Manage HOD details, photograph, contact information, and academic profile.">
         <AdminCard className="space-y-6">
           <div className="space-y-4">
@@ -494,7 +500,7 @@ export default function AdminSchoolOfManagementManager() {
                   <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
                     <Upload className="w-3.5 h-3.5" />
                     <span>{headPhotoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeadPhotoUrl, { aspectRatio: 3 / 4, title: 'Crop Head Photograph (3:4 Rectangle)' })} />
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeadPhotoUrl, { aspectRatio: 13 / 15, title: 'Crop Head Photograph (13:15 Rectangle)' })} />
                   </label>
 
                   {headPhotoUrl && (
@@ -550,8 +556,10 @@ export default function AdminSchoolOfManagementManager() {
           </div>
         </AdminCard>
       </AdminSection>
+      )}
 
       {/* Programs Section */}
+      {canAccessDepartmentSection(adminProfile?.role, 'programs') && (
       <AdminSection
         title="Management Degree Programs"
         description="Add, edit, reorder, or remove degree programs for FAST School of Management."
@@ -615,8 +623,11 @@ export default function AdminSchoolOfManagementManager() {
           ))}
         </div>
       </AdminSection>
+      )}
+
 
       {/* Faculty Section */}
+      {canAccessDepartmentSection(adminProfile?.role, 'faculty') && (
       <AdminSection
         title="Management Faculty Members"
         description="Add, edit, reorder, or remove faculty members assigned to FAST School of Management."
@@ -685,9 +696,11 @@ export default function AdminSchoolOfManagementManager() {
           ))}
         </div>
       </AdminSection>
+      )}
 
 
       {/* Allied Faculty Section */}
+      {canAccessDepartmentSection(adminProfile?.role, 'alliedFaculty') && (
       <AdminSection
         title="Allied Faculty Section"
         description="Manage Allied Faculty members and section visibility on the public website."
@@ -775,6 +788,7 @@ export default function AdminSchoolOfManagementManager() {
           </div>
         </AdminCard>
       </AdminSection>
+      )}
 
       {/* Edit Program Modal */}
       <AdminModal

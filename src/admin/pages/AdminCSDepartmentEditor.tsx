@@ -13,6 +13,8 @@ import ImageCropModal from '../components/ui/ImageCropModal';
 import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
 import { archiveService } from '../../services/archiveService';
+import { useAdminAuth } from '../auth/useAdminAuth';
+import { canAccessDepartmentSection } from '../config/rolePermissions';
 import { csPrograms, csFaculty, csResearchAreas } from '../../data/departments';
 import {
   Save,
@@ -69,6 +71,8 @@ interface CSResearchItem {
 }
 
 export default function AdminCSDepartmentEditor() {
+  const { adminProfile } = useAdminAuth();
+
   // Hero Section State
   const [heroTitle, setHeroTitle] = useState('Department Of Computer Science');
   const [heroImageUrl, setHeroImageUrl] = useState('');
@@ -555,6 +559,7 @@ export default function AdminCSDepartmentEditor() {
       )}
 
       {/* 1. HERO SECTION */}
+      {canAccessDepartmentSection(adminProfile?.role, 'hero') && (
       <div className="border border-[#E5E7EB] rounded-lg bg-white overflow-hidden shadow-xs">
         <button
           type="button"
@@ -606,8 +611,10 @@ export default function AdminCSDepartmentEditor() {
           </div>
         )}
       </div>
+      )}
 
       {/* 2. HOD'S MESSAGE SECTION */}
+      {canAccessDepartmentSection(adminProfile?.role, 'hod') && (
       <div className="border border-[#E5E7EB] rounded-lg bg-white overflow-hidden shadow-xs">
         <button
           type="button"
@@ -653,7 +660,7 @@ export default function AdminCSDepartmentEditor() {
                     <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
                       <Upload className="w-3.5 h-3.5" />
                       <span>{hodPhotoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHodPhotoUrl, { aspectRatio: 3 / 4, title: 'Crop HOD Photograph (3:4 Rectangle)' })} />
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHodPhotoUrl, { aspectRatio: 13 / 15, title: 'Crop HOD Photograph (13:15 Rectangle)' })} />
                     </label>
 
                     {hodPhotoUrl && (
@@ -707,8 +714,10 @@ export default function AdminCSDepartmentEditor() {
           </div>
         )}
       </div>
+      )}
 
       {/* 3. OUR PROGRAMS SECTION */}
+      {canAccessDepartmentSection(adminProfile?.role, 'programs') && (
       <div className="border border-[#E5E7EB] rounded-lg bg-white overflow-hidden shadow-xs">
         <button
           type="button"
@@ -802,8 +811,10 @@ export default function AdminCSDepartmentEditor() {
           </div>
         )}
       </div>
+      )}
 
       {/* 4. DEPARTMENT FACULTY SECTION */}
+      {canAccessDepartmentSection(adminProfile?.role, 'faculty') && (
       <div className="border border-[#E5E7EB] rounded-lg bg-white overflow-hidden shadow-xs">
         <button
           type="button"
@@ -897,8 +908,10 @@ export default function AdminCSDepartmentEditor() {
           </div>
         )}
       </div>
+      )}
 
       {/* 5. ALLIED FACULTY SECTION */}
+      {canAccessDepartmentSection(adminProfile?.role, 'alliedFaculty') && (
       <div className="border border-[#E5E7EB] rounded-lg bg-white overflow-hidden shadow-xs">
         <button
           type="button"
@@ -994,8 +1007,10 @@ export default function AdminCSDepartmentEditor() {
           </div>
         )}
       </div>
+      )}
 
       {/* 6. RESEARCH GROUPS & AREAS SECTION (CS ONLY) */}
+      {canAccessDepartmentSection(adminProfile?.role, 'research') && (
       <div className="border border-[#E5E7EB] rounded-lg bg-white overflow-hidden shadow-xs">
         <button
           type="button"
@@ -1085,6 +1100,7 @@ export default function AdminCSDepartmentEditor() {
           </div>
         )}
       </div>
+      )}
 
       {/* Program Edit Modal */}
       <AdminModal

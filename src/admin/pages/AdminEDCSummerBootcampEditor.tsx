@@ -5,24 +5,12 @@ import AdminButton from '../components/ui/AdminButton';
 import AdminFormGroup from '../components/ui/AdminFormGroup';
 import AdminInput from '../components/ui/AdminInput';
 import AdminTextarea from '../components/ui/AdminTextarea';
-import AdminToggle from '../components/ui/AdminToggle';
-import AdminModal from '../components/ui/AdminModal';
 import ImageCropModal from '../components/ui/ImageCropModal';
 import { useImageCropper } from '../hooks/useImageCropper';
 import { cmsService } from '../../services/cmsService';
-import { bootcampModules as defaultModules, bootcampSchedule as defaultSchedule } from '../../data/edc';
-import { Save, CheckCircle2, AlertCircle, Upload, ImageIcon, ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Edit2, BookOpen } from 'lucide-react';
+import { Save, CheckCircle2, AlertCircle, Upload, ImageIcon, ArrowLeft, BookOpen, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-export interface BootcampModuleCMS {
-  id: string;
-  title: string;
-  description: string;
-  icon_url?: string;
-  icon?: string;
-  display_order: number;
-  is_visible: boolean;
-}
+import bootcampPoster from '../../assets/images/bootcamp_course_poster.png';
 
 export default function AdminEDCSummerBootcampEditor() {
   const [heroTitle, setHeroTitle] = useState('Summer Bootcamp 2026');
@@ -33,17 +21,21 @@ export default function AdminEDCSummerBootcampEditor() {
     'The Summer Bootcamp 2026 is an intensive executive training program organized by the Executive Development Centre (EDC) at FAST-NUCES Multan Campus to enhance leadership, analytical, and digital skills.\n\nDesigned for corporate professionals, entrepreneurs, and advanced students, the bootcamp combines interactive lectures, practical case studies, and hands-on group project mentorship.'
   );
 
-  const [modules, setModules] = useState<BootcampModuleCMS[]>([]);
-  const [schedule, setSchedule] = useState<{ day: string; session: string; time: string }[]>(defaultSchedule);
-
-  const [openingDate, setOpeningDate] = useState('Registration opening date');
-  const [eligibility, setEligibility] = useState('Eligibility criteria & prerequisites');
-  const [fee, setFee] = useState('Registration fee structure');
-  const [contact, setContact] = useState('EDC Multan contact email & phone');
-
-  // Module modal
-  const [isModuleModalOpen, setIsModuleModalOpen] = useState(false);
-  const [editingModule, setEditingModule] = useState<Partial<BootcampModuleCMS> | null>(null);
+  const [promoImage, setPromoImage] = useState(bootcampPoster);
+  const [courseTitle, setCourseTitle] = useState('Full Stack Web Development & Freelancing Bootcamp');
+  const [objectives, setObjectives] = useState<string[]>([
+    'Master modern front-end & back-end technologies (React, Node.js, Express, MongoDB/SQL).',
+    'Build production-ready full stack web applications from scratch.',
+    'Learn professional freelancing strategies, client acquisition, and proposal writing on platforms like Upwork and Fiverr.',
+    'Gain hands-on experience through real-world capstone projects and industry-standard workflows.',
+  ]);
+  const [learningOutcomes, setLearningOutcomes] = useState<string[]>([
+    'Develop responsive, dynamic web applications using React and modern JavaScript.',
+    'Design and deploy RESTful APIs and secure database architectures.',
+    'Utilize Git and GitHub for version control and team collaboration.',
+    'Launch and optimize freelancing profiles to secure high-paying global clients.',
+    'Deliver end-to-end web development solutions from client requirements to production deployment.',
+  ]);
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -57,41 +49,11 @@ export default function AdminEDCSummerBootcampEditor() {
         if (data.title) setTitle(data.title);
         if (data.subtitle) setSubtitle(data.subtitle);
         if (data.overview) setOverview(data.overview);
-
-        if (data.openingDate) setOpeningDate(data.openingDate);
-        if (data.eligibility) setEligibility(data.eligibility);
-        if (data.fee) setFee(data.fee);
-        if (data.contact) setContact(data.contact);
-
-        if (data.modules && Array.isArray(data.modules) && data.modules.length > 0) {
-          setModules(data.modules);
-        } else {
-          setModules(
-            defaultModules.map((m, idx) => ({
-              id: m.id,
-              title: m.title,
-              description: m.description,
-              icon_url: '',
-              display_order: idx + 1,
-              is_visible: true,
-            }))
-          );
-        }
-
-        if (data.schedule && Array.isArray(data.schedule)) {
-          setSchedule(data.schedule);
-        }
-      } else {
-        setModules(
-          defaultModules.map((m, idx) => ({
-            id: m.id,
-            title: m.title,
-            description: m.description,
-            icon_url: '',
-            display_order: idx + 1,
-            is_visible: true,
-          }))
-        );
+        
+        if (data.promoImage) setPromoImage(data.promoImage);
+        if (data.courseTitle) setCourseTitle(data.courseTitle);
+        if (data.objectives && Array.isArray(data.objectives)) setObjectives(data.objectives);
+        if (data.learningOutcomes && Array.isArray(data.learningOutcomes)) setLearningOutcomes(data.learningOutcomes);
       }
     };
     loadData();
@@ -99,22 +61,7 @@ export default function AdminEDCSummerBootcampEditor() {
 
   const { cropperProps, openCropper } = useImageCropper();
 
-  const handleHeroUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    openCropper(
-      e,
-      async (croppedFile) => {
-        const res = await cmsService.uploadMedia(croppedFile);
-        if (res.success && res.publicUrl) {
-          setHeroImage(res.publicUrl);
-        } else {
-          alert(`Upload failed: ${res.error}`);
-        }
-      },
-      { aspectRatio: 16 / 9, title: 'Crop Bootcamp Hero Image (16:9 Wide)' }
-    );
-  };
-
-  const handleIconUpload = (e: React.ChangeEvent<HTMLInputElement>, setUrlFn: (url: string) => void) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, setUrlFn: (url: string) => void, aspect: number, cropTitle: string) => {
     openCropper(
       e,
       async (croppedFile) => {
@@ -122,98 +69,21 @@ export default function AdminEDCSummerBootcampEditor() {
         if (res.success && res.publicUrl) {
           setUrlFn(res.publicUrl);
         } else {
-          alert(`Icon upload failed: ${res.error}`);
+          alert(`Upload failed: ${res.error}`);
         }
       },
-      { aspectRatio: 1 / 1, cropShape: 'round', title: 'Crop Module Icon (1:1 Round)' }
+      { aspectRatio: aspect, title: cropTitle }
     );
   };
 
-  // Module handlers
-  const handleOpenAddModule = () => {
-    setEditingModule({
-      id: `mod-${Date.now()}`,
-      title: '',
-      description: '',
-      icon_url: '',
-      display_order: modules.length + 1,
-      is_visible: true,
-    });
-    setIsModuleModalOpen(true);
-  };
-
-  const handleOpenEditModule = (mod: BootcampModuleCMS) => {
-    setEditingModule({ ...mod });
-    setIsModuleModalOpen(true);
-  };
-
-  const handleSaveModuleModal = () => {
-    if (!editingModule?.title?.trim()) {
-      alert('Please enter Module Title.');
-      return;
-    }
-
-    const finalItem: BootcampModuleCMS = {
-      id: editingModule.id || `mod-${Date.now()}`,
-      title: editingModule.title.trim(),
-      description: editingModule.description || '',
-      icon_url: editingModule.icon_url || '',
-      display_order: editingModule.display_order || modules.length + 1,
-      is_visible: editingModule.is_visible ?? true,
-    };
-
-    const updated = [...modules];
-    const idx = updated.findIndex((m) => m.id === finalItem.id);
-    if (idx >= 0) {
-      updated[idx] = finalItem;
-    } else {
-      updated.push(finalItem);
-    }
-
-    setModules(updated);
-    setIsModuleModalOpen(false);
-  };
-
-  const handleDeleteModule = (id: string) => {
-    setModules((prev) => prev.filter((m) => m.id !== id));
-  };
-
-  const handleMoveModule = (idx: number, dir: 'up' | 'down') => {
+  const handleArrayMove = (arr: string[], setArr: (val: string[]) => void, idx: number, dir: 'up' | 'down') => {
     const targetIdx = dir === 'up' ? idx - 1 : idx + 1;
-    if (targetIdx < 0 || targetIdx >= modules.length) return;
-    const next = [...modules];
+    if (targetIdx < 0 || targetIdx >= arr.length) return;
+    const next = [...arr];
     const temp = next[idx];
     next[idx] = next[targetIdx];
     next[targetIdx] = temp;
-    next.forEach((m, i) => (m.display_order = i + 1));
-    setModules(next);
-  };
-
-  const handleToggleModuleVisibility = (id: string) => {
-    setModules((prev) => prev.map((m) => (m.id === id ? { ...m, is_visible: !m.is_visible } : m)));
-  };
-
-  // Schedule handlers
-  const handleAddScheduleRow = () => {
-    setSchedule((prev) => [...prev, { day: `Day ${prev.length + 1}`, session: 'New Bootcamp Session', time: '09:00 AM - 04:00 PM' }]);
-  };
-
-  const handleScheduleChange = (idx: number, field: 'day' | 'session' | 'time', val: string) => {
-    setSchedule((prev) => prev.map((r, i) => (i === idx ? { ...r, [field]: val } : r)));
-  };
-
-  const handleDeleteScheduleRow = (idx: number) => {
-    setSchedule((prev) => prev.filter((_, i) => i !== idx));
-  };
-
-  const handleMoveScheduleRow = (idx: number, dir: 'up' | 'down') => {
-    const targetIdx = dir === 'up' ? idx - 1 : idx + 1;
-    if (targetIdx < 0 || targetIdx >= schedule.length) return;
-    const next = [...schedule];
-    const temp = next[idx];
-    next[idx] = next[targetIdx];
-    next[targetIdx] = temp;
-    setSchedule(next);
+    setArr(next);
   };
 
   const handleSave = async () => {
@@ -226,12 +96,10 @@ export default function AdminEDCSummerBootcampEditor() {
       title,
       subtitle,
       overview,
-      modules: modules.map((m, i) => ({ ...m, display_order: i + 1 })),
-      schedule,
-      openingDate,
-      eligibility,
-      fee,
-      contact,
+      promoImage,
+      courseTitle,
+      objectives,
+      learningOutcomes,
       updated_at: new Date().toISOString(),
     };
 
@@ -257,8 +125,8 @@ export default function AdminEDCSummerBootcampEditor() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <AdminPageHeader
-          title="Edit Summer Bootcamp 2026 Page"
-          subtitle="Manage bootcamp hero title, media, overview, modules, schedule rows, and registration information for /edc/workshops/summer-bootcamp-2026."
+          title="Summer Bootcamp 2026 Settings"
+          subtitle="Manage the basic information and the specific content structure for the Summer Bootcamp 2026 page."
           action={
             <AdminButton variant="primary" onClick={handleSave} loading={saving} icon={<Save className="w-4 h-4" />}>
               Save Page Changes
@@ -284,11 +152,11 @@ export default function AdminEDCSummerBootcampEditor() {
         </div>
       )}
 
-      {/* Hero */}
+      {/* Basic Information */}
       <AdminCard className="space-y-4">
         <h3 className="text-base font-bold text-[#1F2937] border-b border-[#F3F4F6] pb-2 flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-[#0093DD]" />
-          <span>1. Hero Banner & Overview Settings</span>
+          <span>Basic Information</span>
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -296,16 +164,16 @@ export default function AdminEDCSummerBootcampEditor() {
             <AdminInput value={heroTitle} onChange={(e) => setHeroTitle(e.target.value)} />
           </AdminFormGroup>
 
-          <AdminFormGroup label="Workshop Main Title">
+          <AdminFormGroup label="Workshop Title">
             <AdminInput value={title} onChange={(e) => setTitle(e.target.value)} />
           </AdminFormGroup>
         </div>
 
-        <AdminFormGroup label="Workshop Subtitle / Organizer Metadata">
+        <AdminFormGroup label="Organization / Subtitle">
           <AdminInput value={subtitle} onChange={(e) => setSubtitle(e.target.value)} />
         </AdminFormGroup>
 
-        <AdminFormGroup label="Hero Background Image Upload (Preview / Replace / Remove)">
+        <AdminFormGroup label="Hero Background Image">
           <div className="flex items-center gap-4">
             <div className="w-24 h-14 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
               {heroImage ? (
@@ -314,14 +182,12 @@ export default function AdminEDCSummerBootcampEditor() {
                 <ImageIcon className="w-6 h-6 text-[#9CA3AF]" />
               )}
             </div>
-
             <div className="flex gap-2">
               <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
                 <Upload className="w-4 h-4" />
                 <span>{heroImage ? 'Replace Image' : 'Upload Image'}</span>
-                <input type="file" accept="image/*" className="hidden" onChange={handleHeroUpload} />
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, setHeroImage, 16 / 9, 'Crop Bootcamp Hero Image')} />
               </label>
-
               {heroImage && (
                 <button
                   type="button"
@@ -335,114 +201,127 @@ export default function AdminEDCSummerBootcampEditor() {
           </div>
         </AdminFormGroup>
 
-        <AdminFormGroup label="Workshop Overview Text (Use double linebreaks between paragraphs)">
+        <AdminFormGroup label="Workshop Overview">
           <AdminTextarea rows={5} value={overview} onChange={(e) => setOverview(e.target.value)} />
         </AdminFormGroup>
       </AdminCard>
 
-      {/* Bootcamp Modules */}
-      <AdminCard className="space-y-4">
-        <div className="flex items-center justify-between border-b border-[#F3F4F6] pb-2">
-          <h3 className="text-base font-bold text-[#1F2937]">2. Bootcamp Modules</h3>
-          <AdminButton variant="secondary" onClick={handleOpenAddModule} icon={<Plus className="w-3.5 h-3.5" />}>
-            Add Module
-          </AdminButton>
-        </div>
-
-        <div className="space-y-3">
-          {modules.map((mod, idx) => (
-            <div key={mod.id} className="p-4 border border-[#E5E7EB] rounded-md bg-[#F9FAFB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white border border-[#E5E7EB] rounded flex items-center justify-center flex-shrink-0 text-[#0093DD]">
-                  {mod.icon_url ? (
-                    <img src={mod.icon_url} alt="Icon" className="w-full h-full object-cover rounded" />
-                  ) : (
-                    <BookOpen className="w-5 h-5" />
-                  )}
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-bold text-[#1F2937]">{mod.title}</h4>
-                  <p className="text-xs text-[#6B7280] line-clamp-1">{mod.description}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 self-end sm:self-center">
-                <button type="button" onClick={() => handleMoveModule(idx, 'up')} disabled={idx === 0} className="p-2 border rounded bg-white text-gray-600 disabled:opacity-30">
-                  <ArrowUp className="w-3.5 h-3.5" />
-                </button>
-                <button type="button" onClick={() => handleMoveModule(idx, 'down')} disabled={idx === modules.length - 1} className="p-2 border rounded bg-white text-gray-600 disabled:opacity-30">
-                  <ArrowDown className="w-3.5 h-3.5" />
-                </button>
-                <AdminButton variant="secondary" onClick={() => handleOpenEditModule(mod)} icon={<Edit2 className="w-3.5 h-3.5" />}>
-                  Edit
-                </AdminButton>
-                <AdminButton variant="danger" onClick={() => handleDeleteModule(mod.id)} icon={<Trash2 className="w-3.5 h-3.5" />}>
-                  Delete
-                </AdminButton>
-              </div>
-            </div>
-          ))}
-        </div>
-      </AdminCard>
-
-      {/* Bootcamp Schedule */}
-      <AdminCard className="space-y-4">
-        <div className="flex items-center justify-between border-b border-[#F3F4F6] pb-2">
-          <h3 className="text-base font-bold text-[#1F2937]">3. Bootcamp Schedule Rows</h3>
-          <AdminButton variant="secondary" onClick={handleAddScheduleRow} icon={<Plus className="w-3.5 h-3.5" />}>
-            Add Schedule Row
-          </AdminButton>
-        </div>
-
-        <div className="space-y-2">
-          {schedule.map((row, idx) => (
-            <div key={idx} className="p-3 border border-[#E5E7EB] rounded-md bg-[#F9FAFB] flex flex-col sm:flex-row items-center gap-3">
-              <div className="w-full sm:w-1/4">
-                <AdminInput value={row.day} onChange={(e) => handleScheduleChange(idx, 'day', e.target.value)} placeholder="Day (e.g. Day 1)" />
-              </div>
-              <div className="w-full sm:w-2/4">
-                <AdminInput value={row.session} onChange={(e) => handleScheduleChange(idx, 'session', e.target.value)} placeholder="Session Title" />
-              </div>
-              <div className="w-full sm:w-1/4 flex items-center gap-2">
-                <AdminInput value={row.time} onChange={(e) => handleScheduleChange(idx, 'time', e.target.value)} placeholder="Time" />
-                <button type="button" onClick={() => handleMoveScheduleRow(idx, 'up')} disabled={idx === 0} className="p-2 border rounded bg-white text-gray-600 disabled:opacity-30">
-                  <ArrowUp className="w-3.5 h-3.5" />
-                </button>
-                <button type="button" onClick={() => handleMoveScheduleRow(idx, 'down')} disabled={idx === schedule.length - 1} className="p-2 border rounded bg-white text-gray-600 disabled:opacity-30">
-                  <ArrowDown className="w-3.5 h-3.5" />
-                </button>
-                <button type="button" onClick={() => handleDeleteScheduleRow(idx)} className="p-2 text-red-600 bg-red-50 border border-red-200 rounded">
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </AdminCard>
-
-      {/* Registration Details */}
-      <AdminCard className="space-y-4">
-        <h3 className="text-base font-bold text-[#1F2937] border-b border-[#F3F4F6] pb-2">
-          4. Registration Details
+      {/* Workshop Content */}
+      <AdminCard className="space-y-6">
+        <h3 className="text-base font-bold text-[#1F2937] border-b border-[#F3F4F6] pb-2 flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-[#0093DD]" />
+          <span>Workshop Content</span>
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AdminFormGroup label="Registration Opening Date">
-            <AdminInput value={openingDate} onChange={(e) => setOpeningDate(e.target.value)} />
-          </AdminFormGroup>
+        <AdminFormGroup label="Promotional Image (Left Side Banner)">
+          <div className="flex items-start gap-4">
+            <div className="w-32 h-40 bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center flex-shrink-0 shadow-sm">
+              {promoImage ? (
+                <img src={promoImage} alt="Promo Preview" className="w-full h-full object-cover" />
+              ) : (
+                <ImageIcon className="w-8 h-8 text-[#9CA3AF]" />
+              )}
+            </div>
+            <div className="flex flex-col gap-2 pt-2">
+              <label className="px-3.5 py-2 w-max bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
+                <Upload className="w-4 h-4" />
+                <span>{promoImage ? 'Replace Promotional Image' : 'Upload Promotional Image'}</span>
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, setPromoImage, 3 / 4, 'Crop Promotional Image')} />
+              </label>
+              {promoImage && (
+                <button
+                  type="button"
+                  onClick={() => setPromoImage('')}
+                  className="px-3.5 py-2 w-max bg-red-50 hover:bg-red-100 text-[#DC2626] text-xs font-semibold rounded-md border border-red-200 cursor-pointer"
+                >
+                  Remove Image
+                </button>
+              )}
+              <p className="text-xs text-gray-500 mt-2">Recommended size: Portrait or vertical flyer format.</p>
+            </div>
+          </div>
+        </AdminFormGroup>
 
-          <AdminFormGroup label="Eligibility & Prerequisites">
-            <AdminInput value={eligibility} onChange={(e) => setEligibility(e.target.value)} />
-          </AdminFormGroup>
+        <AdminFormGroup label="Course Title (Right Side Heading)">
+          <AdminInput value={courseTitle} onChange={(e) => setCourseTitle(e.target.value)} />
+        </AdminFormGroup>
 
-          <AdminFormGroup label="Registration Fee Structure">
-            <AdminInput value={fee} onChange={(e) => setFee(e.target.value)} />
-          </AdminFormGroup>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between border-b border-[#F3F4F6] pb-2">
+            <h4 className="text-sm font-bold text-[#1F2937]">Objectives</h4>
+            <AdminButton variant="secondary" onClick={() => setObjectives([...objectives, ''])} icon={<Plus className="w-3.5 h-3.5" />}>
+              Add Objective
+            </AdminButton>
+          </div>
+          <div className="space-y-2">
+            {objectives.map((obj, idx) => (
+              <div key={idx} className="flex items-start gap-2">
+                <div className="flex-1">
+                  <AdminTextarea
+                    rows={2}
+                    value={obj}
+                    onChange={(e) => {
+                      const updated = [...objectives];
+                      updated[idx] = e.target.value;
+                      setObjectives(updated);
+                    }}
+                    placeholder={`Objective ${idx + 1}`}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <button type="button" onClick={() => handleArrayMove(objectives, setObjectives, idx, 'up')} disabled={idx === 0} className="p-1.5 border rounded bg-white text-gray-600 disabled:opacity-30">
+                    <ArrowUp className="w-3 h-3" />
+                  </button>
+                  <button type="button" onClick={() => handleArrayMove(objectives, setObjectives, idx, 'down')} disabled={idx === objectives.length - 1} className="p-1.5 border rounded bg-white text-gray-600 disabled:opacity-30">
+                    <ArrowDown className="w-3 h-3" />
+                  </button>
+                  <button type="button" onClick={() => setObjectives(objectives.filter((_, i) => i !== idx))} className="p-1.5 text-red-600 bg-red-50 border border-red-200 rounded mt-1">
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            ))}
+            {objectives.length === 0 && <p className="text-sm text-gray-500 italic">No objectives added.</p>}
+          </div>
+        </div>
 
-          <AdminFormGroup label="Contact Details (Email / Phone)">
-            <AdminInput value={contact} onChange={(e) => setContact(e.target.value)} />
-          </AdminFormGroup>
+        <div className="space-y-3 pt-4 border-t border-[#E5E7EB]">
+          <div className="flex items-center justify-between border-b border-[#F3F4F6] pb-2">
+            <h4 className="text-sm font-bold text-[#1F2937]">Learning Outcomes</h4>
+            <AdminButton variant="secondary" onClick={() => setLearningOutcomes([...learningOutcomes, ''])} icon={<Plus className="w-3.5 h-3.5" />}>
+              Add Learning Outcome
+            </AdminButton>
+          </div>
+          <div className="space-y-2">
+            {learningOutcomes.map((outcome, idx) => (
+              <div key={idx} className="flex items-start gap-2">
+                <div className="flex-1">
+                  <AdminTextarea
+                    rows={2}
+                    value={outcome}
+                    onChange={(e) => {
+                      const updated = [...learningOutcomes];
+                      updated[idx] = e.target.value;
+                      setLearningOutcomes(updated);
+                    }}
+                    placeholder={`Learning Outcome ${idx + 1}`}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <button type="button" onClick={() => handleArrayMove(learningOutcomes, setLearningOutcomes, idx, 'up')} disabled={idx === 0} className="p-1.5 border rounded bg-white text-gray-600 disabled:opacity-30">
+                    <ArrowUp className="w-3 h-3" />
+                  </button>
+                  <button type="button" onClick={() => handleArrayMove(learningOutcomes, setLearningOutcomes, idx, 'down')} disabled={idx === learningOutcomes.length - 1} className="p-1.5 border rounded bg-white text-gray-600 disabled:opacity-30">
+                    <ArrowDown className="w-3 h-3" />
+                  </button>
+                  <button type="button" onClick={() => setLearningOutcomes(learningOutcomes.filter((_, i) => i !== idx))} className="p-1.5 text-red-600 bg-red-50 border border-red-200 rounded mt-1">
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            ))}
+            {learningOutcomes.length === 0 && <p className="text-sm text-gray-500 italic">No learning outcomes added.</p>}
+          </div>
         </div>
       </AdminCard>
 
@@ -451,75 +330,6 @@ export default function AdminEDCSummerBootcampEditor() {
           Save Page Changes
         </AdminButton>
       </div>
-
-      {/* Module Add/Edit Modal */}
-      <AdminModal
-        isOpen={isModuleModalOpen}
-        onClose={() => setIsModuleModalOpen(false)}
-        title={editingModule?.id && modules.some((m) => m.id === editingModule.id) ? 'Edit Bootcamp Module' : 'Add New Bootcamp Module'}
-        maxWidth="md"
-        footer={
-          <>
-            <AdminButton variant="secondary" onClick={() => setIsModuleModalOpen(false)}>
-              Cancel
-            </AdminButton>
-            <AdminButton variant="primary" onClick={handleSaveModuleModal}>
-              Save Module
-            </AdminButton>
-          </>
-        }
-      >
-        <div className="space-y-4 text-left">
-          <AdminFormGroup label="Module Title" required>
-            <AdminInput
-              value={editingModule?.title || ''}
-              onChange={(e) => setEditingModule((prev) => ({ ...prev, title: e.target.value }))}
-              placeholder="e.g. Module 1 — Executive Leadership & Strategy"
-            />
-          </AdminFormGroup>
-
-          <AdminFormGroup label="Module Description">
-            <AdminTextarea
-              rows={3}
-              value={editingModule?.description || ''}
-              onChange={(e) => setEditingModule((prev) => ({ ...prev, description: e.target.value }))}
-              placeholder="Module overview and learning outcomes..."
-            />
-          </AdminFormGroup>
-
-          <AdminFormGroup label="Custom Icon Upload">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#F3F4F6] border border-[#E5E7EB] rounded overflow-hidden flex items-center justify-center flex-shrink-0">
-                {editingModule?.icon_url ? (
-                  <img src={editingModule.icon_url} alt="Icon" className="w-full h-full object-cover" />
-                ) : (
-                  <BookOpen className="w-5 h-5 text-[#9CA3AF]" />
-                )}
-              </div>
-              <label className="px-3 py-1.5 bg-[#0093DD] text-white text-xs font-semibold rounded cursor-pointer">
-                <span>Upload Icon</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => handleIconUpload(e, (url) => setEditingModule((prev) => ({ ...prev, icon_url: url })))}
-                />
-              </label>
-              {editingModule?.icon_url && (
-                <button type="button" onClick={() => setEditingModule((prev) => ({ ...prev, icon_url: '' }))} className="px-3 py-1.5 bg-red-50 text-red-600 text-xs font-semibold rounded border border-red-200">
-                  Remove
-                </button>
-              )}
-            </div>
-          </AdminFormGroup>
-
-          <AdminToggle
-            label="Visible on Website"
-            checked={editingModule?.is_visible ?? true}
-            onChange={(checked) => setEditingModule((prev) => ({ ...prev, is_visible: checked }))}
-          />
-        </div>
-      </AdminModal>
 
       <ImageCropModal {...cropperProps} />
     </div>

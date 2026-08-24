@@ -41,7 +41,7 @@ export default function Footer() {
     <footer className="w-full bg-[#0093DD] text-white">
 
       {/* Main Footer Container */}
-      <div className="w-full max-w-[1180px] mx-auto px-[20px] sm:px-[24px] pt-[48px] min-[700px]:pt-[58px] pb-[40px] min-[700px]:pb-[48px]">
+      <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px] pt-[48px] min-[700px]:pt-[58px] pb-[40px] min-[700px]:pb-[48px]">
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.35fr_1fr_1fr_1.15fr] gap-[40px] min-[1000px]:gap-[50px] items-start text-left">
 
@@ -242,9 +242,12 @@ export default function Footer() {
       </div>
 
       {/* Bottom Copyright Bar */}
-      <div className="w-full bg-[#0093DD] border-t border-white/20 py-[18px] px-[20px]">
-        <div className="max-w-[1180px] mx-auto text-[14px] font-normal text-white/90 text-center">
-          {copyrightText}
+      <div className="w-full bg-[#0093DD] border-t border-white/20 py-[18px] px-[16px] sm:px-[40px]">
+        <div className="max-w-[1300px] mx-auto text-[14px] font-normal text-white/90 text-center">
+          {copyrightText.includes('Developed by') 
+            ? copyrightText.split(/(Developed by .*)/)[0].trim() 
+            : copyrightText.trim()}
+          {' '}Developed by <Link to="/WebTeam" className="hover:text-white hover:underline transition-colors font-medium">DevQuad</Link>
         </div>
       </div>
 

@@ -24,7 +24,11 @@ export default function GalleryPage() {
 
   useEffect(() => {
     const fetchGallery = async () => {
-      const heroSettings = await cmsService.getSetting<any>('campus_gallery_settings', null);
+      const [heroSettings, initialCmsList] = await Promise.all([
+        cmsService.getSetting<any>('campus_gallery_settings', null),
+        cmsService.getSetting<any[]>('campus_gallery_list', []),
+      ]);
+
       if (heroSettings) {
         if (heroSettings.heroTitle) setHeroTitle(heroSettings.heroTitle);
         if (heroSettings.heroImageUrl || heroSettings.heroImage) {
@@ -34,7 +38,7 @@ export default function GalleryPage() {
         }
       }
 
-      let cmsList = await cmsService.getSetting<any[]>('campus_gallery_list', []);
+      let cmsList = initialCmsList;
       if (!cmsList || cmsList.length === 0) {
         const dbItems = await cmsService.getGalleryItems();
         if (dbItems && dbItems.length > 0) {
@@ -94,10 +98,10 @@ export default function GalleryPage() {
             <div
               key={item.id}
               onClick={() => setActiveVideo(item)}
-              className="gallery-card group cursor-pointer relative shadow-sm card-hover-lift overflow-hidden rounded-[4px]"
+              className="gallery-card group cursor-pointer relative shadow-sm card-hover-lift overflow-hidden rounded-[8px]"
             >
               {/* Video/Thumbnail Preview */}
-              <div className="absolute inset-0 w-full h-full">
+              <div className="absolute inset-0 w-full h-full bg-black">
                 {(() => {
                   const videoSrc = item.video_url || '';
                   const isDirectVideo = videoSrc.endsWith('.mp4') || videoSrc.endsWith('.webm') || videoSrc.endsWith('.ogg');
@@ -105,7 +109,7 @@ export default function GalleryPage() {
 
                   // If there's a separate thumbnail image, use it
                   if (item.thumbnail_url) {
-                    return <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover" />;
+                    return <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />;
                   }
                   // Direct video file → <video> preview
                   if (isDirectVideo && videoSrc) {
@@ -115,17 +119,26 @@ export default function GalleryPage() {
                         muted
                         playsInline
                         preload="metadata"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     );
                   }
-                  // YouTube → auto-thumbnail
+                  // YouTube → auto-thumbnail (Prefer maxresdefault for no black bars)
                   if (ytMatch) {
-                    return <img src={`https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`} alt={item.title} className="w-full h-full object-cover" />;
+                    return (
+                      <img 
+                        src={`https://img.youtube.com/vi/${ytMatch[1]}/maxresdefault.jpg`} 
+                        onError={(e) => {
+                          e.currentTarget.src = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+                        }}
+                        alt={item.title} 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                      />
+                    );
                   }
                   // Fallback placeholder
                   return (
-                    <div className="w-full h-full bg-white flex items-center justify-center">
+                    <div className="w-full h-full bg-[#1A1A1A] flex items-center justify-center transition-transform duration-500 group-hover:scale-105">
                       <span className="text-[13px] font-semibold text-[#888888] tracking-wide">VIDEO</span>
                     </div>
                   );
@@ -133,16 +146,16 @@ export default function GalleryPage() {
               </div>
 
               {/* Centered Red Play Button */}
-              <div className="relative z-10 w-[56px] h-[56px] rounded-full bg-[#FF0000] flex items-center justify-center shadow-md transition-transform duration-200 group-hover:scale-1.08">
-                <Play className="w-[20px] h-[20px] text-white fill-white ml-[3px]" />
+              <div className="relative z-10 w-[60px] h-[60px] rounded-full bg-[#FF0000] flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
+                <Play className="w-[24px] h-[24px] text-white fill-white ml-[4px]" />
               </div>
 
               {/* Bottom Gradient Overlay */}
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent pt-[36px] pb-[16px] px-[16px] flex flex-col text-left z-20">
-                <h3 className="text-[15px] font-bold text-white leading-snug">
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-[50px] pb-[20px] px-[20px] flex flex-col text-left z-20 pointer-events-none">
+                <h3 className="text-[16px] sm:text-[18px] font-semibold text-white leading-tight">
                   {item.title}
                 </h3>
-                <p className="text-[12px] font-medium text-white/85 mt-[3px]">
+                <p className="text-[13px] sm:text-[14px] text-white/90 mt-1 font-medium">
                   {item.subtitle}
                 </p>
               </div>

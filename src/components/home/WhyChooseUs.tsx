@@ -1,34 +1,32 @@
 import { useEffect, useState } from 'react';
 import { homepageContent } from '../../data/homepage';
-import { cmsService } from '../../services/cmsService';
 
-export default function WhyChooseUs() {
+interface WhyChooseUsProps {
+  data?: any;
+}
+
+export default function WhyChooseUs({ data }: WhyChooseUsProps) {
   const [heading, setHeading] = useState('Why Choose Us');
   const [subtitle, setSubtitle] = useState('Discover the FAST-NUCES Multan advantage');
   const [items, setItems] = useState<any[]>(homepageContent.whyChooseUs);
 
   useEffect(() => {
-    const fetchWhyUsData = async () => {
-      const data = await cmsService.getSetting<any>('homepage_full_content', null);
-      if (data) {
-        if (data.whyUsHeading) setHeading(data.whyUsHeading);
-        if (data.whyUsSubtitle) setSubtitle(data.whyUsSubtitle);
-        if (data.whyUsItems && data.whyUsItems.length > 0) {
-          const visibleItems = data.whyUsItems.filter((i: any) => i.visible !== false);
-          if (visibleItems.length > 0) {
-            setItems(visibleItems);
-          }
+    if (data) {
+      if (data.whyUsHeading) setHeading(data.whyUsHeading);
+      if (data.whyUsSubtitle) setSubtitle(data.whyUsSubtitle);
+      if (data.whyUsItems && data.whyUsItems.length > 0) {
+        const visibleItems = data.whyUsItems.filter((i: any) => i.visible !== false);
+        if (visibleItems.length > 0) {
+          setItems(visibleItems);
         }
       }
-    };
-    fetchWhyUsData();
-  }, []);
+    }
+  }, [data]);
 
   return (
     <section className="py-[60px] w-full bg-white">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px]">
-        {/* Section Heading & Subheading */}
-        <h2 className="text-[28px] font-bold text-[#0C71C3] text-center mb-2 relative -top-[20px]">
+        <h2 className="text-[32px] sm:text-[38px] md:text-[40px] lg:text-[46px] leading-[1.1] font-bold text-[#0C71C3] uppercase tracking-tight md:tracking-[-1px] text-center mb-2 relative -top-[20px]">
           {heading}
         </h2>
         <p className="text-[15px] text-[#666666] text-center mb-[40px] font-medium relative -top-[20px]">
@@ -36,7 +34,7 @@ export default function WhyChooseUs() {
         </p>
 
         {/* 4 columns in 1 horizontal row on desktop (lg:grid-cols-4), 2x2 tablet (sm:grid-cols-2), 1 col mobile */}
-        <div className="max-w-[1180px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[32px] justify-items-center">
+        <div className="max-w-[1240px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[32px] justify-items-center">
           {items.map((item, index) => {
             const hasIcon = !!(item.icon || item.iconUrl);
             const iconSrc = item.iconUrl || item.icon;

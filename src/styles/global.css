@@ -70,12 +70,29 @@ p, h1, h2, h3, h4, h5, h6, span, li, td, th, a, blockquote, article, section, di
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.08) !important;
 }
 
+/* ─── Soft Blue Glow / Halo Effect on Hover for Person Photos ─── */
+.person-photo-glow {
+  transition: box-shadow 250ms ease, border-color 250ms ease !important;
+}
+
+.person-photo-glow:hover,
+a:hover .person-photo-glow,
+.group:hover .person-photo-glow,
+.card-hover-lift:hover .person-photo-glow,
+.dept-faculty-wrapper:hover .person-photo-glow {
+  box-shadow: 0 0 0 3px rgba(0, 147, 221, 0.35), 0 0 16px rgba(0, 147, 221, 0.45) !important;
+  border-color: #0093DD !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card-hover-lift {
     transition: none !important;
   }
   .card-hover-lift:hover {
     transform: none !important;
+  }
+  .person-photo-glow {
+    transition: none !important;
   }
 }
 

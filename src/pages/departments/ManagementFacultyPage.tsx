@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import AboutPageHero from '../../components/about/AboutPageHero';
 import DepartmentCard from '../../components/departments/DepartmentCard';
 import { mgmtFaculty } from '../../data/departments';
@@ -55,23 +56,25 @@ export default function ManagementFacultyPage() {
     <div className="dept-page-container">
       <AboutPageHero title="FAST School of Management — Faculty" backgroundImage={heroImage} />
 
-      <div className="w-full max-w-[1180px] mx-auto px-[20px] min-[700px]:px-[24px] py-[40px] min-[700px]:py-[50px] min-[1100px]:pt-[55px] min-[1100px]:pb-[85px]">
+      <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px] py-[40px] min-[700px]:py-[50px] min-[1100px]:pt-[55px] min-[1100px]:pb-[85px]">
         <section className="w-full text-center">
           <h2 className="text-[24px] min-[700px]:text-[28px] font-bold text-[#0C71C3] uppercase mb-[28px] text-center">
             DEPARTMENT FACULTY
           </h2>
 
-          <div className="dept-card-row dept-faculty-grid">
+          <div className="dept-card-row dept-faculty-grid flex flex-wrap justify-center items-start gap-[40px] md:gap-[60px] w-full">
             {facultyList.map((fac) => (
               <div key={fac.id} className="dept-faculty-wrapper">
-                <DepartmentCard
-                  key={fac.id}
-                  variant="faculty"
-                  title={fac.name}
-                  role={fac.designation}
-                  image={fac.photoUrl || fac.photo_url || fac.image}
-                  imageLabel={fac.photoPlaceholder || 'MANAGEMENT FACULTY'}
-                />
+                <Link to={`/people/${fac.slug || fac.id}`} className="no-underline block cursor-pointer h-full">
+                  <DepartmentCard
+                    key={fac.id}
+                    variant="faculty"
+                    title={fac.name}
+                    role={fac.designation}
+                    image={fac.photoUrl || fac.photo_url || fac.image}
+                    imageLabel={fac.photoPlaceholder || 'MANAGEMENT FACULTY'}
+                  />
+                </Link>
               </div>
             ))}
           </div>

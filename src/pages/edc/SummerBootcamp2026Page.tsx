@@ -1,158 +1,211 @@
 import { useEffect, useState } from 'react';
-import { BookOpen } from 'lucide-react';
 import AboutPageHero from '../../components/about/AboutPageHero';
-import { bootcampModules as defaultModules, bootcampSchedule as defaultSchedule } from '../../data/edc';
 import { cmsService } from '../../services/cmsService';
 import '../../styles/edc-pages.css';
+import bootcampPoster from '../../assets/images/bootcamp_course_poster.png';
 
 export default function SummerBootcamp2026Page() {
   const [heroTitle, setHeroTitle] = useState('Summer Bootcamp 2026');
   const [heroImage, setHeroImage] = useState('');
   const [title, setTitle] = useState('Summer Bootcamp 2026');
-  const [subtitle, setSubtitle] = useState('Executive Development Centre — FAST-NUCES Multan Campus');
+  const [subtitle, setSubtitle] = useState(
+    'Executive Development Centre — FAST-NUCES Multan Campus'
+  );
+
   const [overview, setOverview] = useState(
     'The Summer Bootcamp 2026 is an intensive executive training program organized by the Executive Development Centre (EDC) at FAST-NUCES Multan Campus to enhance leadership, analytical, and digital skills.\n\nDesigned for corporate professionals, entrepreneurs, and advanced students, the bootcamp combines interactive lectures, practical case studies, and hands-on group project mentorship.'
   );
-  const [modules, setModules] = useState<any[]>(defaultModules);
-  const [schedule, setSchedule] = useState<any[]>(defaultSchedule);
 
-  const [openingDate, setOpeningDate] = useState('Registration opening date');
-  const [eligibility, setEligibility] = useState('Eligibility criteria & prerequisites');
-  const [fee, setFee] = useState('Registration fee structure');
-  const [contact, setContact] = useState('EDC Multan contact email & phone');
+  const [promoImage, setPromoImage] = useState(bootcampPoster);
+
+  const [courseTitle, setCourseTitle] = useState(
+    'Full Stack Web Development & Freelancing Bootcamp'
+  );
+
+  const [objectives, setObjectives] = useState<string[]>([
+    'Master modern front-end & back-end technologies (React, Node.js, Express, MongoDB/SQL).',
+    'Build production-ready full stack web applications from scratch.',
+    'Learn professional freelancing strategies, client acquisition, and proposal writing on platforms like Upwork and Fiverr.',
+    'Gain hands-on experience through real-world capstone projects and industry-standard workflows.',
+  ]);
+
+  const [learningOutcomes, setLearningOutcomes] = useState<string[]>([
+    'Develop responsive, dynamic web applications using React and modern JavaScript.',
+    'Design and deploy RESTful APIs and secure database architectures.',
+    'Utilize Git and GitHub for version control and team collaboration.',
+    'Launch and optimize freelancing profiles to secure high-paying global clients.',
+    'Deliver end-to-end web development solutions from client requirements to production deployment.',
+  ]);
 
   useEffect(() => {
     const fetchCmsData = async () => {
-      const data = await cmsService.getSetting<any>('edc_bootcamp_content', null);
+      const data = await cmsService.getSetting<any>(
+        'edc_bootcamp_content',
+        null
+      );
+
       if (data) {
         if (data.heroTitle) setHeroTitle(data.heroTitle);
         if (data.heroImage) setHeroImage(data.heroImage);
         if (data.title) setTitle(data.title);
         if (data.subtitle) setSubtitle(data.subtitle);
         if (data.overview) setOverview(data.overview);
-        if (data.modules && Array.isArray(data.modules)) setModules(data.modules.filter((m: any) => m.is_visible ?? true));
-        if (data.schedule && Array.isArray(data.schedule)) setSchedule(data.schedule);
 
-        if (data.openingDate) setOpeningDate(data.openingDate);
-        if (data.eligibility) setEligibility(data.eligibility);
-        if (data.fee) setFee(data.fee);
-        if (data.contact) setContact(data.contact);
+        if (data.promoImage) setPromoImage(data.promoImage);
+        if (data.courseTitle) setCourseTitle(data.courseTitle);
+
+        if (
+          data.objectives &&
+          Array.isArray(data.objectives) &&
+          data.objectives.length > 0
+        ) {
+          setObjectives(data.objectives);
+        }
+
+        if (
+          data.learningOutcomes &&
+          Array.isArray(data.learningOutcomes) &&
+          data.learningOutcomes.length > 0
+        ) {
+          setLearningOutcomes(data.learningOutcomes);
+        }
       }
     };
+
     fetchCmsData();
   }, []);
 
   return (
     <div className="edc-page-bg">
-      <AboutPageHero title={heroTitle} backgroundImage={heroImage} />
+      <AboutPageHero
+        title={heroTitle}
+        backgroundImage={heroImage}
+      />
 
-      <div className="w-full max-w-[1060px] mx-auto px-[20px] sm:px-[28px] py-[48px] sm:py-[64px] space-y-[48px] sm:space-y-[56px] flex flex-col items-center text-center">
+      {/* Centered Main Page Container */}
+      <div className="w-full max-w-[1160px] mx-auto px-4 sm:px-6 md:px-8 py-12 sm:py-16 flex flex-col items-center justify-center">
+
         {/* Page Header Title Block */}
-        <div className="text-center max-w-[850px] w-full mx-auto pb-2 flex flex-col items-center">
-          <h1 className="text-[26px] min-[700px]:text-[32px] font-bold text-[#0C71C3] tracking-tight leading-tight text-center w-full">
+        <div className="text-center max-w-[900px] w-full mx-auto flex flex-col items-center justify-center">
+
+          <h1 className="text-[28px] sm:text-[34px] font-bold text-[#0C71C3] tracking-tight leading-tight text-center w-full mb-3">
             {title}
           </h1>
-          <p className="text-[15px] sm:text-[17px] text-[#555555] mt-[10px] font-medium leading-relaxed text-center w-full">
+
+          <p className="text-[16px] sm:text-[18px] text-[#555555] font-medium leading-relaxed text-center w-full">
             {subtitle}
           </p>
+
         </div>
 
-        {/* Overview */}
-        <div className="space-y-[16px] w-full max-w-[850px] mx-auto flex flex-col items-center text-center">
-          <h2 className="text-[20px] sm:text-[22px] font-bold text-[#0C71C3] pb-[10px] border-b border-[#E2E8F0] text-center w-full">
+        {/* Workshop Overview Section */}
+        <div className="w-full max-w-[900px] mx-auto flex flex-col items-center text-center pt-10 pb-14">
+
+          {/* Workshop Overview — Same Styling as Main Page Heading */}
+          <h2 className="text-[28px] sm:text-[34px] font-bold text-[#0C71C3] tracking-tight leading-tight text-center w-full mb-6">
             Workshop Overview
           </h2>
-          <div className="space-y-[16px] text-[15px] sm:text-[16px] leading-[1.8] text-[#444444] w-full text-center flex flex-col items-center">
+
+          <div className="text-[15px] sm:text-[16px] leading-[1.85] text-[#444444] text-center w-full">
+
             {overview.split('\n\n').map((para, idx) => (
-              <p key={idx} className="text-center w-full max-w-[850px] mx-auto">
+              <p
+                key={idx}
+                className="text-center w-full max-w-[900px] mx-auto mb-5"
+              >
                 {para}
               </p>
             ))}
+
           </div>
         </div>
 
-        {/* Modules */}
-        <div className="space-y-[20px] w-full max-w-[1060px] mx-auto flex flex-col items-center text-center">
-          <h2 className="text-[20px] sm:text-[22px] font-bold text-[#0C71C3] pb-[10px] border-b border-[#E2E8F0] text-center max-w-[850px] w-full mx-auto">
-            Bootcamp Modules
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px] sm:gap-[28px] pt-1 w-full">
-            {modules.map((mod, idx) => (
-              <div
-                key={mod.id || idx}
-                className="bg-white p-[24px] border border-[#E2E8F0] rounded-[8px] shadow-xs card-hover-lift flex flex-col items-center text-center gap-[16px]"
-              >
-                <div className="p-[10px] bg-[#F0F9FF] border border-[#B9E6FE] rounded-[8px] flex-shrink-0 text-[#0093DD] overflow-hidden w-12 h-12 flex items-center justify-center mx-auto">
-                  {mod.icon_url || mod.icon ? (
-                    <img src={mod.icon_url || mod.icon} alt="Icon" className="w-full h-full object-cover rounded" />
-                  ) : (
-                    <BookOpen className="w-[22px] h-[22px]" />
-                  )}
-                </div>
-                <div className="flex-1 text-center">
-                  <h3 className="text-[17px] font-bold text-[#1F2937] mb-[6px] leading-snug text-center">
-                    {mod.title}
-                  </h3>
-                  <p className="text-[14px] leading-[1.65] text-[#555555] text-center">
-                    {mod.description}
-                  </p>
-                </div>
+        {/* Two-Column Reference Layout Section */}
+        <div className="w-full max-w-[1160px] mx-auto pt-4 pb-6">
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start justify-center text-left">
+
+            {/* Left Column — Promotional Course Poster */}
+            <div className="lg:col-span-5 flex justify-center lg:justify-start w-full">
+
+              <div className="w-full max-w-[400px] sm:max-w-[420px] rounded-xl overflow-hidden shadow-md border border-[#E2E8F0] bg-white group hover:shadow-xl transition-all duration-300">
+
+                <img
+                  src={promoImage}
+                  alt={courseTitle}
+                  className="w-full h-auto object-cover block"
+                />
+
               </div>
-            ))}
+
+            </div>
+
+            {/* Right Column — Course Title, Objectives & Learning Outcomes */}
+            <div className="lg:col-span-7 space-y-8 flex flex-col justify-start">
+
+              {/* Course Title */}
+              <div className="pb-1">
+
+                <h2 className="text-[24px] sm:text-[28px] font-bold text-[#0C71C3] leading-tight mb-3">
+                  {courseTitle}
+                </h2>
+
+              </div>
+
+              {/* Objectives Section */}
+              <div className="bg-[#F8FAFC] p-6 sm:p-7 rounded-xl border border-[#E2E8F0]">
+
+                <h3 className="text-[18px] font-bold text-[#1E293B] flex items-center gap-2.5 mb-4 border-b border-[#E2E8F0] pb-3">
+
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#0093DD]"></span>
+
+                  <span>Objectives</span>
+
+                </h3>
+
+                <ul className="space-y-3 text-[14px] sm:text-[15px] text-[#475569] leading-relaxed list-disc list-inside pl-1 font-medium">
+
+                  {objectives.map((obj, idx) => (
+                    <li key={idx} className="leading-normal">
+                      {obj}
+                    </li>
+                  ))}
+
+                </ul>
+
+              </div>
+
+              {/* Learning Outcomes Section */}
+              <div className="bg-[#F8FAFC] p-6 sm:p-7 rounded-xl border border-[#E2E8F0]">
+
+                <h3 className="text-[18px] font-bold text-[#1E293B] flex items-center gap-2.5 mb-4 border-b border-[#E2E8F0] pb-3">
+
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#0093DD]"></span>
+
+                  <span>Learning Outcomes</span>
+
+                </h3>
+
+                <p className="text-[14px] font-semibold text-[#334155] italic mb-3">
+                  Participants will be able to:
+                </p>
+
+                <ol className="space-y-3 text-[14px] sm:text-[15px] text-[#475569] leading-relaxed list-decimal list-inside pl-1 font-medium">
+
+                  {learningOutcomes.map((outcome, idx) => (
+                    <li key={idx} className="leading-normal">
+                      {outcome}
+                    </li>
+                  ))}
+
+                </ol>
+
+              </div>
+
+            </div>
           </div>
         </div>
 
-        {/* Schedule */}
-        <div className="space-y-[20px] w-full max-w-[900px] mx-auto flex flex-col items-center text-center">
-          <h2 className="text-[20px] sm:text-[22px] font-bold text-[#0C71C3] pb-[10px] border-b border-[#E2E8F0] text-center w-full">
-            Schedule
-          </h2>
-          <div className="edc-table-wrapper w-full">
-            <table className="edc-table">
-              <thead>
-                <tr>
-                  <th className="w-[20%]">Day</th>
-                  <th className="w-[50%]">Session</th>
-                  <th className="w-[30%]">Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {schedule.map((row, idx) => (
-                  <tr key={idx}>
-                    <td className="font-semibold text-[#1F2937]">{row.day}</td>
-                    <td className="text-[#333333]">{row.session}</td>
-                    <td className="text-[#64748B] font-medium">{row.time}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Registration */}
-        <div className="bg-[#F8FAFC] p-[28px] sm:p-[36px] border border-[#E2E8F0] rounded-[10px] shadow-xs space-y-[20px] w-full max-w-[900px] mx-auto flex flex-col items-center text-center">
-          <h2 className="text-[20px] sm:text-[22px] font-bold text-[#0C71C3] pb-[10px] border-b border-[#CBD5E1] text-center w-full">
-            Registration Details
-          </h2>
-          <div className="grid grid-cols-1 gap-[12px] text-[15px] leading-[1.7] text-[#334155] w-full">
-            <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-[6px] flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
-              <span className="font-bold text-[#1E293B]">Registration Opening Date:</span>
-              <span className="text-[#475569]">{openingDate}</span>
-            </div>
-            <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-[6px] flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
-              <span className="font-bold text-[#1E293B]">Eligibility:</span>
-              <span className="text-[#475569]">{eligibility}</span>
-            </div>
-            <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-[6px] flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
-              <span className="font-bold text-[#1E293B]">Registration Fee:</span>
-              <span className="text-[#475569]">{fee}</span>
-            </div>
-            <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-[6px] flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
-              <span className="font-bold text-[#1E293B]">Contact Details:</span>
-              <span className="text-[#475569]">{contact}</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -182,16 +182,23 @@ export default function AdminAdministrationStaffManager() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      callback(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const handleFileUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    callback: (url: string) => void,
+    opts?: { aspectRatio?: number; cropShape?: 'rect' | 'round'; title?: string }
+  ) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          callback(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      opts || { aspectRatio: 13 / 15, title: 'Crop Staff Photo (13:15 Rectangle)' }
+    );
   };
 
   // Office Handlers
@@ -231,10 +238,30 @@ export default function AdminAdministrationStaffManager() {
 
   const handleDeleteOffice = async () => {
     if (!deleteOfficeTarget) return;
-    const updated = offices.filter((o) => o.id !== deleteOfficeTarget.id);
-    setOffices(updated);
+    const targetId = deleteOfficeTarget.id;
+    const targetTitle = deleteOfficeTarget.title;
+
+    const updatedOffices = offices.filter((o) => o.id !== targetId);
+    const updatedStaff = staffList.filter((s) => s.office !== targetId && s.office !== targetTitle);
+
+    setOffices(updatedOffices);
+    setStaffList(updatedStaff);
+
+    if (selectedOffice === targetId) {
+      setSelectedOffice(updatedOffices.length > 0 ? updatedOffices[0].id : 'admin-office');
+    }
+
+    const deletedTitle = targetTitle;
     setDeleteOfficeTarget(null);
-    await cmsService.saveSetting('admin_offices_list', updated, 'Administration Offices List');
+
+    const res = await cmsService.saveSetting('admin_offices_list', updatedOffices, 'Administration Offices List');
+
+    if (res.success) {
+      setMessage({ type: 'success', text: `Office category "${deletedTitle}" deleted successfully.` });
+      setTimeout(() => setMessage(null), 4000);
+    } else {
+      setMessage({ type: 'error', text: res.error || 'Failed to delete office category.' });
+    }
   };
 
   // Staff Handlers
@@ -447,23 +474,49 @@ export default function AdminAdministrationStaffManager() {
       </AdminSection>
 
       {/* Office Filter Tabs */}
-      <AdminSection title="Administration Offices" description="Select an office tab to view and manage its staff members.">
-        <div className="flex flex-wrap gap-2 border-b border-[#E5E7EB] pb-3">
-          {offices.map((off) => (
-            <button
-              key={off.id}
-              type="button"
-              onClick={() => setSelectedOffice(off.id)}
-              className={`px-3.5 py-2 text-xs font-bold rounded-md transition-colors cursor-pointer flex items-center gap-1.5 ${
-                selectedOffice === off.id
-                  ? 'bg-[#0093DD] text-white shadow-xs'
-                  : 'bg-white text-[#374151] border border-[#E5E7EB] hover:bg-[#F9FAFB]'
-              }`}
-            >
-              <Building2 className="w-3.5 h-3.5" />
-              <span>{off.title}</span>
-            </button>
-          ))}
+      <AdminSection
+        title="Administration Offices"
+        description="Select an office tab to view and manage its staff members, or remove an unused office category."
+      >
+        <div className="flex flex-wrap gap-2.5 border-b border-[#E5E7EB] pb-3">
+          {offices.map((off) => {
+            const isSelected = selectedOffice === off.id;
+            return (
+              <div
+                key={off.id}
+                className={`inline-flex items-center gap-1 p-1 rounded-md border transition-colors ${
+                  isSelected
+                    ? 'bg-[#0093DD] border-[#0093DD] text-white shadow-xs'
+                    : 'bg-white border-[#E5E7EB] text-[#374151] hover:bg-[#F9FAFB]'
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => setSelectedOffice(off.id)}
+                  className="px-2.5 py-1 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 bg-transparent border-none text-inherit"
+                >
+                  <Building2 className="w-3.5 h-3.5" />
+                  <span>{off.title}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteOfficeTarget(off);
+                  }}
+                  className={`p-1 rounded transition-colors cursor-pointer border-none ${
+                    isSelected
+                      ? 'text-white/80 hover:text-white hover:bg-white/20'
+                      : 'text-red-500 hover:text-red-700 hover:bg-red-50'
+                  }`}
+                  title={`Delete "${off.title}" Office Category`}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            );
+          })}
         </div>
       </AdminSection>
 
@@ -732,7 +785,20 @@ export default function AdminAdministrationStaffManager() {
         isOpen={!!deleteOfficeTarget}
         onClose={() => setDeleteOfficeTarget(null)}
         onConfirm={handleDeleteOffice}
-        itemTitle={deleteOfficeTarget?.title}
+        title="Delete Office Category?"
+        confirmLabel="Delete Category"
+        message={
+          (() => {
+            if (!deleteOfficeTarget) return '';
+            const count = staffList.filter(
+              (s) => s.office === deleteOfficeTarget.id || s.office === deleteOfficeTarget.title
+            ).length;
+            if (count > 0) {
+              return `This office category contains ${count} staff member(s). Deleting it will also remove/unassign these staff members. Are you sure you want to continue?`;
+            }
+            return `Are you sure you want to delete "${deleteOfficeTarget.title}"?`;
+          })()
+        }
       />
 
       <DeleteConfirmModal

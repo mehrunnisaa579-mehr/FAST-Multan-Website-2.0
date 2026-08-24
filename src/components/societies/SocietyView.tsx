@@ -34,6 +34,14 @@ export default function SocietyView({ slug }: SocietyViewProps) {
     defaultItem?.instagramUrl || 'https://www.instagram.com'
   );
 
+  const [registrationUrl, setRegistrationUrl] = useState(
+    defaultItem?.registrationUrl || ''
+  );
+
+  const [showRegistrationButton, setShowRegistrationButton] = useState(
+    defaultItem?.showRegistrationButton ?? false
+  );
+
   const [stats, setStats] = useState<StatConfig[]>(
     defaultItem?.stats || []
   );
@@ -130,6 +138,20 @@ export default function SocietyView({ slug }: SocietyViewProps) {
           currentCms.instagram_url ||
             specificDefault?.instagramUrl ||
             'https://www.instagram.com'
+        );
+
+        setRegistrationUrl(
+          currentCms.registration_url ||
+            currentCms.registrationUrl ||
+            specificDefault?.registrationUrl ||
+            ''
+        );
+
+        setShowRegistrationButton(
+          currentCms.show_registration_button ??
+            currentCms.showRegistrationButton ??
+            specificDefault?.showRegistrationButton ??
+            false
         );
 
         let parsedStats: StatConfig[] = [];
@@ -236,6 +258,14 @@ export default function SocietyView({ slug }: SocietyViewProps) {
           specificDefault.instagramUrl
         );
 
+        setRegistrationUrl(
+          specificDefault.registrationUrl || ''
+        );
+
+        setShowRegistrationButton(
+          specificDefault.showRegistrationButton ?? false
+        );
+
         setLeadership(
           specificDefault.leadership
         );
@@ -313,7 +343,7 @@ export default function SocietyView({ slug }: SocietyViewProps) {
               <img
                 src={logoUrl}
                 alt={societyName}
-                className="w-full h-full object-contain scale-[1.5]"
+                className="w-full h-full object-contain"
               />
             ) : (
               <div className="w-full h-full bg-[#0093DD] text-white flex items-center justify-center font-bold text-[24px] sm:text-[30px] uppercase">
@@ -364,6 +394,8 @@ export default function SocietyView({ slug }: SocietyViewProps) {
         <div className="w-full max-w-[850px] mx-auto">
           <SocietyInstagramCTA
             instagramUrl={instagramUrl}
+            registrationUrl={registrationUrl}
+            showRegistrationButton={showRegistrationButton}
           />
         </div>
 

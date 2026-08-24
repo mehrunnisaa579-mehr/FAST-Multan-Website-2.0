@@ -26,6 +26,8 @@ import {
   GraduationCap,
   Users,
 } from 'lucide-react';
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
 
 interface DepartmentItem {
   id: string;
@@ -200,6 +202,27 @@ export default function AdminDepartmentsManager() {
   const [searchParams] = useSearchParams();
   const deptParam = searchParams.get('dept')?.toLowerCase();
 
+  const { cropperProps, openCropper } = useImageCropper();
+
+  const handleFileUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    callback: (url: string) => void,
+    opts?: { aspectRatio?: number; cropShape?: 'rect' | 'round'; title?: string }
+  ) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          callback(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      opts || { aspectRatio: 1, title: 'Crop Photo (1:1 Square)' }
+    );
+  };
+
   useEffect(() => {
     fetchDepartmentsData();
   }, []);
@@ -246,18 +269,6 @@ export default function AdminDepartmentsManager() {
   const handleOpenEdit = (item: DepartmentItem) => {
     setEditingItem({ ...item });
     setIsModalOpen(true);
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      callback(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
   };
 
   const handleMove = (index: number, direction: 'up' | 'down') => {
@@ -799,6 +810,8 @@ export default function AdminDepartmentsManager() {
         onConfirm={handleDeleteStaff}
         itemTitle={deleteStaffTarget?.name}
       />
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

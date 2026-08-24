@@ -6,10 +6,12 @@ export const ADMIN_INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 const LAST_ACTIVITY_KEY = 'admin_last_activity';
 const LOGOUT_REASON_KEY = 'admin_logout_reason';
 
+import { AdminRole } from '../config/rolePermissions';
+
 export interface AdminProfile {
   user_id: string;
   display_name: string | null;
-  role: 'admin' | 'super_admin';
+  role: AdminRole;
   is_active: boolean;
 }
 
@@ -20,7 +22,7 @@ export interface AdminAuthContextType {
   isAdmin: boolean;
   adminProfile: AdminProfile | null;
   authError: string | null;
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string; role?: AdminRole }>;
   signOut: () => Promise<void>;
   clearAuthError: () => void;
 }
@@ -246,7 +248,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     };
   }, [user, isAdmin, loading]);
 
-  const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string; role?: AdminRole }> => {
     setAuthError(null);
     setLoading(true);
 
@@ -273,6 +275,16 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
           setLoading(false);
           return { success: false, error: unauthMsg };
         }
+        
+        // Wait for state to update, or just use the fetched role
+        const { data: adminData } = await supabase
+          .from('admin_users')
+          .select('role')
+          .eq('user_id', data.user.id)
+          .single();
+          
+        setLoading(false);
+        return { success: true, role: adminData?.role as AdminRole };
       }
 
       setLoading(false);

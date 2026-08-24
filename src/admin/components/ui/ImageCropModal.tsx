@@ -77,6 +77,10 @@ async function getCroppedImg(
   croppedCanvas.width = pixelCrop.width;
   croppedCanvas.height = pixelCrop.height;
 
+  // Fill with white background
+  croppedCtx.fillStyle = '#FFFFFF';
+  croppedCtx.fillRect(0, 0, pixelCrop.width, pixelCrop.height);
+
   // Draw crop area onto final canvas
   croppedCtx.drawImage(
     canvas,
@@ -209,6 +213,7 @@ export default function ImageCropModal({
             aspect={aspectRatio}
             cropShape={cropShape}
             showGrid={true}
+            restrictPosition={false}
             onCropChange={onCropChange}
             onZoomChange={onZoomChange}
             onCropComplete={onCropCompleteHandler}
@@ -222,7 +227,7 @@ export default function ImageCropModal({
             <ZoomOut className="w-4 h-4 text-[#6B7280]" />
             <input
               type="range"
-              min={1}
+              min={0.1}
               max={3}
               step={0.05}
               value={zoom}

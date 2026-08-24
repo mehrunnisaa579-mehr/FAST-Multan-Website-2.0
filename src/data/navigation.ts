@@ -12,6 +12,81 @@ export interface NavItem {
   items?: NavSubItem[];
 }
 
+export interface ServiceItem {
+  id: string;
+  name: string;
+  parent_id?: string | null;
+  parent_name?: string | null;
+  url: string;
+  is_external?: boolean;
+  display_order: number;
+  is_active: boolean;
+}
+
+export const defaultServicesList: ServiceItem[] = [
+  {
+    id: 'fast-nu-library',
+    name: 'FAST-NU Library',
+    parent_id: null,
+    parent_name: 'None',
+    url: 'https://nu.insigniails.com/Library/Home',
+    is_external: true,
+    display_order: 1,
+    is_active: true,
+  },
+  {
+    id: 'flex',
+    name: 'FLEX',
+    parent_id: null,
+    parent_name: 'None',
+    url: 'https://flexstudent.nu.edu.pk/Login',
+    is_external: true,
+    display_order: 2,
+    is_active: true,
+  },
+
+  {
+    id: 'workshops',
+    name: 'Workshops',
+    parent_id: null,
+    parent_name: 'None',
+    url: '/edc/workshops/summer-bootcamp-2026',
+    is_external: false,
+    display_order: 4,
+    is_active: true,
+  },
+  {
+    id: 'complaint-management-system',
+    name: 'Complaint Management System',
+    parent_id: null,
+    parent_name: 'None',
+    url: '/services/complaint-management',
+    is_external: false,
+    display_order: 5,
+    is_active: true,
+  },
+  {
+    id: 'alumni',
+    name: 'Alumni',
+    parent_id: null,
+    parent_name: 'None',
+    url: 'https://nu.edu.pk/Alumni',
+    is_external: true,
+    display_order: 6,
+    is_active: true,
+  },
+  {
+    id: 'fan',
+    name: 'FAN',
+    parent_id: 'alumni',
+    parent_name: 'Alumni',
+    url: 'https://alumni.nu.edu.pk/',
+    is_external: true,
+    display_order: 1,
+    is_active: true,
+  },
+];
+
 export const navigationData: NavItem[] = [
   {
     label: 'ABOUT',
@@ -48,15 +123,21 @@ export const navigationData: NavItem[] = [
   {
     label: 'SERVICES',
     items: [
-      { label: 'Complaint Management System', href: '/services/complaint-management' },
       { label: 'FAST-NU Library', href: 'https://nu.insigniails.com/Library/Home', isExternal: true },
-      { label: 'Gatepass Application', href: '/services/gatepass-application' },
       { label: 'FLEX', href: 'https://flexstudent.nu.edu.pk/Login', isExternal: true },
-      { label: 'Career Services Office', href: '/services/career-services-office' },
       {
         label: 'Workshops',
         items: [
           { label: 'Summer Bootcamp 2026', href: '/edc/workshops/summer-bootcamp-2026' },
+        ],
+      },
+      { label: 'Complaint Management System', href: '/services/complaint-management' },
+      {
+        label: 'Alumni',
+        href: 'https://nu.edu.pk/Alumni',
+        isExternal: true,
+        items: [
+          { label: 'FAN', href: 'https://alumni.nu.edu.pk/', isExternal: true },
         ],
       },
     ],
@@ -83,7 +164,7 @@ export const navigationData: NavItem[] = [
       { label: 'News', href: '/news' },
       { label: 'Policies', href: 'https://nu.edu.pk/University/Policies', isExternal: true },
       { label: 'Student Guide Book', href: '/useful-links/student-guide-book' },
-      { label: 'Academic Calendar', href: 'https://www.nu.edu.pk/Student/Calender', isExternal: true },
+      { label: 'Academic Calendar', href: '/useful-links/academic-calendar' },
     ],
   },
 

@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { homepageContent } from '../../data/homepage';
-import { cmsService } from '../../services/cmsService';
 import { Monitor, Briefcase, BookOpen, ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
+import { useVisibilityObserver } from '../ui/ViewportObserver';
 
 // Exact official FAST-NUCES nu.edu.pk program URLs
 const OFFICIAL_PROGRAM_MAPPINGS: Record<string, string> = {
@@ -11,29 +11,31 @@ const OFFICIAL_PROGRAM_MAPPINGS: Record<string, string> = {
   'bs software engineering': 'https://nu.edu.pk/Program/BS(SE)',
 };
 
-export default function OurSchools() {
+interface OurSchoolsProps {
+  data?: any;
+}
+
+export default function OurSchools({ data }: OurSchoolsProps) {
   const [heading, setHeading] = useState('Programs We Offer');
   const [subtitle, setSubtitle] = useState('Explore the program that matches your interests');
   const [schools, setSchools] = useState<any[]>(homepageContent.ourSchools);
   const scrollRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const { ref, isVisible } = useVisibilityObserver('100px');
+
   useEffect(() => {
-    const fetchSchoolsData = async () => {
-      const data = await cmsService.getSetting<any>('homepage_full_content', null);
-      if (data) {
-        if (data.schoolsHeading) setHeading(data.schoolsHeading);
-        if (data.schoolsSubtitle) setSubtitle(data.schoolsSubtitle);
-        if (data.schoolCards && data.schoolCards.length > 0) {
-          const visibleCards = data.schoolCards.filter((s: any) => s.visible !== false);
-          if (visibleCards.length > 0) {
-            setSchools(visibleCards);
-          }
+    if (data) {
+      if (data.schoolsHeading) setHeading(data.schoolsHeading);
+      if (data.schoolsSubtitle) setSubtitle(data.schoolsSubtitle);
+      if (data.schoolCards && data.schoolCards.length > 0) {
+        const visibleCards = data.schoolCards.filter((s: any) => s.visible !== false);
+        if (visibleCards.length > 0) {
+          setSchools(visibleCards);
         }
       }
-    };
-    fetchSchoolsData();
-  }, []);
+    }
+  }, [data]);
 
   // Merge CMS schools data with fallback defaults to ensure all 4 programs are present
   const displaySchools = [...schools];
@@ -89,11 +91,15 @@ export default function OurSchools() {
   };
 
   useEffect(() => {
+    if (!isVisible) {
+      stopAutoSlide();
+      return;
+    }
     startAutoSlide();
     return () => {
       stopAutoSlide();
     };
-  }, [displaySchools.length]);
+  }, [displaySchools.length, isVisible]);
 
   const handleManualScroll = (direction: 'left' | 'right') => {
     scroll(direction);
@@ -157,10 +163,9 @@ export default function OurSchools() {
   };
 
   return (
-    <section className="py-[60px] w-full bg-[#F7F9FC]">
+    <section ref={ref} className="py-[60px] w-full bg-[#F7F9FC]">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[40px]">
-        {/* Section Heading & Subheading */}
-        <h2 className="text-[28px] font-bold text-[#0C71C3] text-center mb-2">
+        <h2 className="text-[32px] sm:text-[38px] md:text-[40px] lg:text-[46px] leading-[1.1] font-bold text-[#0C71C3] uppercase tracking-tight md:tracking-[-1px] text-center mb-2">
           {heading}
         </h2>
         <p className="text-[15px] text-[#666666] text-center mb-[40px] font-medium">

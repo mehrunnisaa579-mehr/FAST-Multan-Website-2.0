@@ -17,6 +17,9 @@ import {
   ImageIcon,
 } from 'lucide-react';
 
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
+
 export default function AdminCampusIntroductionEditor() {
   const [heroTitle, setHeroTitle] = useState('Campus Introduction');
   const [heroImageUrl, setHeroImageUrl] = useState('');
@@ -33,38 +36,21 @@ export default function AdminCampusIntroductionEditor() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const data = await cmsService.getSetting<any>('about_campus_intro_content', null);
-      const legacyData = await cmsService.getSetting<any>('about_pages_content', null);
+  const { cropperProps, openCropper } = useImageCropper();
 
-      if (data) {
-        if (data.heroTitle) setHeroTitle(data.heroTitle);
-        if (data.heroImageUrl) setHeroImageUrl(data.heroImageUrl);
-        if (data.introText) setIntroText(data.introText);
-        if (data.galleryHeading) setGalleryHeading(data.galleryHeading);
-        if (data.galleryRow1Count) setGalleryRow1Count(data.galleryRow1Count);
-        if (data.galleryRow2Count) setGalleryRow2Count(data.galleryRow2Count);
-        if (Array.isArray(data.galleryItems)) setGalleryItems(data.galleryItems);
-      } else if (legacyData) {
-        if (legacyData.introTitle) setHeroTitle(legacyData.introTitle);
-        if (legacyData.introText) setIntroText(legacyData.introText);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const handleHeroFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setHeroImageUrl(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error || 'Unknown error'}`);
-    }
+  const handleHeroFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setHeroImageUrl(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error || 'Unknown error'}`);
+        }
+      },
+      { aspectRatio: 16 / 9, title: 'Crop Hero Banner Image (16:9 Wide)' }
+    );
   };
 
   const handleSaveAll = async () => {
@@ -193,6 +179,8 @@ export default function AdminCampusIntroductionEditor() {
           </AdminFormGroup>
         </AdminCard>
       </AdminSection>
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

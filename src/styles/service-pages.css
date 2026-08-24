@@ -47,16 +47,3 @@
   color: #222222;
   margin-bottom: 8px;
 }
-
-.career-services-wrapper {
-  width: 100%;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 65px 24px 85px;
-}
-
-@media (max-width: 768px) {
-  .career-services-wrapper {
-    padding: 35px 20px 60px;
-  }
-}

@@ -41,7 +41,7 @@ export default function ProfileImageComposition({
       </div>
 
       {/* ── 4. MAIN RECTANGULAR PROFILE IMAGE AREA (UNTOUCHED POSITION & DIMENSIONS) ── */}
-      <div className="relative z-10 ml-[22px] sm:ml-[26px] mt-[22px] sm:mt-[26px] w-[200px] sm:w-[240px] rounded-[6px] border-[3px] border-white bg-white shadow-md overflow-hidden flex flex-col items-center justify-center">
+      <div className="relative z-10 ml-[22px] sm:ml-[26px] mt-[22px] sm:mt-[26px] w-[200px] sm:w-[240px] rounded-[6px] border-[3px] border-white bg-white shadow-md overflow-hidden flex flex-col items-center justify-center person-photo-glow">
         <CmsImage
           src={mainImage}
           alt={alt}

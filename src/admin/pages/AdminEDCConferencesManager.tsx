@@ -77,7 +77,7 @@ export default function AdminEDCConferencesManager() {
           alert(`Poster upload failed: ${res.error}`);
         }
       },
-      { aspectRatio: 3 / 4, title: 'Crop Conference Poster (3:4 Rectangle)' }
+      { aspectRatio: 1, title: 'Crop Conference Poster (1:1 Square)' }
     );
   };
 

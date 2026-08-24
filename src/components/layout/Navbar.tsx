@@ -196,7 +196,7 @@ export function DesktopNavbar() {
 
   return (
     <nav
-      className="hidden min-[1050px]:flex items-center gap-[24px] justify-end mr-[40px] h-full"
+      className="hidden min-[1050px]:flex items-center gap-[24px] justify-end h-full"
       role="navigation"
       aria-label="Primary Desktop Navigation"
     >
@@ -294,10 +294,10 @@ export function DesktopNavbar() {
                             )
                           }
                           flyoutDirection={
-                            item.label ===
-                              'CAMPUS' ||
-                            subItem.label ===
-                              'Workshops'
+                            item.label === 'CAMPUS' ||
+                            subItem.label === 'Workshops' ||
+                            subItem.label === 'Alumni' ||
+                            subItem.label.toLowerCase() === 'alumni'
                               ? 'left'
                               : 'right'
                           }

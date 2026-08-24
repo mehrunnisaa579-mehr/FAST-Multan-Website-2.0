@@ -24,6 +24,9 @@ import {
   GraduationCap,
 } from 'lucide-react';
 
+import ImageCropModal from '../components/ui/ImageCropModal';
+import { useImageCropper } from '../hooks/useImageCropper';
+
 interface DeptCardItem {
   id: string;
   title: string;
@@ -88,36 +91,25 @@ export default function AdminAllDepartmentsManager() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const fetchData = async () => {
-    const savedData = await cmsService.getSetting<any>('all_departments_content', null);
-    if (savedData) {
-      if (savedData.heroTitle) setHeroTitle(savedData.heroTitle);
-      if (savedData.heroImageUrl) setHeroImageUrl(savedData.heroImageUrl);
-      if (savedData.directorName) setDirectorName(savedData.directorName);
-      if (savedData.directorDesignation) setDirectorDesignation(savedData.directorDesignation);
-      if (savedData.directorMessage) setDirectorMessage(savedData.directorMessage);
-      if (savedData.directorPhotoUrl) setDirectorPhotoUrl(savedData.directorPhotoUrl);
-      if (savedData.deptSectionTitle) setDeptSectionTitle(savedData.deptSectionTitle);
-      if (savedData.deptCards && savedData.deptCards.length > 0) {
-        setDeptCards(savedData.deptCards);
-      }
-    }
-  };
+  const { cropperProps, openCropper } = useImageCropper();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, setUrlFn: (url: string) => void) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const res = await cmsService.uploadMedia(file);
-    if (res.success && res.publicUrl) {
-      setUrlFn(res.publicUrl);
-    } else {
-      alert(`Upload failed: ${res.error}`);
-    }
+  const handleFileUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setUrlFn: (url: string) => void,
+    opts?: { aspectRatio?: number; cropShape?: 'rect' | 'round'; title?: string }
+  ) => {
+    openCropper(
+      e,
+      async (croppedFile) => {
+        const res = await cmsService.uploadMedia(croppedFile);
+        if (res.success && res.publicUrl) {
+          setUrlFn(res.publicUrl);
+        } else {
+          alert(`Upload failed: ${res.error}`);
+        }
+      },
+      opts
+    );
   };
 
   const handleOpenAdd = () => {
@@ -258,7 +250,7 @@ export default function AdminAllDepartmentsManager() {
                 <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
                   <Upload className="w-3.5 h-3.5" />
                   <span>{heroImageUrl ? 'Replace Hero' : 'Upload Hero'}</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeroImageUrl)} />
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setHeroImageUrl, { aspectRatio: 16 / 9, title: 'Crop Page Hero Image (16:9 Wide)' })} />
                 </label>
 
                 {heroImageUrl && (
@@ -303,7 +295,7 @@ export default function AdminAllDepartmentsManager() {
                 <label className="px-3.5 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 shadow-xs">
                   <Upload className="w-3.5 h-3.5" />
                   <span>{directorPhotoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setDirectorPhotoUrl)} />
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, setDirectorPhotoUrl, { aspectRatio: 1, title: 'Crop Director Photo (1:1 Square)' })} />
                 </label>
 
                 {directorPhotoUrl && (
@@ -451,7 +443,7 @@ export default function AdminAllDepartmentsManager() {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => handleFileUpload(e, (url) => setEditingCard((prev) => ({ ...prev, image: url })))}
+                    onChange={(e) => handleFileUpload(e, (url) => setEditingCard((prev) => ({ ...prev, image: url })), { aspectRatio: 16 / 9, title: 'Crop Department Tile Image (16:9 Wide)' })}
                   />
                 </label>
 
@@ -482,6 +474,8 @@ export default function AdminAllDepartmentsManager() {
         onConfirm={handleDeleteCard}
         itemTitle={deleteTarget?.title}
       />
+
+      <ImageCropModal {...cropperProps} />
     </div>
   );
 }

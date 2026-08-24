@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { cmsService } from '../../services/cmsService';
 
 export interface CmsImageProps {
   src?: string | null;
@@ -8,6 +9,8 @@ export interface CmsImageProps {
   className?: string;
   containerClassName?: string;
   placeholderClassName?: string;
+  priority?: boolean;
+  width?: number;
   onClick?: (e: React.MouseEvent) => void;
 }
 
@@ -19,6 +22,8 @@ export default function CmsImage({
   className = '',
   containerClassName = '',
   placeholderClassName = '',
+  priority = false,
+  width,
   onClick,
 }: CmsImageProps) {
   const [error, setError] = useState(false);
@@ -37,12 +42,16 @@ export default function CmsImage({
 
   if (isValidUrl) {
     const fitClass = fit === 'contain' ? 'object-contain' : 'object-cover';
+    const optimizedSrc = cmsService.getOptimizedMediaUrl(src, width);
+
     return (
       <img
-        src={src}
+        src={optimizedSrc}
         alt={alt || 'FAST-NUCES Media'}
         onError={() => setError(true)}
         onClick={onClick}
+        loading={priority ? 'eager' : 'lazy'}
+        fetchPriority={priority ? 'high' : 'auto'}
         className={`w-full h-full ${fitClass} ${className}`}
       />
     );

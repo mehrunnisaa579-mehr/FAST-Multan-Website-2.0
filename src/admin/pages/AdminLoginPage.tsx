@@ -3,9 +3,12 @@ import { useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { useAdminAuth } from '../auth/useAdminAuth';
 import { Lock, Mail, AlertCircle, ShieldAlert } from 'lucide-react';
 import '../styles/admin.css';
+import adminLogo from '../../assets/images/admin-logo.png';
+
+import { getLandingPageForRole } from '../config/rolePermissions';
 
 export default function AdminLoginPage() {
-  const { user, isAdmin, loading, signIn, authError, clearAuthError } = useAdminAuth();
+  const { user, isAdmin, adminProfile, loading, signIn, authError, clearAuthError } = useAdminAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -31,9 +34,9 @@ export default function AdminLoginPage() {
     }
   }, [location]);
 
-  // If already logged in and verified admin, redirect to /admin-panel5463 dashboard
-  if (!loading && user && isAdmin) {
-    return <Navigate to="/admin-panel5463" replace />;
+  // If already logged in and verified admin, redirect to role-specific landing page
+  if (!loading && user && isAdmin && adminProfile) {
+    return <Navigate to={getLandingPageForRole(adminProfile.role)} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,8 +54,8 @@ export default function AdminLoginPage() {
     const result = await signIn(email.trim(), password);
     setSubmitting(false);
 
-    if (result.success) {
-      navigate('/admin-panel5463', { replace: true });
+    if (result.success && result.role) {
+      navigate(getLandingPageForRole(result.role), { replace: true });
     }
   };
 
@@ -65,7 +68,7 @@ export default function AdminLoginPage() {
         <div className="flex flex-col items-center mb-[40px] text-center">
           {/* Hardcoded Logo from public/admin-logo.png */}
           <img
-            src="/admin-logo.png"
+            src={adminLogo}
             alt="FAST-NUCES Multan Logo"
             className="w-[200px] sm:w-[220px] h-auto object-contain mb-[26px] mx-auto"
           />

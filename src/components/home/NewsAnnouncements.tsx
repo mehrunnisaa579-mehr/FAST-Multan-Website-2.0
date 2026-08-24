@@ -3,34 +3,59 @@ import { homepageContent } from '../../data/homepage';
 import { cmsService } from '../../services/cmsService';
 import { Link } from 'react-router-dom';
 
-export default function NewsAnnouncements() {
+interface NewsAnnouncementsProps {
+  data?: any;
+  newsHeading?: string;
+  newsSubtitle?: string;
+  newsCount?: number | string;
+  showNewsSection?: boolean;
+}
+
+export default function NewsAnnouncements({
+  data,
+  newsHeading,
+  newsSubtitle,
+  newsCount,
+  showNewsSection,
+}: NewsAnnouncementsProps = {}) {
   const [heading, setHeading] = useState('News and Announcements');
   const [subtitle, setSubtitle] = useState('Recent updates from the campus');
   const [news, setNews] = useState<any[]>(homepageContent.newsItems);
   const [isVisible, setIsVisible] = useState<boolean>(true);
 
+  const effectiveCount =
+    newsCount !== undefined
+      ? Number(newsCount)
+      : data?.newsCount !== undefined
+      ? Number(data.newsCount)
+      : 3;
+
+  useEffect(() => {
+    if (newsHeading) setHeading(newsHeading);
+    else if (data?.newsHeading) setHeading(data.newsHeading);
+
+    if (newsSubtitle) setSubtitle(newsSubtitle);
+    else if (data?.newsSubtitle) setSubtitle(data.newsSubtitle);
+
+    if (showNewsSection !== undefined) setIsVisible(showNewsSection);
+    else if (data?.showNewsSection !== undefined) setIsVisible(data.showNewsSection);
+  }, [data, newsHeading, newsSubtitle, showNewsSection]);
+
   useEffect(() => {
     const fetchNewsData = async () => {
-      let count = 3;
-      const data = await cmsService.getSetting<any>('homepage_full_content', null);
-      if (data) {
-        if (data.newsHeading) setHeading(data.newsHeading);
-        if (data.newsSubtitle) setSubtitle(data.newsSubtitle);
-        if (data.newsCount) count = Number(data.newsCount);
-        if (data.showNewsSection !== undefined) setIsVisible(data.showNewsSection);
-      }
-
       const cmsNews = await cmsService.getNews();
       if (cmsNews && cmsNews.length > 0) {
-        const visible = cmsNews.filter((n: any) => n.published !== false && n.is_visible !== false);
+        const visible = cmsNews.filter(
+          (n: any) => n.published !== false && n.is_visible !== false
+        );
         if (visible.length > 0) {
-          setNews(visible.slice(0, count));
+          setNews(visible.slice(0, effectiveCount));
         }
       }
     };
 
     fetchNewsData();
-  }, []);
+  }, [effectiveCount]);
 
   if (!isVisible) return null;
 

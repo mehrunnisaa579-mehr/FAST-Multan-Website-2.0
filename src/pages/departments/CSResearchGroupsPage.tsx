@@ -92,7 +92,7 @@ export default function CSResearchGroupsPage() {
                 className="flex flex-col sm:flex-row gap-[20px] items-start p-[20px] bg-white border border-[#EAEAEA] rounded-[4px] shadow-sm card-hover-lift"
               >
                 {/* Researcher Portrait */}
-                <div className="w-full sm:w-[140px] h-[175px] bg-white border border-[#E5E7EB] rounded-[4px] overflow-hidden flex items-center justify-center flex-shrink-0">
+                <div className="w-full sm:w-[140px] h-[175px] bg-white border border-[#E5E7EB] rounded-[4px] overflow-hidden flex items-center justify-center flex-shrink-0 person-photo-glow">
                   <CmsImage
                     src={(member as any).photoUrl}
                     alt={member.name}

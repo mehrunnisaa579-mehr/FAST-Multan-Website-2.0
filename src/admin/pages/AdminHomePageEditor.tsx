@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useAdminAuth } from '../auth/useAdminAuth';
+import { supabase } from '../../lib/supabase';
 import AdminPageHeader from '../components/ui/AdminPageHeader';
 import AdminCard from '../components/ui/AdminCard';
 import AdminButton from '../components/ui/AdminButton';
@@ -26,7 +28,28 @@ import {
   Eye,
   EyeOff,
   Edit2,
+  RefreshCcw,
 } from 'lucide-react';
+
+const InstagramIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+  </svg>
+);
+
 import { homepageContent } from '../../data/homepage';
 import { getYouTubeEmbedUrl } from '../../utils/youtube';
 
@@ -112,17 +135,20 @@ export default function AdminHomePageEditor() {
   const [whyUsSubtitle, setWhyUsSubtitle] = useState('Discover the FAST-NUCES Multan advantage');
   const [whyUsItems, setWhyUsItems] = useState<any[]>(defaultWhyUsItems);
 
+  const { adminProfile } = useAdminAuth();
+
   const [galleryHeading, setGalleryHeading] = useState('Campus Gallery');
   const [gallerySubtitle, setGallerySubtitle] = useState('Moments from FAST-NUCES Multan');
   const [galleryRow1Count, setGalleryRow1Count] = useState<number>(6);
   const [galleryRow2Count, setGalleryRow2Count] = useState<number>(6);
   const [galleryRow3Count, setGalleryRow3Count] = useState<number>(6);
-  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
-  const [galleryModalOpen, setGalleryModalOpen] = useState(false);
-  const [editingGalleryItem, setEditingGalleryItem] = useState<Partial<GalleryItem> | null>(null);
-  const [galleryDeleteTarget, setGalleryDeleteTarget] = useState<GalleryItem | null>(null);
-  const [galleryImageUploading, setGalleryImageUploading] = useState(false);
-  const [savingGallery, setSavingGallery] = useState(false);
+
+  // Instagram Integration State
+  const [igAccessToken, setIgAccessToken] = useState('');
+  const [igBusinessId, setIgBusinessId] = useState('');
+  const [savingIgCredentials, setSavingIgCredentials] = useState(false);
+  const [syncingIg, setSyncingIg] = useState(false);
+  const [igLastSynced, setIgLastSynced] = useState<string | null>(null);
 
   const [eventsHeading, setEventsHeading] = useState('Upcoming Events');
   const [eventsSubtitle, setEventsSubtitle] = useState("Have a look at what's coming up");
@@ -196,10 +222,14 @@ export default function AdminHomePageEditor() {
         if (data.campusTourVideoUrl || data.campusTourVideo) setCampusTourVideoUrl(data.campusTourVideoUrl || data.campusTourVideo);
       }
 
-      // Load homepage photo gallery items from dedicated key
-      const galleryData = await cmsService.getSetting<GalleryItem[]>('homepage_photo_gallery_list', []);
-      if (Array.isArray(galleryData) && galleryData.length > 0) {
-        setGalleryItems(galleryData.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)));
+      // Load Instagram Last Synced
+      const { data: syncData } = await supabase
+        .from('integration_settings')
+        .select('updated_at')
+        .eq('key', 'instagram_last_synced')
+        .single();
+      if (syncData?.updated_at) {
+        setIgLastSynced(new Date(syncData.updated_at).toLocaleString());
       }
     };
     loadFullHomepageData();
@@ -332,107 +362,60 @@ export default function AdminHomePageEditor() {
     }
   };
 
-  // ── HOMEPAGE PHOTO GALLERY CRUD HELPERS ─────────────────────────────────────
+  // ── INSTAGRAM INTEGRATION HANDLERS ──────────────────────────────────────────
 
-  const persistGalleryItems = async (items: GalleryItem[]) => {
-    const ordered = items.map((item, idx) => ({ ...item, display_order: idx + 1 }));
-    setGalleryItems(ordered);
-    const res = await cmsService.saveSetting('homepage_photo_gallery_list', ordered, 'Homepage Photo Gallery Items');
-    return res;
+  const handleSaveIgCredentials = async () => {
+    if (!igAccessToken || !igBusinessId) {
+      setMessage({ type: 'error', text: 'Both Access Token and Business ID are required.' });
+      return;
+    }
+    setSavingIgCredentials(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/save-instagram-credentials`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify({ accessToken: igAccessToken, businessAccountId: igBusinessId })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setMessage({ type: 'success', text: 'Instagram credentials saved to Vault securely.' });
+        setIgAccessToken('');
+        setIgBusinessId('');
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Failed to save credentials.' });
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Network error while saving credentials.' });
+    }
+    setSavingIgCredentials(false);
   };
 
-  const handleGalleryAddOpen = () => {
-    setEditingGalleryItem({
-      id: '',
-      image_url: '',
-      caption: '',
-      display_order: galleryItems.length + 1,
-      is_visible: true,
-    });
-    setGalleryModalOpen(true);
-  };
-
-  const handleGalleryEditOpen = (item: GalleryItem) => {
-    setEditingGalleryItem({ ...item });
-    setGalleryModalOpen(true);
-  };
-
-  const handleGalleryImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    openCropper(
-      e,
-      async (croppedFile) => {
-        setGalleryImageUploading(true);
-        const res = await cmsService.uploadMedia(croppedFile);
-        setGalleryImageUploading(false);
-        if (res.success && res.publicUrl) {
-          setEditingGalleryItem((prev) => ({ ...prev, image_url: res.publicUrl }));
-        } else {
-          alert(`Image upload failed: ${res.error}`);
+  const handleSyncInstagram = async () => {
+    setSyncingIg(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-instagram-posts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
         }
-      },
-      { aspectRatio: 4 / 3, title: 'Crop Gallery Photo (4:3 Rectangle)' }
-    );
-  };
-
-  const handleGallerySaveItem = async () => {
-    if (!editingGalleryItem) return;
-    setSavingGallery(true);
-    const isNew = !editingGalleryItem.id;
-    const finalItem: GalleryItem = {
-      id: editingGalleryItem.id || `gal-${Date.now()}`,
-      image_url: editingGalleryItem.image_url || '',
-      caption: editingGalleryItem.caption || 'Campus Photo',
-      display_order: editingGalleryItem.display_order || galleryItems.length + 1,
-      is_visible: editingGalleryItem.is_visible !== false,
-    };
-    let updatedList: GalleryItem[];
-    if (isNew) {
-      updatedList = [...galleryItems, finalItem];
-    } else {
-      updatedList = galleryItems.map((item) => (item.id === finalItem.id ? finalItem : item));
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setMessage({ type: 'success', text: data.message || 'Instagram feed synced successfully!' });
+        setIgLastSynced(new Date().toLocaleString());
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Failed to sync Instagram feed.' });
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Network error while syncing feed.' });
     }
-    const res = await persistGalleryItems(updatedList);
-    setSavingGallery(false);
-    if (res.success) {
-      setGalleryModalOpen(false);
-      setEditingGalleryItem(null);
-      setMessage({ type: 'success', text: isNew ? 'Gallery item added successfully.' : 'Gallery item updated.' });
-      setTimeout(() => setMessage(null), 4000);
-    } else {
-      setMessage({ type: 'error', text: res.error || 'Failed to save gallery item.' });
-    }
-  };
-
-  const handleGalleryDeleteConfirm = async () => {
-    if (!galleryDeleteTarget) return;
-    setSavingGallery(true);
-    const updatedList = galleryItems.filter((item) => item.id !== galleryDeleteTarget.id);
-    const res = await persistGalleryItems(updatedList);
-    setSavingGallery(false);
-    setGalleryDeleteTarget(null);
-    if (res.success) {
-      setMessage({ type: 'success', text: 'Gallery item deleted.' });
-      setTimeout(() => setMessage(null), 4000);
-    } else {
-      setMessage({ type: 'error', text: res.error || 'Failed to delete gallery item.' });
-    }
-  };
-
-  const handleGalleryToggleVisibility = async (id: string) => {
-    const updatedList = galleryItems.map((item) =>
-      item.id === id ? { ...item, is_visible: !item.is_visible } : item
-    );
-    await persistGalleryItems(updatedList);
-  };
-
-  const handleGalleryMove = async (index: number, direction: 'up' | 'down') => {
-    const newList = [...galleryItems];
-    const targetIdx = direction === 'up' ? index - 1 : index + 1;
-    if (targetIdx < 0 || targetIdx >= newList.length) return;
-    const temp = newList[index];
-    newList[index] = newList[targetIdx];
-    newList[targetIdx] = temp;
-    await persistGalleryItems(newList);
+    setSyncingIg(false);
   };
 
 
@@ -633,7 +616,7 @@ export default function AdminHomePageEditor() {
                     <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
                       <Upload className="w-4 h-4" />
                       <span>Upload</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setDirectorPhoto(url), { aspectRatio: 3 / 4, title: 'Crop Director Photo (3:4 Rectangle)' })} />
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setDirectorPhoto(url), { aspectRatio: 1, title: 'Crop Director Photo (1:1 Square)' })} />
                     </label>
                   </div>
                 </AdminFormGroup>
@@ -915,268 +898,114 @@ export default function AdminHomePageEditor() {
         )}
       </AdminCard>
 
-      {/* 5. PHOTO GALLERY ACCORDION — FULL CRUD */}
-      <AdminCard className="p-0 overflow-hidden">
-        <button
-          type="button"
-          onClick={() => toggleAccordion('gallery')}
-          className="w-full px-6 py-5 bg-[#F9FAFB] hover:bg-[#F3F4F6] flex items-center justify-between transition-colors border-b border-[#E5E7EB] text-left cursor-pointer"
-        >
-          <div>
-            <h3 className="text-lg font-bold text-[#1F2937]">5. Photo Gallery</h3>
-            <p className="text-xs text-[#6B7280]">Manage homepage Photo Gallery images, captions, order, and visibility.</p>
-          </div>
-          {openAccordions.gallery ? <ChevronDown className="w-5 h-5 text-[#6B7280]" /> : <ChevronRight className="w-5 h-5 text-[#6B7280]" />}
-        </button>
+      {/* 5. INSTAGRAM INTEGRATION ACCORDION */}
+      {(adminProfile?.role === 'admin' || adminProfile?.role === 'super_admin') && (
+        <AdminCard className="p-0 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => toggleAccordion('gallery')}
+            className="w-full px-6 py-5 bg-[#F9FAFB] hover:bg-[#F3F4F6] flex items-center justify-between transition-colors border-b border-[#E5E7EB] text-left cursor-pointer"
+          >
+            <div>
+              <h3 className="text-lg font-bold text-[#1F2937] flex items-center gap-2">
+                <InstagramIcon className="w-5 h-5 text-pink-600" />
+                5. Instagram Integration (Photo Gallery)
+              </h3>
+              <p className="text-xs text-[#6B7280]">Connect the FAST Multan Instagram Business account to auto-populate the Homepage Gallery.</p>
+            </div>
+            {openAccordions.gallery ? <ChevronDown className="w-5 h-5 text-[#6B7280]" /> : <ChevronRight className="w-5 h-5 text-[#6B7280]" />}
+          </button>
 
-        {openAccordions.gallery && (
-          <div className="p-6 space-y-6">
-            {/* Gallery Layout Settings */}
-            <div className="p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg space-y-3">
-              <h4 className="text-xs font-bold text-[#1F2937] uppercase tracking-wide">Gallery Layout (Images Per Row)</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <AdminFormGroup label="Row 1 Images">
-                  <select
-                    value={galleryRow1Count}
-                    onChange={(e) => setGalleryRow1Count(parseInt(e.target.value, 10))}
-                    className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-md text-sm text-[#1F2937]"
-                  >
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                      <option key={n} value={n}>{n} image{n > 1 ? 's' : ''}</option>
-                    ))}
-                  </select>
+          {openAccordions.gallery && (
+            <div className="p-6 space-y-6">
+              {/* Headings */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <AdminFormGroup label="Gallery Section Heading">
+                  <AdminInput value={galleryHeading} onChange={(e) => setGalleryHeading(e.target.value)} />
                 </AdminFormGroup>
-
-                <AdminFormGroup label="Row 2 Images">
-                  <select
-                    value={galleryRow2Count}
-                    onChange={(e) => setGalleryRow2Count(parseInt(e.target.value, 10))}
-                    className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-md text-sm text-[#1F2937]"
-                  >
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                      <option key={n} value={n}>{n} image{n > 1 ? 's' : ''}</option>
-                    ))}
-                  </select>
-                </AdminFormGroup>
-
-                <AdminFormGroup label="Row 3 Images">
-                  <select
-                    value={galleryRow3Count}
-                    onChange={(e) => setGalleryRow3Count(parseInt(e.target.value, 10))}
-                    className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-md text-sm text-[#1F2937]"
-                  >
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                      <option key={n} value={n}>{n} image{n > 1 ? 's' : ''}</option>
-                    ))}
-                  </select>
+                <AdminFormGroup label="Gallery Section Subtitle">
+                  <AdminInput value={gallerySubtitle} onChange={(e) => setGallerySubtitle(e.target.value)} />
                 </AdminFormGroup>
               </div>
-            </div>
 
-            <div className="flex justify-end">
-              <AdminButton variant="primary" onClick={() => handleSaveSection('gallery')} loading={savingSection === 'gallery'} icon={<Save className="w-4 h-4" />}>
-                Save Gallery Layout & Headings
-              </AdminButton>
-            </div>
-
-            {/* Gallery Items List */}
-            <div className="border-t border-[#E5E7EB] pt-5">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h4 className="text-sm font-bold text-[#1F2937]">Gallery Images</h4>
-                  <p className="text-xs text-[#6B7280] mt-0.5">{galleryItems.length} image{galleryItems.length !== 1 ? 's' : ''} in homepage gallery</p>
+              {/* Layout Settings */}
+              <div className="p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg space-y-3">
+                <h4 className="text-xs font-bold text-[#1F2937] uppercase tracking-wide">Gallery Layout (Posts Per Row)</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <AdminFormGroup label="Row 1 Images">
+                    <select value={galleryRow1Count} onChange={(e) => setGalleryRow1Count(parseInt(e.target.value, 10))} className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-md text-sm text-[#1F2937]">
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n} post{n > 1 ? 's' : ''}</option>)}
+                    </select>
+                  </AdminFormGroup>
+                  <AdminFormGroup label="Row 2 Images">
+                    <select value={galleryRow2Count} onChange={(e) => setGalleryRow2Count(parseInt(e.target.value, 10))} className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-md text-sm text-[#1F2937]">
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n} post{n > 1 ? 's' : ''}</option>)}
+                    </select>
+                  </AdminFormGroup>
+                  <AdminFormGroup label="Row 3 Images">
+                    <select value={galleryRow3Count} onChange={(e) => setGalleryRow3Count(parseInt(e.target.value, 10))} className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-md text-sm text-[#1F2937]">
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n} post{n > 1 ? 's' : ''}</option>)}
+                    </select>
+                  </AdminFormGroup>
                 </div>
-                <AdminButton variant="primary" onClick={handleGalleryAddOpen} icon={<Plus className="w-4 h-4" />}>
-                  Add Gallery Image
+              </div>
+
+              <div className="flex justify-end">
+                <AdminButton variant="primary" onClick={() => handleSaveSection('gallery')} loading={savingSection === 'gallery'} icon={<Save className="w-4 h-4" />}>
+                  Save Gallery Headings & Layout
                 </AdminButton>
               </div>
 
-              {galleryItems.length === 0 ? (
-                <div className="bg-[#F9FAFB] border border-dashed border-[#D1D5DB] rounded-lg p-10 text-center">
-                  <ImageIcon className="w-8 h-8 text-[#9CA3AF] mx-auto mb-2" />
-                  <p className="text-sm font-semibold text-[#374151] mb-1">No gallery images yet</p>
-                  <p className="text-xs text-[#6B7280] mb-4">Add photos to show them in the Homepage Photo Gallery carousel.</p>
-                  <AdminButton variant="primary" onClick={handleGalleryAddOpen} icon={<Plus className="w-4 h-4" />}>
-                    Add First Image
+              {/* Instagram Credentials */}
+              <div className="border-t border-[#E5E7EB] pt-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="text-sm font-bold text-[#1F2937] flex items-center gap-2">
+                      <InstagramIcon className="w-4 h-4 text-pink-600" />
+                      API Credentials
+                    </h4>
+                    <p className="text-xs text-[#6B7280] mt-0.5">Tokens are stored securely in Supabase Vault and never exposed to the frontend.</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <AdminFormGroup label="Instagram Graph API Access Token">
+                    <AdminInput type="password" value={igAccessToken} onChange={(e) => setIgAccessToken(e.target.value)} placeholder="IGQ..." />
+                  </AdminFormGroup>
+                  <AdminFormGroup label="Instagram Business Account ID">
+                    <AdminInput type="password" value={igBusinessId} onChange={(e) => setIgBusinessId(e.target.value)} placeholder="178414..." />
+                  </AdminFormGroup>
+                </div>
+                <div className="flex justify-end mt-4">
+                  <AdminButton variant="secondary" onClick={handleSaveIgCredentials} loading={savingIgCredentials} icon={<Save className="w-4 h-4" />}>
+                    Save API Credentials
                   </AdminButton>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {galleryItems.map((item, idx) => (
-                    <div
-                      key={item.id}
-                      className={`flex items-center gap-4 p-3 rounded-lg border ${item.is_visible ? 'border-[#E5E7EB] bg-white' : 'border-[#E5E7EB] bg-[#F9FAFB] opacity-60'}`}
-                    >
-                      {/* Thumbnail */}
-                      <div className="w-[72px] h-[54px] flex-shrink-0 rounded-md overflow-hidden bg-[#F3F4F6] border border-[#E5E7EB]">
-                        {item.image_url ? (
-                          <img src={item.image_url} alt={item.caption} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <ImageIcon className="w-5 h-5 text-[#9CA3AF]" />
-                          </div>
-                        )}
-                      </div>
+              </div>
 
-                      {/* Caption + Order badge */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#1F2937] truncate">{item.caption || 'Untitled'}</p>
-                        <p className="text-xs text-[#6B7280] mt-0.5">Position #{idx + 1} · {item.is_visible ? 'Visible' : 'Hidden'}</p>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
-                        <button
-                          type="button"
-                          title="Move Up"
-                          disabled={idx === 0}
-                          onClick={() => handleGalleryMove(idx, 'up')}
-                          className="p-1.5 text-[#6B7280] hover:text-[#1F2937] hover:bg-[#F3F4F6] rounded-md disabled:opacity-30 cursor-pointer"
-                        >
-                          <ArrowUp className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          title="Move Down"
-                          disabled={idx === galleryItems.length - 1}
-                          onClick={() => handleGalleryMove(idx, 'down')}
-                          className="p-1.5 text-[#6B7280] hover:text-[#1F2937] hover:bg-[#F3F4F6] rounded-md disabled:opacity-30 cursor-pointer"
-                        >
-                          <ArrowDown className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          title={item.is_visible ? 'Hide' : 'Show'}
-                          onClick={() => handleGalleryToggleVisibility(item.id)}
-                          className="p-1.5 text-[#6B7280] hover:text-[#1F2937] hover:bg-[#F3F4F6] rounded-md cursor-pointer"
-                        >
-                          {item.is_visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                        </button>
-                        <button
-                          type="button"
-                          title="Edit"
-                          onClick={() => handleGalleryEditOpen(item)}
-                          className="p-1.5 text-[#6B7280] hover:text-[#0C71C3] hover:bg-[#EFF6FF] rounded-md cursor-pointer"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          title="Delete"
-                          onClick={() => setGalleryDeleteTarget(item)}
-                          className="p-1.5 text-[#6B7280] hover:text-red-600 hover:bg-red-50 rounded-md cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </AdminCard>
-
-      {/* GALLERY ADD/EDIT MODAL */}
-      <AdminModal
-        isOpen={galleryModalOpen}
-        onClose={() => { setGalleryModalOpen(false); setEditingGalleryItem(null); }}
-        title={editingGalleryItem?.id ? 'Edit Gallery Image' : 'Add Gallery Image'}
-        maxWidth="md"
-        footer={
-          <>
-            <AdminButton variant="secondary" onClick={() => { setGalleryModalOpen(false); setEditingGalleryItem(null); }}>
-              Cancel
-            </AdminButton>
-            <AdminButton variant="primary" onClick={handleGallerySaveItem} loading={savingGallery || galleryImageUploading}>
-              {editingGalleryItem?.id ? 'Update Image' : 'Add to Gallery'}
-            </AdminButton>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          {/* Image Upload / Preview */}
-          <AdminFormGroup label="Gallery Photo">
-            <div className="space-y-2">
-              {/* Preview */}
-              <div className="w-full h-[160px] bg-[#F3F4F6] border border-[#E5E7EB] rounded-md overflow-hidden flex items-center justify-center">
-                {editingGalleryItem?.image_url ? (
-                  <img src={editingGalleryItem.image_url} alt="Gallery preview" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="flex flex-col items-center gap-1 text-[#9CA3AF]">
-                    <ImageIcon className="w-6 h-6" />
-                    <span className="text-[11px] font-semibold uppercase">No Image Yet</span>
+              {/* Sync Actions */}
+              <div className="border-t border-[#E5E7EB] pt-5">
+                <div className="flex items-center justify-between bg-blue-50 border border-blue-100 p-4 rounded-lg">
+                  <div>
+                    <h4 className="text-sm font-bold text-blue-900">Manual Feed Sync</h4>
+                    <p className="text-xs text-blue-700 mt-0.5">
+                      The feed automatically syncs hourly via a background cron job. You can also trigger a manual sync right now.
+                    </p>
+                    {igLastSynced && (
+                      <p className="text-xs font-semibold text-blue-800 mt-2">
+                        Last Synced: {igLastSynced}
+                      </p>
+                    )}
                   </div>
-                )}
+                  <AdminButton variant="primary" onClick={handleSyncInstagram} loading={syncingIg} icon={<RefreshCcw className="w-4 h-4" />}>
+                    Sync Instagram Feed Now
+                  </AdminButton>
+                </div>
               </div>
 
-              {/* Upload & Remove buttons */}
-              <div className="flex gap-2">
-                <label className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#0093DD] hover:bg-[#0C71C3] text-white text-xs font-semibold rounded-md cursor-pointer">
-                  {galleryImageUploading ? (
-                    <span>Uploading…</span>
-                  ) : (
-                    <>
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>{editingGalleryItem?.image_url ? 'Replace Image' : 'Upload Image'}</span>
-                    </>
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    disabled={galleryImageUploading}
-                    onChange={handleGalleryImageUpload}
-                  />
-                </label>
-                {editingGalleryItem?.image_url && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingGalleryItem((prev) => ({ ...prev, image_url: '' }))}
-                    className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-md border border-red-200 cursor-pointer"
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-
-              {/* Manual URL fallback */}
-              <AdminInput
-                value={editingGalleryItem?.image_url || ''}
-                onChange={(e) => setEditingGalleryItem((prev) => ({ ...prev, image_url: e.target.value }))}
-                placeholder="Or paste image URL directly…"
-              />
             </div>
-          </AdminFormGroup>
-
-          {/* Caption */}
-          <AdminFormGroup label="Caption / Title">
-            <AdminInput
-              value={editingGalleryItem?.caption || ''}
-              onChange={(e) => setEditingGalleryItem((prev) => ({ ...prev, caption: e.target.value }))}
-              placeholder="e.g. Campus Life, Convocation 2026…"
-            />
-          </AdminFormGroup>
-
-          {/* Visible toggle */}
-          <AdminToggle
-            label="Visible on Homepage Gallery"
-            checked={editingGalleryItem?.is_visible !== false}
-            onChange={(checked) => setEditingGalleryItem((prev) => ({ ...prev, is_visible: checked }))}
-            description="When enabled, this photo will appear in the Homepage photo gallery carousel."
-          />
-        </div>
-      </AdminModal>
-
-      {/* GALLERY DELETE CONFIRM MODAL */}
-      <DeleteConfirmModal
-        isOpen={!!galleryDeleteTarget}
-        onClose={() => setGalleryDeleteTarget(null)}
-        onConfirm={handleGalleryDeleteConfirm}
-        itemTitle={galleryDeleteTarget?.caption}
-        loading={savingGallery}
-      />
+          )}
+        </AdminCard>
+      )}
 
 
 

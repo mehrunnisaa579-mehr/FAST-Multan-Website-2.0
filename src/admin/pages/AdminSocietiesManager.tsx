@@ -59,6 +59,8 @@ export interface SocietyCMSItem {
   vp2_photo_url?: string;
   vp2_photo?: string;
   instagram_url: string;
+  registration_url?: string;
+  show_registration_button?: boolean;
   display_order: number;
   is_visible: boolean;
   stat1_label?: string;
@@ -254,6 +256,8 @@ export default function AdminSocietiesManager() {
           vp2_name: s.vp2_name || '',
           vice_president_2_photo_url: s.vice_president_2_photo_url || s.vp2_photo_url || s.vp2_photo || '',
           instagram_url: s.instagram_url || '',
+          registration_url: s.registration_url || '',
+          show_registration_button: s.show_registration_button ?? false,
           display_order: s.display_order || idx + 1,
           is_visible: s.is_visible ?? true,
           stat1_label: s.stat1_label || '',
@@ -330,6 +334,8 @@ export default function AdminSocietiesManager() {
       vp2_name: '',
       vice_president_2_photo_url: '',
       instagram_url: '',
+      registration_url: '',
+      show_registration_button: false,
       display_order: societies.length + 1,
       is_visible: true,
       stat1_label: 'Active Members',
@@ -380,6 +386,8 @@ export default function AdminSocietiesManager() {
       vp2_name: editingSociety.vp2_name || '',
       vice_president_2_photo_url: editingSociety.vice_president_2_photo_url || '',
       instagram_url: editingSociety.instagram_url || '',
+      registration_url: editingSociety.registration_url || '',
+      show_registration_button: editingSociety.show_registration_button ?? false,
       display_order: editingSociety.display_order || societies.length + 1,
       is_visible: editingSociety.is_visible ?? true,
       stat1_label: editingSociety.stat1_label || '',
@@ -484,6 +492,8 @@ export default function AdminSocietiesManager() {
         vp2_name: soc.vp2_name,
         vice_president_2_photo_url: soc.vice_president_2_photo_url,
         instagram_url: soc.instagram_url,
+        registration_url: soc.registration_url,
+        show_registration_button: soc.show_registration_button,
         display_order: soc.display_order,
         is_visible: soc.is_visible,
         stat1_label: soc.stat1_label,
@@ -801,6 +811,20 @@ export default function AdminSocietiesManager() {
                 placeholder="https://www.instagram.com/your_society"
               />
             </AdminFormGroup>
+            <AdminFormGroup label="Registration Button URL">
+              <AdminInput
+                value={editingSociety?.registration_url || ''}
+                onChange={(e) => setEditingSociety((prev) => ({ ...prev, registration_url: e.target.value }))}
+                placeholder="https://forms.google.com/..."
+              />
+            </AdminFormGroup>
+            <div className="pt-2">
+              <AdminToggle
+                label="Show Register Now Button"
+                checked={editingSociety?.show_registration_button ?? false}
+                onChange={(checked) => setEditingSociety((prev) => ({ ...prev, show_registration_button: checked }))}
+              />
+            </div>
           </div>
 
           {/* SECTION 6: LEADERSHIP (PUBLIC 3 ROLES: MENTOR, CO-MENTOR, PRESIDENT) */}
@@ -833,7 +857,7 @@ export default function AdminSocietiesManager() {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => handleFileUpload(e, (url) => setEditingSociety((prev) => ({ ...prev, mentor_photo_url: url })), { aspectRatio: 3 / 4, title: 'Crop Faculty Mentor Photo (3:4 Rectangle)' })}
+                      onChange={(e) => handleFileUpload(e, (url) => setEditingSociety((prev) => ({ ...prev, mentor_photo_url: url })), { aspectRatio: 1, title: 'Crop Faculty Mentor Photo (1:1 Square)' })}
                     />
                   </label>
                 </div>
@@ -864,7 +888,7 @@ export default function AdminSocietiesManager() {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => handleFileUpload(e, (url) => setEditingSociety((prev) => ({ ...prev, co_mentor_photo_url: url })), { aspectRatio: 3 / 4, title: 'Crop Co-Faculty Mentor Photo (3:4 Rectangle)' })}
+                      onChange={(e) => handleFileUpload(e, (url) => setEditingSociety((prev) => ({ ...prev, co_mentor_photo_url: url })), { aspectRatio: 1, title: 'Crop Co-Faculty Mentor Photo (1:1 Square)' })}
                     />
                   </label>
                 </div>
@@ -895,7 +919,7 @@ export default function AdminSocietiesManager() {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={(e) => handleFileUpload(e, (url) => setEditingSociety((prev) => ({ ...prev, president_photo_url: url })), { aspectRatio: 3 / 4, title: 'Crop Society President Photo (3:4 Rectangle)' })}
+                      onChange={(e) => handleFileUpload(e, (url) => setEditingSociety((prev) => ({ ...prev, president_photo_url: url })), { aspectRatio: 1, title: 'Crop Society President Photo (1:1 Square)' })}
                     />
                   </label>
                 </div>

@@ -73,11 +73,9 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 36px 32px;
+  align-items: flex-start;
+  gap: 40px 60px;
   width: 100%;
-  padding-left: 24px;
-  padding-right: 24px;
-  box-sizing: border-box;
 }
 
 .dept-research-wrapper {

@@ -13,8 +13,6 @@ export default function AdminServicesManager() {
   const [gatepassTitle, setGatepassTitle] = useState('Gatepass Application Service');
   const [gatepassText, setGatepassText] = useState('Online application for student and visitor vehicle entry passes...');
   
-  const [careerTitle, setCareerTitle] = useState('Career Services Office (CSO)');
-  const [careerText, setCareerText] = useState('Assisting students with internship placements, job fairs, and resume reviews...');
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -25,8 +23,6 @@ export default function AdminServicesManager() {
       if (data) {
         if (data.gatepassTitle) setGatepassTitle(data.gatepassTitle);
         if (data.gatepassText) setGatepassText(data.gatepassText);
-        if (data.careerTitle) setCareerTitle(data.careerTitle);
-        if (data.careerText) setCareerText(data.careerText);
       }
     };
     loadServicesData();
@@ -39,8 +35,6 @@ export default function AdminServicesManager() {
     const payload = {
       gatepassTitle,
       gatepassText,
-      careerTitle,
-      careerText,
     };
 
     const res = await cmsService.saveSetting('services_content', payload, 'Campus Services Content');
@@ -58,7 +52,7 @@ export default function AdminServicesManager() {
     <div className="space-y-6 text-left max-w-[1250px]">
       <AdminPageHeader
         title="Manage Campus Services"
-        subtitle="Update Gatepass Application and Career Services Office details."
+        subtitle="Update Gatepass Application details."
         action={
           <AdminButton variant="primary" onClick={handleSave} loading={saving} icon={<Save className="w-4 h-4" />}>
             Save Changes
@@ -95,17 +89,7 @@ export default function AdminServicesManager() {
         </AdminCard>
       </AdminSection>
 
-      {/* Career Services Office */}
-      <AdminSection title="Career Services Office (CSO)" description="Job placement, internship listings, and corporate relations.">
-        <AdminCard className="space-y-4">
-          <AdminFormGroup label="Service Title">
-            <AdminInput value={careerTitle} onChange={(e) => setCareerTitle(e.target.value)} />
-          </AdminFormGroup>
-          <AdminFormGroup label="Career Services Overview">
-            <AdminTextarea rows={4} value={careerText} onChange={(e) => setCareerText(e.target.value)} />
-          </AdminFormGroup>
-        </AdminCard>
-      </AdminSection>
+
 
       <div className="pt-4 border-t border-[#E5E7EB] flex justify-end">
         <AdminButton variant="primary" onClick={handleSave} loading={saving} icon={<Save className="w-4 h-4" />}>

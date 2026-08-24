@@ -4,6 +4,11 @@ import { Clock, MapPin, Play, Newspaper, ArrowRight } from 'lucide-react';
 import { homepageContent } from '../../data/homepage';
 import { cmsService } from '../../services/cmsService';
 import CmsImage from '../ui/CmsImage';
+import { useVisibilityObserver } from '../ui/ViewportObserver';
+
+interface EventsAndNewsProps {
+  data?: any;
+}
 
 // Helper to format 24h time string to 12h AM/PM format
 function formatTimeTo12Hour(timeStr?: string): string {
@@ -36,7 +41,9 @@ function formatTimeTo12Hour(timeStr?: string): string {
   return clean;
 }
 
-export default function EventsAndNews() {
+export default function EventsAndNews({ data }: EventsAndNewsProps) {
+  const { ref, isVisible } = useVisibilityObserver('100px');
+
   // ── Events State ──────────────────────────────────────────────────────────
   const [eventsHeading, setEventsHeading] = useState('Upcoming Events');
   const [eventsSubtitle, setEventsSubtitle] = useState(
@@ -50,29 +57,21 @@ export default function EventsAndNews() {
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
+    if (data) {
+      if (data.eventsHeading) setEventsHeading(data.eventsHeading);
+      if (data.eventsSubtitle) setEventsSubtitle(data.eventsSubtitle);
+      if (data.newsHeading) setNewsHeading(data.newsHeading);
+    }
+  }, [data]);
+
+  useEffect(() => {
     const fetchData = async () => {
-      // 1. Fetch CMS homepage settings
-      const settings = await cmsService.getSetting<any>(
-        'homepage_full_content',
-        null
-      );
-
-      if (settings) {
-        if (settings.eventsHeading) setEventsHeading(settings.eventsHeading);
-        if (settings.eventsSubtitle) setEventsSubtitle(settings.eventsSubtitle);
-        if (settings.newsHeading) setNewsHeading(settings.newsHeading);
-      }
-
       // 2. Fetch CMS Events
-      const cmsEvents = await cmsService.getEvents();
+      const cmsEvents = await cmsService.getRecentEvents(4);
       let formattedEvents: any[] = [];
 
       if (cmsEvents && cmsEvents.length > 0) {
         formattedEvents = cmsEvents
-          .filter(
-            (item: any) =>
-              item.published !== false && item.is_archived !== true
-          )
           .map((item: any) => {
             const rawDate = item.event_date || '19 Aug';
             const parts = rawDate.trim().split(/\s+/);
@@ -131,17 +130,11 @@ export default function EventsAndNews() {
       setEventsList(combinedEvents.slice(0, 4));
 
       // 3. Fetch CMS News
-      const cmsNews = await cmsService.getNews();
+      const cmsNews = await cmsService.getRecentNews(4);
       let formattedNews: any[] = [];
 
       if (cmsNews && cmsNews.length > 0) {
         formattedNews = cmsNews
-          .filter(
-            (n: any) =>
-              n.published !== false &&
-              n.is_visible !== false &&
-              n.is_archived !== true
-          )
           .map((n: any, idx: number) => {
             const pubDate = n.published_at ? new Date(n.published_at) : null;
             const diffDays = pubDate && !isNaN(pubDate.getTime())
@@ -195,12 +188,12 @@ export default function EventsAndNews() {
   const infiniteNews = [...newsList, ...newsList];
 
   return (
-    <section className="py-[48px] sm:py-[54px] w-full bg-[#F7F9FC]">
+    <section ref={ref} className="py-[48px] sm:py-[54px] w-full bg-[#F7F9FC]">
       <div className="w-full max-w-[1300px] mx-auto px-[16px] sm:px-[32px] md:px-[40px]">
 
         {/* Section Header */}
         <div className="text-center mb-[24px] relative -top-[20px]">
-          <h2 className="text-[28px] font-bold text-[#0C71C3] uppercase tracking-tight leading-[1.5]">
+          <h2 className="text-[32px] sm:text-[38px] md:text-[40px] lg:text-[46px] leading-[1.1] font-bold text-[#0C71C3] uppercase tracking-tight md:tracking-[-1px] text-center">
             {eventsHeading}
           </h2>
 
@@ -343,7 +336,7 @@ export default function EventsAndNews() {
             {/* Scroller Track Window */}
             <div
               className={`relative flex-1 overflow-hidden my-2 select-none h-[290px] ${
-                isPaused ? 'news-vertical-scroller-paused' : ''
+                isPaused || !isVisible ? 'news-vertical-scroller-paused' : ''
               }`}
               onMouseEnter={() => setIsPaused(true)}
               onMouseLeave={() => setIsPaused(false)}

@@ -3,6 +3,9 @@ import { Outlet, useLocation } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
 import AdminTopbar from '../components/AdminTopbar';
 import AdminScrollToTop from '../components/AdminScrollToTop';
+import { useAdminAuth } from '../auth/useAdminAuth';
+import { getModuleForPath, canAccessModule, getLandingPageForRole } from '../config/rolePermissions';
+import { Navigate } from 'react-router-dom';
 
 export default function AdminLayout() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -15,6 +18,7 @@ export default function AdminLayout() {
   });
 
   const location = useLocation();
+  const { adminProfile } = useAdminAuth();
 
   const toggleSidebar = () => {
     if (window.innerWidth < 1024) {
@@ -40,6 +44,7 @@ export default function AdminLayout() {
     if (path.endsWith('/faculty')) return 'Manage Faculty';
     if (path.endsWith('/societies')) return 'Manage Societies';
     if (path.endsWith('/gallery')) return 'Manage Photo Gallery';
+    if (path.endsWith('/web-team')) return 'Manage Web Team';
     if (path.endsWith('/header-footer')) return 'Header & Footer Settings';
     if (path.endsWith('/media')) return 'Media Library';
     if (path.endsWith('/about')) return 'About Pages';
@@ -53,6 +58,13 @@ export default function AdminLayout() {
     if (path.endsWith('/settings')) return 'Settings';
     return 'Dashboard';
   };
+
+  const currentModule = getModuleForPath(location.pathname);
+  const hasAccess = canAccessModule(adminProfile?.role, currentModule);
+
+  if (!hasAccess) {
+    return <Navigate to={getLandingPageForRole(adminProfile?.role)} replace />;
+  }
 
   return (
     <div className="min-h-screen bg-[#F6F8FB] flex flex-col lg:flex-row text-[#1F2937] admin-body">

@@ -153,7 +153,7 @@ export default function AdminResearchGroupsManager() {
           alert(`Upload failed: ${res.error}`);
         }
       },
-      opts || { aspectRatio: 3 / 4, title: 'Crop Research Lead Photo (3:4 Rectangle)' }
+      opts || { aspectRatio: 1, title: 'Crop Research Lead Photo (1:1 Square)' }
     );
   };
 
@@ -246,7 +246,7 @@ export default function AdminResearchGroupsManager() {
               <label className="px-3 py-2 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#1F2937] text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1.5 flex-shrink-0 border border-[#E5E7EB]">
                 <Upload className="w-4 h-4" />
                 <span>{leadPhotoUrl ? 'Replace Photo' : 'Upload Photo'}</span>
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setLeadPhotoUrl(url), { aspectRatio: 3 / 4, title: 'Crop Research Lead Photo (3:4 Rectangle)' })} />
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (url) => setLeadPhotoUrl(url), { aspectRatio: 1, title: 'Crop Research Lead Photo (1:1 Square)' })} />
               </label>
             </div>
           </AdminFormGroup>
